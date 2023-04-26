@@ -32,5 +32,18 @@ namespace firstAPI
 				return Convert.ToBase64String(passwordBytes);
 			}
 		}
+
+		public static string GetToken()
+		{
+			using (var randomNumberGenerator = RandomNumberGenerator.Create())
+			{
+				byte[] token = new byte[32];
+				randomNumberGenerator.GetBytes(token);
+
+				return Convert.ToBase64String(token).Replace('+', '-')
+					.Replace('/', '_')
+					.TrimEnd('=');
+			}
+		}
 	}
 }

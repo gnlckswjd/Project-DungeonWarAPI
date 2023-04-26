@@ -71,7 +71,7 @@ namespace firstAPI.Services
 				var accountInformation =
 					await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
 
-				if (accountInformation == null || accountInformation.AccountId ==0)
+				if (accountInformation == null || accountInformation.AccountId == 0)
 				{
 					return new Tuple<ErrorCode, Int64>(ErrorCode.LoginFailUserNotExist, 0);
 				}

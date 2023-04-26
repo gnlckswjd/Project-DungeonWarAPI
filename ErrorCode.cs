@@ -11,7 +11,8 @@ public enum ErrorCode : int
 	LoginFailNotUser = 2021,
 	LoginFailWrongPassword = 2022,
 	LoginFailUserNotExist =2023,
-	LoginFailRegisterToRedis = 2024
+	LoginFailRegisterToRedis = 2024,
+	LoginFailRegisterToRedisException =2025
 	
 
 

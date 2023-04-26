@@ -21,24 +21,38 @@ namespace firstAPI.Services
 
 		public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, Int64 accountId)
 		{
-			var tempKey = "RegisterUser";
-			
-			var result = ErrorCode.None;
+
+		
+			var authInfo = new AuthInfo
+			{
+				AuthToken = authToken,
+				AccountId = accountId
+			};
+
 			try
 			{
-				var redis = new RedisString<string>(_redisConnection, tempKey, TimeSpan.FromMinutes(15));
-
-				await redis.SetAsync(authToken);
+				var redis = new RedisString<AuthInfo>(_redisConnection, email, TimeSpan.FromMinutes(60));
+				if (await redis.SetAsync(authInfo) == false)
+				{
+					return ErrorCode.LoginFailRegisterToRedis;
+				}
 			}
 			catch (Exception e)
 			{
 
-				result = ErrorCode.LoginFailRegisterToRedis;
-				return result;
+				return ErrorCode.LoginFailRegisterToRedisException;
 			}
 			
 
-			return result;
+			return ErrorCode.None;
 		}
 	}
+
+	class AuthInfo
+	{
+		public string AuthToken { get; set; }
+		public Int64 AccountId { get; set; }
+
+	}
+	
 }

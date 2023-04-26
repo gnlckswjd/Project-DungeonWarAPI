@@ -32,9 +32,10 @@ namespace firstAPI.Controllers
 				return response;
 			}
 			//토큰 발행 후 추가
-			var tempToken = "999";
+			var authToken = Security.GetToken(); 
 
-			errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, tempToken,accountId);
+
+			errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken,accountId);
 
 			if (errorCode != ErrorCode.None)
 			{
@@ -42,7 +43,7 @@ namespace firstAPI.Controllers
 				return response;
 			}
 
-			response.AuthToken = tempToken;
+			response.AuthToken = authToken;
 			return response;
 
 		}
