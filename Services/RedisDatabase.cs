@@ -7,6 +7,7 @@ namespace firstAPI.Services
 	public interface IMemoryDatabase
 	{
 		Task<ErrorCode> RegisterUserAsync(string id, string authToken, Int64 accountID);
+		Task<Tuple<ErrorCode, List<string>>> GetNoticeAsync();
 	}
 	public class RedisDatabase : IMemoryDatabase
 	{
@@ -46,9 +47,41 @@ namespace firstAPI.Services
 
 			return ErrorCode.None;
 		}
+
+		public async Task<Tuple<ErrorCode, List<string>>> GetNoticeAsync()
+		{
+
+			try
+			{
+				var redis = new RedisSet<string>(_redisConnection, nameof(Notifications), null);
+
+				var notifications = await redis.MembersAsync();
+
+				if (!notifications.Any())
+				{
+					return new Tuple<ErrorCode, List<string>>(ErrorCode.None, new List<string> {"공지 없음"});
+				}
+
+
+				return new Tuple<ErrorCode, List<string>>(ErrorCode.None, notifications.ToList());
+			}
+			catch (Exception e)
+			{
+				return new Tuple<ErrorCode, List<string>>(ErrorCode.NoticeFailExceptions, null);
+			}
+			
+
+		}
+
+		
 	}
 
-	class AuthInfo
+	public class Notifications
+	{
+		public string Notification { get; set; }
+	}
+
+	public class AuthInfo
 	{
 		public string AuthToken { get; set; }
 		public Int64 AccountId { get; set; }

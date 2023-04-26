@@ -43,6 +43,9 @@ namespace firstAPI.Controllers
 				return response;
 			}
 
+			var (noticeErrorCode, notifications) = await _memoryDatabase.GetNoticeAsync();
+
+			response.Notifications=notifications;
 			response.AuthToken = authToken;
 			return response;
 
@@ -61,5 +64,7 @@ namespace firstAPI.Controllers
 		public ErrorCode Result { get; set; }
 
 		public string AuthToken { get; set; }
+
+		public List<string> Notifications { get; set; }
 	}
 }

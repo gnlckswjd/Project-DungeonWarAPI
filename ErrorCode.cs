@@ -12,7 +12,9 @@ public enum ErrorCode : int
 	LoginFailWrongPassword = 2022,
 	LoginFailUserNotExist =2023,
 	LoginFailRegisterToRedis = 2024,
-	LoginFailRegisterToRedisException =2025
+	LoginFailRegisterToRedisException =2025,
+	NoticeFailExceptions=2050,
+
 	
 
 
