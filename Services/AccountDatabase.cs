@@ -42,8 +42,8 @@ namespace firstAPI.Services
 		{
 			try
 			{
-				var saltValue = 991;
-				var hashingPassword = 119;
+				var saltValue = Security.GetSalt();
+				var hashingPassword = Security.GetHashedPassword(password,saltValue);
 				Console.WriteLine($"[CreateAccount] Email: {email}, Password: {password}");
 				var count = await _queryFactory.Query("account")
 					.InsertAsync(new { Email = email, SaltValue = saltValue, HashedPassword = hashingPassword });
