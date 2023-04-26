@@ -3,10 +3,16 @@
 public enum ErrorCode : int
 {
 	None=0,
+	CreateAccountFailException = 1010,
+	CreateAccountFailDuplicate =1011,
+	CreateAccountFailInsert =1012,
 
-	CreateAccountFailDuplicate =11,
-	CreateAccountFailException = 12,
-	LoginFailNotUser = 21,
-	LoginFailWrongPassword = 22,
+	LoginFailException = 2020,
+	LoginFailNotUser = 2021,
+	LoginFailWrongPassword = 2022,
+	LoginFailUserNotExist =2023,
+	LoginFailRegisterToRedis = 2024
+	
+
 
 }
