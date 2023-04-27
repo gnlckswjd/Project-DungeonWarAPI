@@ -1,9 +1,10 @@
-﻿using firstAPI.Services;
-using Microsoft.AspNetCore.Http;
+﻿using DungeonWarAPI.ModelPacket;
+using DungeonWarAPI.Services;
+using DungeonWarAPI;
 using Microsoft.AspNetCore.Mvc;
 
-namespace firstAPI.Controllers
-{
+namespace DungeonWarAPI.Controllers;
+
 	[Route("[controller]")]
 	[ApiController]
 	public class CreateAccountController : ControllerBase
@@ -34,17 +35,3 @@ namespace firstAPI.Controllers
 			return response;
 		}
 	}
-
-	public class PkCreateAccountRequest
-	{
-		public String Email { get; set; }
-
-		public String Password { get; set; }
-	}
-
-	public class PkCreateAccountResponse
-	{
-		public ErrorCode Result { get; set; }
-	}
-
-}

@@ -1,20 +1,14 @@
 ﻿using System.Data;
+using DungeonWarAPI.Services;
+using DungeonWarAPI;
+using DungeonWarAPI.ModelDatabase;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 
-namespace firstAPI.Services
-{
-	public interface IAccountDatabase : IDisposable
-	{
-		public Task<ErrorCode> CreateAccountAsync(String id, String password);
+namespace DungeonWarAPI.Services;
 
-		public Task<ErrorCode> CreateDefaultDataAsync(String id, String password);
-		public Task<Tuple<ErrorCode,Int64>> VerifyAccount(String id, String password);
-
-
-	}
 
 	public class AccountDatabase : IAccountDatabase
 	{
@@ -102,19 +96,4 @@ namespace firstAPI.Services
 		}
 	}
 
-	public class DatabaseConfiguration
-	{
-		public String AccountDatabase { get; set; }
-		public String GameDatabase { get; set; }
-		public String Redis { get; set; }
-	}
 
-	public class Account
-	{
-		public Int64 AccountId { get; set; }
-
-		public String Email { get; set; }
-		public String HashedPassword { get; set; }
-		public String SaltValue { get; set; }
-	}
-}

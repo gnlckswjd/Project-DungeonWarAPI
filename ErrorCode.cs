@@ -1,4 +1,4 @@
-﻿namespace firstAPI;
+﻿namespace DungeonWarAPI;
 
 public enum ErrorCode : int
 {

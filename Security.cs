@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace firstAPI
+namespace DungeonWarAPI
 {
 	public static class Security
 	{

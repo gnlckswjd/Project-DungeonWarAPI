@@ -1,70 +1,51 @@
-﻿using firstAPI.Services;
-using Microsoft.AspNetCore.Http;
+﻿using DungeonWarAPI.ModelPacket;
+using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using SqlKata;
 
-namespace firstAPI.Controllers
+namespace DungeonWarAPI.Controllers;
+
+[Route("[controller]")]
+[ApiController]
+public class LoginController : ControllerBase
 {
-	[Route("[controller]")]
-	[ApiController]
-	public class LoginController : ControllerBase
+	private readonly IAccountDatabase _accountDatabase;
+	private readonly IMemoryDatabase _memoryDatabase;
+
+	public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IMemoryDatabase memoryDb)
 	{
-		private readonly IAccountDatabase _accountDatabase;
-		private readonly IMemoryDatabase _memoryDatabase;
+		_accountDatabase = accountDb;
+		_memoryDatabase = memoryDb;
+	}
 
-		public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IMemoryDatabase memoryDb)
+	[HttpPost]
+	public async Task<PkLoginResponse> Post(PkLoginRequest request)
+	{
+		var response = new PkLoginResponse();
+
+		//유저 정보 확인
+		var (errorCode, accountId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
+		if (errorCode != ErrorCode.None)
 		{
-		
-			_accountDatabase = accountDb;
-			_memoryDatabase = memoryDb;
-		}
-
-		[HttpPost]
-		public async Task<PkLoginResponse> Post(PkLoginRequest request)
-		{
-			var response = new PkLoginResponse();
-
-			//유저 정보 확인
-			var (errorCode, accountId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
-			if (errorCode != ErrorCode.None)
-			{
-				response.Result = errorCode;
-				return response;
-			}
-			//토큰 발행 후 추가
-			var authToken = Security.GetToken(); 
-
-
-			errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken,accountId);
-
-			if (errorCode != ErrorCode.None)
-			{
-				response.Result = errorCode;
-				return response;
-			}
-
-			var (noticeErrorCode, notifications) = await _memoryDatabase.GetNoticeAsync();
-
-			response.Notifications=notifications;
-			response.AuthToken = authToken;
+			response.Result = errorCode;
 			return response;
-
 		}
 
-	}
-	public class PkLoginRequest
-	{
-		public String Email { get; set; }
+		//토큰 발행 후 추가
+		var authToken = Security.GetToken();
 
-		public String Password { get; set; }
-	}
 
-	public class PkLoginResponse
-	{
-		public ErrorCode Result { get; set; }
+		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, accountId);
 
-		public string AuthToken { get; set; }
+		if (errorCode != ErrorCode.None)
+		{
+			response.Result = errorCode;
+			return response;
+		}
 
-		public List<string> Notifications { get; set; }
+		var (noticeErrorCode, notifications) = await _memoryDatabase.GetNoticeAsync();
+
+		response.Notifications = notifications;
+		response.AuthToken = authToken;
+		return response;
 	}
 }
