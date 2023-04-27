@@ -9,7 +9,11 @@ namespace firstAPI.Services
 	public interface IAccountDatabase : IDisposable
 	{
 		public Task<ErrorCode> CreateAccountAsync(String id, String password);
+
+		public Task<ErrorCode> CreateDefaultDataAsync(String id, String password);
 		public Task<Tuple<ErrorCode,Int64>> VerifyAccount(String id, String password);
+
+
 	}
 
 	public class AccountDatabase : IAccountDatabase
@@ -55,15 +59,27 @@ namespace firstAPI.Services
 
 				return ErrorCode.None;
 			}
-			catch (Exception e)
+			catch (MySqlException e)
 			{
+				if (e.Number == 1062)
+				{
+					return ErrorCode.CreateAccountFailDuplicate;
+				}
+
 				Console.WriteLine(e);
 				return ErrorCode.CreateAccountFailException;
 			}
 
 		}
 
-		public async Task<Tuple<ErrorCode, Int64>> VerifyAccount(string email, string password)
+		public async Task<ErrorCode> CreateDefaultDataAsync(String id, String password)
+		{
+
+
+			throw new NotImplementedException();
+		}
+
+		public async Task<Tuple<ErrorCode, Int64>> VerifyAccount(String email, String password)
 		{
 
 			try
@@ -89,7 +105,7 @@ namespace firstAPI.Services
 	public class DatabaseConfiguration
 	{
 		public String AccountDatabase { get; set; }
-		public String GameDb { get; set; }
+		public String GameDatabase { get; set; }
 		public String Redis { get; set; }
 	}
 

@@ -7,7 +7,7 @@ namespace firstAPI
 	public static class Security
 	{
 
-		public static string GetSalt()
+		public static String GetSalt()
 		{
 			using (var randomNumberGenerator = RandomNumberGenerator.Create())
 			{
@@ -19,7 +19,7 @@ namespace firstAPI
 			}
 		}
 
-		public static string GetHashedPassword(string password, string salt)
+		public static String GetHashedPassword(String password, String salt)
 		{
 			byte[] passwordBytes = Encoding.UTF8.GetBytes(password + salt);
 			using (var sha256Hash = SHA256.Create())
@@ -33,7 +33,7 @@ namespace firstAPI
 			}
 		}
 
-		public static string GetToken()
+		public static String GetToken()
 		{
 			using (var randomNumberGenerator = RandomNumberGenerator.Create())
 			{
