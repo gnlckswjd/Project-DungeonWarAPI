@@ -40,9 +40,7 @@ namespace DungeonWarAPI
 				byte[] token = new byte[32];
 				randomNumberGenerator.GetBytes(token);
 
-				return Convert.ToBase64String(token).Replace('+', '-')
-					.Replace('/', '_')
-					.TrimEnd('=');
+				return Convert.ToBase64String(token);
 			}
 		}
 	}
