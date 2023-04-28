@@ -2,6 +2,7 @@
 using DungeonWarAPI.Services;
 using DungeonWarAPI;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -22,12 +23,12 @@ public class CreateAccountController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<PkCreateAccountResponse> Post(PkCreateAccountRequest packet)
+	public async Task<CreateAccountResponse> Post(CreateAccountRequest request)
 	{
-		var response = new PkCreateAccountResponse();
+		var response = new CreateAccountResponse();
 		var guid = Security.GetNewGUID();
 
-		var errorCode = await _accountDatabase.CreateAccountAsync(packet.Email, packet.Password, guid);
+		var errorCode = await _accountDatabase.CreateAccountAsync(request.Email, request.Password, guid);
 		response.Result = errorCode;
 		if (errorCode != ErrorCode.None)
 		{
@@ -52,7 +53,7 @@ public class CreateAccountController : ControllerBase
 			await _accountDatabase.RollbackAccountAsync(guid);
 		}
 
-		Console.WriteLine("Account is Created!");
+		_logger.ZLogInformationWithPayload(new{Email = request.Email},"CreateAccount Success");
 		return response;
 	}
 }

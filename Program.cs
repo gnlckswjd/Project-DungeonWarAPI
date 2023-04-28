@@ -1,4 +1,5 @@
-using DungeonWarAPI.ModelDatabase;
+using System.Text.Json;
+using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Services;
 using ZLogger;
 
@@ -26,52 +27,50 @@ void DependencyInjection()
 	builder.Services.AddTransient<IGameDatabase, GameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 }
+
 void SetLogger()
 {
 	var logging = builder.Logging;
 	logging.ClearProviders();
-	logging.AddZLoggerConsole();
-	logging.AddZLoggerFile("test.log");
-	/* 
-    var fileDir = configuration["logdir"];
 
-    var exists = Directory.Exists(fileDir);
+	var fileDirection = configuration["logDirection"];
+	if (!Directory.Exists(fileDirection))
+	{
+		Directory.CreateDirectory(fileDirection);
+	}
 
-    if (!exists)
-    {
-        Directory.CreateDirectory(fileDir);
-    }
+	logging.AddZLoggerRollingFile(
+		fileNameSelector: (dt, x) => $"{fileDirection}/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log",
+		timestampPattern: x => x.ToLocalTime().Date,
+		rollSizeKB: 1024,
+		configure: options =>
+		{
+			options.EnableStructuredLogging = true;
 
-    logging.AddZLoggerRollingFile(
-        (dt, x) => $"{fileDir}{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log",
-        x => x.ToLocalTime().Date, 1024,
-        options =>
-        {
-            options.EnableStructuredLogging = true;
-            var time = JsonEncodedText.Encode("Timestamp");
-            //DateTime.Now는 UTC+0 이고 한국은 UTC+9이므로 9시간을 더한 값을 출력한다.
-            var timeValue = JsonEncodedText.Encode(DateTime.Now.AddHours(9).ToString("yyyy/MM/dd HH:mm:ss"));
+			var timeName = JsonEncodedText.Encode("Timestamp");
 
-            options.StructuredLoggingFormatter = (writer, info) =>
-            {
-                writer.WriteString(time, timeValue);
-                info.WriteToJsonWriter(writer);
-            };
-        }); // 1024KB
-        
-    logging.AddZLoggerConsole(options =>
-    {
-        options.EnableStructuredLogging = true;
-        var time = JsonEncodedText.Encode("EventTime");
-        var timeValue = JsonEncodedText.Encode(DateTime.Now.AddHours(9).ToString("yyyy/MM/dd HH:mm:ss"));
+			options.StructuredLoggingFormatter = (writer, info) =>
+			{
+				var timeValue = JsonEncodedText.Encode(info.Timestamp.AddHours(9).ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
-        options.StructuredLoggingFormatter = (writer, info) =>
-        {
-            writer.WriteString(time, timeValue);
-            info.WriteToJsonWriter(writer);
-        };
-    });
-	 *
-	 * 
-	 */
+				writer.WriteString(timeName, timeValue);
+				info.WriteToJsonWriter(writer);
+			};
+		}
+	);
+
+
+	logging.AddZLoggerConsole(options =>
+	{
+		options.EnableStructuredLogging = true;
+
+		var timeName = JsonEncodedText.Encode("Timestamp");
+		options.StructuredLoggingFormatter = (writer, info) =>
+		{
+			var timeValue = JsonEncodedText.Encode(info.Timestamp.AddHours(9).ToString("yyyy-MM-dd HH:mm:ss.fff"));
+
+			writer.WriteString(timeName, timeValue);
+			info.WriteToJsonWriter(writer);
+		};
+	});
 }

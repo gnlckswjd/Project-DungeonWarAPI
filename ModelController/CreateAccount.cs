@@ -1,19 +1,14 @@
-﻿
+﻿using DungeonWarAPI;
+
 namespace DungeonWarAPI.ModelPacket;
 
-public class PkLoginRequest
+public class CreateAccountRequest
 {
 	public String Email { get; set; }
-
 	public String Password { get; set; }
 }
 
-public class PkLoginResponse
+public class CreateAccountResponse
 {
 	public ErrorCode Result { get; set; }
-
-	public String AuthToken { get; set; }
-
-	public List<String> Notifications { get; set; }
 }
-

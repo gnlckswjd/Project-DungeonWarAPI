@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ModelPacket\" />
+    <Folder Include="ModelController\" />
     <Folder Include="ModelDatabase\" />
   </ItemGroup>
 

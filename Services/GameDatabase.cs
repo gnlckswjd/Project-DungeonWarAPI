@@ -1,9 +1,10 @@
-﻿using DungeonWarAPI.ModelDatabase;
+﻿using DungeonWarAPI.ModelConfiguration;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.Data;
+using ZLogger;
 
 namespace DungeonWarAPI.Services;
 
@@ -38,6 +39,7 @@ public class GameDatabase : IGameDatabase
 	{
 		try
 		{
+			_logger.ZLogDebugWithPayload(new {Guid = guid}, "CreateUser Start");
 			Console.WriteLine($"[Create UserData] guid: {guid}");
 
 			var count = await _queryFactory.Query("user_data")
@@ -45,6 +47,7 @@ public class GameDatabase : IGameDatabase
 
 			if (count != 1)
 			{
+				_logger.ZLogErrorWithPayload( new {ErrorCode = ErrorCode.CreateUserFailInsert }, "CreateUserFailInsert");
 				return ErrorCode.CreateUserFailInsert;
 			}
 
@@ -52,7 +55,7 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e);
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserFailException }, "CreateUserFailException");
 			return ErrorCode.CreateUserFailException;
 		}
 	}
@@ -61,6 +64,7 @@ public class GameDatabase : IGameDatabase
 	{
 		try
 		{
+			_logger.ZLogDebugWithPayload(new{Guid = guid}, "CreateUserItem Start");
 			var columns = new[] { "AccountId", "ItemCode", "EnhancementValue", "ItemCount" };
 			var data = new[]
 			{
@@ -73,6 +77,7 @@ public class GameDatabase : IGameDatabase
 
 			if (count < 1)
 			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserItemFailInsert }, "CreateUserItemFailInsert");
 				return ErrorCode.CreateUserItemFailInsert;
 			}
 
@@ -80,7 +85,7 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e);
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserItemFailException }, "CreateUserItemFailException");
 			return ErrorCode.CreateUserItemFailException;
 		}
 	}
@@ -89,11 +94,14 @@ public class GameDatabase : IGameDatabase
 	{
 		try
 		{
+			_logger.ZLogDebugWithPayload(new {Guid = guid}, "RollbackUser Start");
+
 			var count = await _queryFactory.Query("user_data")
 				.Where("AccountId", "=", guid).DeleteAsync();
 
 			if (count < 1)
 			{
+				_logger.ZLogDebugWithPayload(new {ErrorCode = ErrorCode.RollbackUserDataFailDelete }, "RollbackUserDataFailDelete");
 				return ErrorCode.RollbackUserDataFailDelete;
 			}
 
@@ -101,7 +109,7 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e);
+			_logger.ZLogDebugWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailException }, "RollbackUserDataFailException");
 			return ErrorCode.RollbackUserDataFailException;
 		}
 	}

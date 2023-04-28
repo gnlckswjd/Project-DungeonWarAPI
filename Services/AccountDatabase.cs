@@ -1,9 +1,11 @@
 ﻿using System.Data;
+using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.ModelDatabase;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
+using ZLogger;
 
 namespace DungeonWarAPI.Services;
 
@@ -41,13 +43,14 @@ public class AccountDatabase : IAccountDatabase
 			var hashingPassword = Security.GetNewHashedPassword(password, saltValue);
 
 
-			Console.WriteLine($"[CreateAccount] Email: {email}, Password: {password}");
+			_logger.ZLogInformationWithPayload( new {Email= email, Password= password} ,$"CreateAccount Start");
 			var count = await _queryFactory.Query("account")
 				.InsertAsync(new
 					{ AccountId = guid, Email = email, SaltValue = saltValue, HashedPassword = hashingPassword });
 
 			if (count != 1)
 			{
+				_logger.ZLogErrorWithPayload( new {ErrorCode=ErrorCode.CreateAccountFailInsert},$"CreateAccount Fail");
 				return ErrorCode.CreateAccountFailInsert;
 			}
 
@@ -57,10 +60,11 @@ public class AccountDatabase : IAccountDatabase
 		{
 			if (e.Number == 1062)
 			{
+				_logger.ZLogErrorWithPayload(new {ErrorCode = ErrorCode.CreateAccountFailDuplicate , Email = email},$"CreateAccount Exception");
 				return ErrorCode.CreateAccountFailDuplicate;
 			}
 
-			Console.WriteLine(e);
+			_logger.ZLogErrorWithPayload(new {ErrorCode = ErrorCode.CreateAccountFailDuplicate }, $"CreateAccount Exception");
 			return ErrorCode.CreateAccountFailException;
 		}
 	}
@@ -70,11 +74,13 @@ public class AccountDatabase : IAccountDatabase
 	{
 		try
 		{
+			_logger.ZLogDebugWithPayload(new {Guid=guid},$"RollbackAccount Start");
 			var count = await _queryFactory.Query("account")
 				.Where("AccountId", "=", guid).DeleteAsync();
 
 			if (count != 1)
 			{
+				_logger.ZLogErrorWithPayload(new {ErrorCode= ErrorCode.RollbackAccountFailDelete}, "RollbackAccount Fail");
 				return ErrorCode.RollbackAccountFailDelete;
 			}
 
@@ -82,7 +88,7 @@ public class AccountDatabase : IAccountDatabase
 		}
 		catch (Exception e)
 		{
-			Console.WriteLine(e);
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackAccountFailDelete }, "RollbackAccount Exception");
 			return ErrorCode.RollbackAccountFailException;
 		}
 	}
@@ -91,11 +97,13 @@ public class AccountDatabase : IAccountDatabase
 	{
 		try
 		{
+			_logger.ZLogDebugWithPayload(new { Email = email }, "VerifyAccount Start");
 			var accountInformation =
 				await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
 
 			if (accountInformation == null)
 			{
+				_logger.ZLogErrorWithPayload(new { Email = email }, "VerifyAccount Fail");
 				return new Tuple<ErrorCode, Byte[]>(ErrorCode.LoginFailUserNotExist, null);
 			}
 
@@ -103,6 +111,7 @@ public class AccountDatabase : IAccountDatabase
 		}
 		catch (Exception e)
 		{
+			_logger.ZLogErrorWithPayload(new { Email = email }, "VerifyAccount Exception");
 			return new Tuple<ErrorCode, Byte[]>(ErrorCode.LoginFailException, null);
 		}
 	}
