@@ -42,8 +42,13 @@ namespace DungeonWarAPI.Controllers;
 				return response;
 			}
 
-			//CreateUserItem
+			var errorCodeItem = await _gameDatabase.CreateUserItemAsync(guid);
+			response.Result = errorCodeItem;
 
+			if (errorCodeItem != ErrorCode.None)
+			{
+				//롤백
+			}
 
 			Console.WriteLine("Account is Created!");
 			return response;

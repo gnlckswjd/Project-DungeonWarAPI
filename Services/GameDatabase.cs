@@ -34,7 +34,7 @@ public class GameDatabase : IGameDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<ErrorCode> CreateUserAsync(byte[] guid)
+	public async Task<ErrorCode> CreateUserAsync(Byte[] guid)
 	{
 		try
 		{
@@ -48,8 +48,6 @@ public class GameDatabase : IGameDatabase
 				return ErrorCode.CreateUserFailInsert;
 			}
 
-
-
 			return ErrorCode.None;
 		}
 		catch (Exception e)
@@ -60,5 +58,31 @@ public class GameDatabase : IGameDatabase
 		
 	}
 
+	public async Task<ErrorCode> CreateUserItemAsync(Byte[] guid)
+	{
+		try
+		{
+			var columns = new[] { "AccountId", "ItemCode", "EnhancementValue", "ItemCount" };
+			var data = new []
+			{
+				new object[] {  guid,  5, 0, 5000  },
+				new object[] { guid, 2,0,1},
+				new object[] { guid, 3,0,1}
+			};
 
+			var count = await _queryFactory.Query("inventory").InsertAsync(columns, data);
+
+			if (count < 1)
+			{
+				return ErrorCode.CreateUserItemFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return ErrorCode.CreateUserItemFailException;
+		}
+	}
 }

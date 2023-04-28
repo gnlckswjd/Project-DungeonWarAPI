@@ -13,6 +13,9 @@ public enum ErrorCode : int
 	RollbackAccountFailException=1030,
 	RollbackAccountFailDelete=1031,
 
+	CreateUserItemFailException=1040,
+	CreateUserItemFailInsert = 1041,
+
 
 	LoginFailException = 2020,
 	LoginFailNotUser = 2021,

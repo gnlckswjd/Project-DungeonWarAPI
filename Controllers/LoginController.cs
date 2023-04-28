@@ -9,11 +9,13 @@ namespace DungeonWarAPI.Controllers;
 public class LoginController : ControllerBase
 {
 	private readonly IAccountDatabase _accountDatabase;
+	private readonly IGameDatabase _gameDatabase;
 	private readonly IMemoryDatabase _memoryDatabase;
 
-	public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IMemoryDatabase memoryDb)
+	public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IGameDatabase gameDatabase, IMemoryDatabase memoryDb)
 	{
 		_accountDatabase = accountDb;
+		_gameDatabase = gameDatabase;
 		_memoryDatabase = memoryDb;
 	}
 

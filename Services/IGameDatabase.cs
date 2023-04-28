@@ -2,5 +2,6 @@
 
 public interface IGameDatabase : IDisposable
 {
-	public Task<ErrorCode> CreateUserAsync(byte[] guid);
+	public Task<ErrorCode> CreateUserAsync(Byte[] guid);
+	public Task<ErrorCode> CreateUserItemAsync(Byte[] guid);
 }
