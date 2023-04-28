@@ -66,7 +66,6 @@ public class AccountDatabase : IAccountDatabase
 	}
 
 
-
 	public async Task<ErrorCode> RollbackAccountAsync(Byte[] guid)
 	{
 		try
@@ -78,6 +77,7 @@ public class AccountDatabase : IAccountDatabase
 			{
 				return ErrorCode.RollbackAccountFailDelete;
 			}
+
 			return ErrorCode.None;
 		}
 		catch (Exception e)

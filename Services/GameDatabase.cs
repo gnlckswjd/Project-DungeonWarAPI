@@ -41,7 +41,7 @@ public class GameDatabase : IGameDatabase
 			Console.WriteLine($"[Create UserData] guid: {guid}");
 
 			var count = await _queryFactory.Query("user_data")
-				.InsertAsync( new {AccountId=guid});
+				.InsertAsync(new { AccountId = guid });
 
 			if (count != 1)
 			{
@@ -55,7 +55,6 @@ public class GameDatabase : IGameDatabase
 			Console.WriteLine(e);
 			return ErrorCode.CreateUserFailException;
 		}
-		
 	}
 
 	public async Task<ErrorCode> CreateUserItemAsync(Byte[] guid)
@@ -63,11 +62,11 @@ public class GameDatabase : IGameDatabase
 		try
 		{
 			var columns = new[] { "AccountId", "ItemCode", "EnhancementValue", "ItemCount" };
-			var data = new []
+			var data = new[]
 			{
-				new object[] {  guid,  5, 0, 5000  },
-				new object[] { guid, 2,0,1},
-				new object[] { guid, 3,0,1}
+				new object[] { guid, 5, 0, 5000 },
+				new object[] { guid, 2, 0, 1 },
+				new object[] { guid, 3, 0, 1 }
 			};
 
 			var count = await _queryFactory.Query("inventory").InsertAsync(columns, data);
@@ -83,6 +82,27 @@ public class GameDatabase : IGameDatabase
 		{
 			Console.WriteLine(e);
 			return ErrorCode.CreateUserItemFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackUserAsync(byte[] guid)
+	{
+		try
+		{
+			var count = await _queryFactory.Query("user_data")
+				.Where("AccountId", "=", guid).DeleteAsync();
+
+			if (count < 1)
+			{
+				return ErrorCode.RollbackUserDataFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return ErrorCode.RollbackUserDataFailException;
 		}
 	}
 }
