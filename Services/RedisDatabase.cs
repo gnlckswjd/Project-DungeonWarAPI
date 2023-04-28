@@ -16,7 +16,7 @@ public class RedisDatabase : IMemoryDatabase
 		_redisConnection = new RedisConnection(config);
 	}
 
-	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, long accountId)
+	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, byte[] accountId)
 	{
 		var authInfo = new AuthInfo
 		{
@@ -45,7 +45,7 @@ public class RedisDatabase : IMemoryDatabase
 	{
 		try
 		{
-			var redis = new RedisSet<string>(_redisConnection, "Notification", null);
+			var redis = new RedisSet<string>(_redisConnection, "Notifications", null);
 
 			var notifications = await redis.MembersAsync();
 
@@ -62,10 +62,4 @@ public class RedisDatabase : IMemoryDatabase
 			return new Tuple<ErrorCode, List<string>>(ErrorCode.NoticeFailExceptions, null);
 		}
 	}
-}
-
-public class AuthInfo
-{
-	public string AuthToken { get; set; }
-	public long AccountId { get; set; }
 }
