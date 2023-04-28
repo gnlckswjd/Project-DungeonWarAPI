@@ -33,7 +33,7 @@ public class AccountDatabase : IAccountDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<ErrorCode> CreateAccountAsync(string email, string password, byte[] guid)
+	public async Task<ErrorCode> CreateAccountAsync(String email, String password, Byte[] guid)
 	{
 		try
 		{
@@ -65,28 +65,45 @@ public class AccountDatabase : IAccountDatabase
 		}
 	}
 
-	public async Task<ErrorCode> CreateDefaultDataAsync(string id, string password)
+
+
+	public async Task<ErrorCode> RollbackAccountAsync(Byte[] guid)
 	{
-		throw new NotImplementedException();
+		try
+		{
+			var count = await _queryFactory.Query("account")
+				.Where("AccountId", "=", guid).DeleteAsync();
+
+			if (count != 1)
+			{
+				return ErrorCode.RollbackAccountFailDelete;
+			}
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			return ErrorCode.RollbackAccountFailException;
+		}
 	}
 
-	public async Task<Tuple<ErrorCode, long>> VerifyAccount(string email, string password)
+	public async Task<Tuple<ErrorCode, Byte[]>> VerifyAccount(String email, String password)
 	{
 		try
 		{
 			var accountInformation =
 				await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
 
-			if (accountInformation == null || accountInformation.AccountId == 0)
+			if (accountInformation == null)
 			{
-				return new Tuple<ErrorCode, long>(ErrorCode.LoginFailUserNotExist, 0);
+				return new Tuple<ErrorCode, Byte[]>(ErrorCode.LoginFailUserNotExist, null);
 			}
 
-			return new Tuple<ErrorCode, long>(ErrorCode.None, accountInformation.AccountId);
+			return new Tuple<ErrorCode, Byte[]>(ErrorCode.None, accountInformation.AccountId);
 		}
 		catch (Exception e)
 		{
-			return new Tuple<ErrorCode, long>(ErrorCode.LoginFailException, 0);
+			return new Tuple<ErrorCode, Byte[]>(ErrorCode.LoginFailException, null);
 		}
 	}
 }

@@ -35,10 +35,14 @@ namespace DungeonWarAPI.Controllers;
 
 			var errorCodeGame = await _gameDatabase.CreateUserAsync(guid);
 			response.Result = errorCodeGame;
+
 			if (errorCodeGame != ErrorCode.None)
 			{
+				await _accountDatabase.RollbackAccountAsync(guid);
 				return response;
 			}
+
+			//CreateUserItem
 
 
 			Console.WriteLine("Account is Created!");

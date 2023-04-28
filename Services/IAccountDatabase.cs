@@ -2,8 +2,7 @@
 
 	public interface IAccountDatabase : IDisposable
 	{
-		public Task<ErrorCode> CreateAccountAsync(String id, String password, byte[] guid);
-
-		public Task<ErrorCode> CreateDefaultDataAsync(String id, String password);
-		public Task<Tuple<ErrorCode, Int64>> VerifyAccount(String id, String password);
+		public Task<ErrorCode> CreateAccountAsync(String id, String password, Byte[] guid);
+		public Task<ErrorCode> RollbackAccountAsync(Byte[] guid);
+		public Task<Tuple<ErrorCode, Byte[]>> VerifyAccount(String id, String password);
 	}

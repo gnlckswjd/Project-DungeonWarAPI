@@ -10,6 +10,9 @@ public enum ErrorCode : int
 	CreateUserFailException=1020,
 	CreateUserFailDuplicate =1021,
 	CreateUserFailInsert = 1022,
+	RollbackAccountFailException=1030,
+	RollbackAccountFailDelete=1031,
+
 
 	LoginFailException = 2020,
 	LoginFailNotUser = 2021,

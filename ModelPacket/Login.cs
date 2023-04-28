@@ -12,8 +12,8 @@ public class PkLoginResponse
 {
 	public ErrorCode Result { get; set; }
 
-	public string AuthToken { get; set; }
+	public String AuthToken { get; set; }
 
-	public List<string> Notifications { get; set; }
+	public List<String> Notifications { get; set; }
 }
 
