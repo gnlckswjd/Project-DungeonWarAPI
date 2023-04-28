@@ -31,7 +31,7 @@ public class LoginController : ControllerBase
 		}
 
 		//토큰 발행 후 추가
-		var authToken = Security.GetToken();
+		var authToken = Security.GetNewToken();
 
 
 		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, accountId);

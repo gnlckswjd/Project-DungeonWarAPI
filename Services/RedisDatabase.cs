@@ -27,7 +27,10 @@ public class RedisDatabase : IMemoryDatabase
 		try
 		{
 			var redis = new RedisString<AuthInfo>(_redisConnection, email, TimeSpan.FromMinutes(60));
-			if (await redis.SetAsync(authInfo) == false) return ErrorCode.LoginFailRegisterToRedis;
+			if (await redis.SetAsync(authInfo) == false)
+			{
+				return ErrorCode.LoginFailRegisterToRedis;
+			}
 		}
 		catch (Exception e)
 		{
@@ -47,7 +50,9 @@ public class RedisDatabase : IMemoryDatabase
 			var notifications = await redis.MembersAsync();
 
 			if (!notifications.Any())
+			{
 				return new Tuple<ErrorCode, List<string>>(ErrorCode.None, new List<string> { "공지 없음" });
+			}
 
 
 			return new Tuple<ErrorCode, List<string>>(ErrorCode.None, notifications.ToList());

@@ -23,6 +23,7 @@ app.Run(configuration["ServerAddress"]);
 void DependencyInjection()
 {
 	builder.Services.AddTransient<IAccountDatabase, AccountDatabase>();
+	builder.Services.AddTransient<IGameDatabase, GameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 }
 void SetLogger()

@@ -7,6 +7,10 @@ public enum ErrorCode : int
 	CreateAccountFailDuplicate =1011,
 	CreateAccountFailInsert =1012,
 
+	CreateUserFailException=1020,
+	CreateUserFailDuplicate =1021,
+	CreateUserFailInsert = 1022,
+
 	LoginFailException = 2020,
 	LoginFailNotUser = 2021,
 	LoginFailWrongPassword = 2022,

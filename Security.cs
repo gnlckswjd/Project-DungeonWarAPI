@@ -1,47 +1,47 @@
-﻿using System.Data.SqlTypes;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace DungeonWarAPI
+namespace DungeonWarAPI;
+
+public static class Security
 {
-	public static class Security
+	public static string GetNewSalt()
 	{
-
-		public static String GetSalt()
+		using (var randomNumberGenerator = RandomNumberGenerator.Create())
 		{
-			using (var randomNumberGenerator = RandomNumberGenerator.Create())
-			{
-				byte[] saltValue = new byte[64];
-				randomNumberGenerator.GetBytes(saltValue);
+			var saltValue = new byte[64];
+			randomNumberGenerator.GetBytes(saltValue);
 
-				return Convert.ToBase64String(saltValue);
-
-			}
+			return Convert.ToBase64String(saltValue);
 		}
+	}
 
-		public static String GetHashedPassword(String password, String salt)
+	public static string GetNewHashedPassword(string password, string salt)
+	{
+		var passwordBytes = Encoding.UTF8.GetBytes(password + salt);
+		using (var sha256Hash = SHA256.Create())
 		{
-			byte[] passwordBytes = Encoding.UTF8.GetBytes(password + salt);
-			using (var sha256Hash = SHA256.Create())
-			{
-				for (int i = 0; i < 2; i++)
-				{
-					passwordBytes = sha256Hash .ComputeHash(passwordBytes);
-				}
+			for (var i = 0; i < 2; i++) passwordBytes = sha256Hash.ComputeHash(passwordBytes);
 
-				return Convert.ToBase64String(passwordBytes);
-			}
+			return Convert.ToBase64String(passwordBytes);
 		}
+	}
 
-		public static String GetToken()
+	public static string GetNewToken()
+	{
+		using (var randomNumberGenerator = RandomNumberGenerator.Create())
 		{
-			using (var randomNumberGenerator = RandomNumberGenerator.Create())
-			{
-				byte[] token = new byte[32];
-				randomNumberGenerator.GetBytes(token);
+			var token = new byte[32];
+			randomNumberGenerator.GetBytes(token);
 
-				return Convert.ToBase64String(token);
-			}
+			return Convert.ToBase64String(token);
 		}
+	}
+
+	public static byte[] GetNewGUID()
+	{
+		var guid = Guid.NewGuid();
+
+		return guid.ToByteArray();
 	}
 }

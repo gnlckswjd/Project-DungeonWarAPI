@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using DungeonWarAPI.Services;
-using DungeonWarAPI;
 using DungeonWarAPI.ModelDatabase;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -9,91 +7,86 @@ using SqlKata.Execution;
 
 namespace DungeonWarAPI.Services;
 
+public class AccountDatabase : IAccountDatabase
+{
+	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
+	private readonly ILogger<AccountDatabase> _logger;
 
-	public class AccountDatabase : IAccountDatabase
+	private readonly IDbConnection _databaseConnection;
+	private readonly QueryFactory _queryFactory;
+
+	public AccountDatabase(ILogger<AccountDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
 	{
-		private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-		private readonly ILogger<AccountDatabase> _logger;
+		_configurationOptions = configurationOptions;
+		_logger = logger;
 
-		private IDbConnection _databaseConnection;
-		QueryFactory _queryFactory;
+		_databaseConnection = new MySqlConnection(configurationOptions.Value.AccountDatabase);
+		_databaseConnection.Open();
 
-		public AccountDatabase(ILogger<AccountDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
+		var compiler = new MySqlCompiler();
+		_queryFactory = new QueryFactory(_databaseConnection, compiler);
+	}
+
+	public void Dispose()
+	{
+		_databaseConnection.Dispose();
+		//_queryFactory.Dispose();
+	}
+
+	public async Task<ErrorCode> CreateAccountAsync(string email, string password, byte[] guid)
+	{
+		try
 		{
-			_configurationOptions = configurationOptions;
-			_logger = logger;
+			var saltValue = Security.GetNewSalt();
+			var hashingPassword = Security.GetNewHashedPassword(password, saltValue);
 
-			_databaseConnection = new MySqlConnection(configurationOptions.Value.AccountDatabase);
-			_databaseConnection.Open();
 
-			var compiler = new MySqlCompiler();
-			_queryFactory = new QueryFactory(_databaseConnection, compiler);
-		}
+			Console.WriteLine($"[CreateAccount] Email: {email}, Password: {password}");
+			var count = await _queryFactory.Query("account")
+				.InsertAsync(new
+					{ AccountId = guid, Email = email, SaltValue = saltValue, HashedPassword = hashingPassword });
 
-		public void Dispose()
-		{
-			_databaseConnection.Dispose();
-			//_queryFactory.Dispose();
-		}
-
-		public async Task<ErrorCode> CreateAccountAsync(String email, String password)
-		{
-			try
+			if (count != 1)
 			{
-				var saltValue = Security.GetSalt();
-				var hashingPassword = Security.GetHashedPassword(password,saltValue);
-				Console.WriteLine($"[CreateAccount] Email: {email}, Password: {password}");
-				var count = await _queryFactory.Query("account")
-					.InsertAsync(new { Email = email, SaltValue = saltValue, HashedPassword = hashingPassword });
-
-				if (count != 1)
-				{
-					return ErrorCode.CreateAccountFailInsert;
-				}
-
-				return ErrorCode.None;
-			}
-			catch (MySqlException e)
-			{
-				if (e.Number == 1062)
-				{
-					return ErrorCode.CreateAccountFailDuplicate;
-				}
-
-				Console.WriteLine(e);
-				return ErrorCode.CreateAccountFailException;
+				return ErrorCode.CreateAccountFailInsert;
 			}
 
+			return ErrorCode.None;
 		}
-
-		public async Task<ErrorCode> CreateDefaultDataAsync(String id, String password)
+		catch (MySqlException e)
 		{
-
-
-			throw new NotImplementedException();
-		}
-
-		public async Task<Tuple<ErrorCode, Int64>> VerifyAccount(String email, String password)
-		{
-
-			try
+			if (e.Number == 1062)
 			{
-				var accountInformation =
-					await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
-
-				if (accountInformation == null || accountInformation.AccountId == 0)
-				{
-					return new Tuple<ErrorCode, Int64>(ErrorCode.LoginFailUserNotExist, 0);
-				}
-
-				return new Tuple<ErrorCode, Int64>(ErrorCode.None, accountInformation.AccountId);
+				return ErrorCode.CreateAccountFailDuplicate;
 			}
-			catch (Exception e)
-			{
-				return new Tuple<ErrorCode, Int64>(ErrorCode.LoginFailException, 0);
-			}
-			
+
+			Console.WriteLine(e);
+			return ErrorCode.CreateAccountFailException;
 		}
 	}
 
+	public async Task<ErrorCode> CreateDefaultDataAsync(string id, string password)
+	{
+		throw new NotImplementedException();
+	}
 
+	public async Task<Tuple<ErrorCode, long>> VerifyAccount(string email, string password)
+	{
+		try
+		{
+			var accountInformation =
+				await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
+
+			if (accountInformation == null || accountInformation.AccountId == 0)
+			{
+				return new Tuple<ErrorCode, long>(ErrorCode.LoginFailUserNotExist, 0);
+			}
+
+			return new Tuple<ErrorCode, long>(ErrorCode.None, accountInformation.AccountId);
+		}
+		catch (Exception e)
+		{
+			return new Tuple<ErrorCode, long>(ErrorCode.LoginFailException, 0);
+		}
+	}
+}

@@ -11,10 +11,12 @@ namespace DungeonWarAPI.Controllers;
 	{
 		private readonly IAccountDatabase _accountDatabase;
 		private readonly ILogger<CreateAccountController> _logger;
+		private readonly IGameDatabase _gameDatabase;
 
-		public CreateAccountController(IAccountDatabase accountDatabase, ILogger<CreateAccountController> logger)
+		public CreateAccountController(IAccountDatabase accountDatabase, IGameDatabase gameDatabase,ILogger<CreateAccountController> logger)
 		{
 			_accountDatabase = accountDatabase;
+			_gameDatabase = gameDatabase;
 			_logger = logger;
 		}
 
@@ -22,14 +24,22 @@ namespace DungeonWarAPI.Controllers;
 		public async Task<PkCreateAccountResponse> Post(PkCreateAccountRequest packet)
 		{
 			var response = new PkCreateAccountResponse();
+			var guid = Security.GetNewGUID();
 
-
-			var errorCode= await _accountDatabase.CreateAccountAsync(packet.Email, packet.Password);
+			var errorCode= await _accountDatabase.CreateAccountAsync(packet.Email, packet.Password, guid );
 			response.Result = errorCode;
 			if (errorCode != ErrorCode.None)
 			{
 				return response;
 			}
+
+			var errorCodeGame = await _gameDatabase.CreateUserAsync(guid);
+			response.Result = errorCodeGame;
+			if (errorCodeGame != ErrorCode.None)
+			{
+				return response;
+			}
+
 
 			Console.WriteLine("Account is Created!");
 			return response;
