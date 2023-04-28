@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ModelController\" />
+    <Folder Include="RequestResponse\" />
     <Folder Include="ModelDatabase\" />
   </ItemGroup>
 
