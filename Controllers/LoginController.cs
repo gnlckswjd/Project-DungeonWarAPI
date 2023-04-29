@@ -47,6 +47,15 @@ public class LoginController : ControllerBase
 
 		//유저 아이템 게임디비에서 가져오기
 
+		var (itemsErrorCode, items) = await _gameDatabase.LoadUserItems(userData.GameUserId);
+
+		if (itemsErrorCode != ErrorCode.None)
+		{
+			response.Result = itemsErrorCode;
+			return response;
+		}
+
+		response.items = items;
 
 		//토큰 발행 후 추가
 		var authToken = Security.GetNewToken();

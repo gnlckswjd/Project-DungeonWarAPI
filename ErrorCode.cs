@@ -28,6 +28,9 @@ public enum ErrorCode : int
 	LoadUserDataFailException = 2030,
 	LoadUserDataFailSelect= 2031,
 
+	LoadUserItemsFailException=2036,
+	LoadUserItemsFailSelect=2037,
+
 	NoticeFailExceptions =2050,
 
 	
