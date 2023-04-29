@@ -35,6 +35,9 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
+		//기본 데이터 게임디비에서 가져오기
+
+
 		//토큰 발행 후 추가
 		var authToken = Security.GetNewToken();
 

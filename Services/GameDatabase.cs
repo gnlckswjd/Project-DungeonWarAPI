@@ -1,4 +1,5 @@
 ﻿using DungeonWarAPI.ModelConfiguration;
+using Humanizer;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
@@ -35,49 +36,47 @@ public class GameDatabase : IGameDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<ErrorCode> CreateUserAsync(Byte[] guid)
+	public async Task<Tuple<ErrorCode, Int32>> CreateUserAsync(Int32 playerId)
 	{
 		try
 		{
-			_logger.ZLogDebugWithPayload(new {Guid = guid}, "CreateUser Start");
-			Console.WriteLine($"[Create UserData] guid: {guid}");
+			_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "CreateUser Start");
 
-			var count = await _queryFactory.Query("user_data")
-				.InsertAsync(new { AccountId = guid });
+			var gameUserId = await _queryFactory.Query("user_data")
+				.InsertGetIdAsync<Int32>(new { PlayerId = playerId });
 
-			if (count != 1)
-			{
-				_logger.ZLogErrorWithPayload( new {ErrorCode = ErrorCode.CreateUserFailInsert }, "CreateUserFailInsert");
-				return ErrorCode.CreateUserFailInsert;
-			}
+			_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId }, "CreateUser Success");
 
-			return ErrorCode.None;
+			return new Tuple<ErrorCode,Int32> (ErrorCode.None, gameUserId);
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserFailException }, "CreateUserFailException");
-			return ErrorCode.CreateUserFailException;
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserFailException },
+				"CreateUserFailException");
+			return new Tuple<ErrorCode, Int32>(ErrorCode.CreateUserFailException, 0);
 		}
 	}
 
-	public async Task<ErrorCode> CreateUserItemAsync(Byte[] guid)
+	public async Task<ErrorCode> CreateUserItemAsync(Int32 gameUserId)
 	{
 		try
 		{
-			_logger.ZLogDebugWithPayload(new{Guid = guid}, "CreateUserItem Start");
-			var columns = new[] { "AccountId", "ItemCode", "EnhancementValue", "ItemCount" };
+			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
+			var columns = new[] { "GameUserId", "ItemCode", "UpgradeLevel", "ItemCount" };
 			var data = new[]
 			{
-				new object[] { guid, 5, 0, 5000 },
-				new object[] { guid, 2, 0, 1 },
-				new object[] { guid, 3, 0, 1 }
+				new object[] { gameUserId, 5, 0, 5000 },
+				new object[] { gameUserId, 2, 0, 1 },
+				new object[] { gameUserId, 3, 0, 1 }
 			};
 
-			var count = await _queryFactory.Query("inventory").InsertAsync(columns, data);
+			var count = await _queryFactory.Query("owned_items").InsertAsync(columns, data);
 
 			if (count < 1)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserItemFailInsert }, "CreateUserItemFailInsert");
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.CreateUserItemFailInsert, GameUserId = gameUserId },
+					"CreateUserItemFailInsert");
 				return ErrorCode.CreateUserItemFailInsert;
 			}
 
@@ -85,23 +84,26 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserItemFailException }, "CreateUserItemFailException");
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.CreateUserItemFailException, GameUserId = gameUserId },
+				"CreateUserItemFailException");
 			return ErrorCode.CreateUserItemFailException;
 		}
 	}
 
-	public async Task<ErrorCode> RollbackUserAsync(byte[] guid)
+	public async Task<ErrorCode> RollbackUserAsync(Int32 gameUserId)
 	{
 		try
 		{
-			_logger.ZLogDebugWithPayload(new {Guid = guid}, "RollbackUser Start");
+			_logger.ZLogDebugWithPayload(new { gameUserId = gameUserId }, "RollbackUser Start");
 
 			var count = await _queryFactory.Query("user_data")
-				.Where("AccountId", "=", guid).DeleteAsync();
+				.Where("GameUserId", "=", gameUserId).DeleteAsync();
 
 			if (count < 1)
 			{
-				_logger.ZLogDebugWithPayload(new {ErrorCode = ErrorCode.RollbackUserDataFailDelete }, "RollbackUserDataFailDelete");
+				_logger.ZLogDebugWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailDelete },
+					"RollbackUserDataFailDelete");
 				return ErrorCode.RollbackUserDataFailDelete;
 			}
 
@@ -109,7 +111,8 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogDebugWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailException }, "RollbackUserDataFailException");
+			_logger.ZLogDebugWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailException },
+				"RollbackUserDataFailException");
 			return ErrorCode.RollbackUserDataFailException;
 		}
 	}

@@ -19,14 +19,14 @@ public class RedisDatabase : IMemoryDatabase
 		_logger = logger;
 	}
 
-	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, byte[] accountId)
+	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, Int32 gameUserId)
 	{
 
 		_logger.ZLogDebugWithPayload(new {Email = email}, "RegisterUser Start");
 		var authInfo = new AuthInfo
 		{
 			AuthToken = authToken,
-			AccountId = accountId
+			GameUserId = gameUserId
 		};
 
 		try

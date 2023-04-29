@@ -26,31 +26,30 @@ public class CreateAccountController : ControllerBase
 	public async Task<CreateAccountResponse> Post(CreateAccountRequest request)
 	{
 		var response = new CreateAccountResponse();
-		var guid = Security.GetNewGUID();
 
-		var errorCode = await _accountDatabase.CreateAccountAsync(request.Email, request.Password, guid);
+		var (errorCode, accountId )= await _accountDatabase.CreateAccountAsync(request.Email, request.Password);
 		response.Result = errorCode;
 		if (errorCode != ErrorCode.None)
 		{
 			return response;
 		}
 
-		var errorCodeGame = await _gameDatabase.CreateUserAsync(guid);
+		var (errorCodeGame, gameUserId) = await _gameDatabase.CreateUserAsync(accountId);
 		response.Result = errorCodeGame;
 
 		if (errorCodeGame != ErrorCode.None)
 		{
-			await _accountDatabase.RollbackAccountAsync(guid);
+			await _accountDatabase.RollbackAccountAsync(accountId);
 			return response;
 		}
 
-		var errorCodeItem = await _gameDatabase.CreateUserItemAsync(guid);
+		var errorCodeItem = await _gameDatabase.CreateUserItemAsync(gameUserId);
 		response.Result = errorCodeItem;
 
 		if (errorCodeItem != ErrorCode.None)
 		{
-			await _gameDatabase.RollbackUserAsync(guid);
-			await _accountDatabase.RollbackAccountAsync(guid);
+			await _gameDatabase.RollbackUserAsync(gameUserId);
+			await _accountDatabase.RollbackAccountAsync(accountId);
 		}
 
 		_logger.ZLogInformationWithPayload(new{Email = request.Email},"CreateAccount Success");

@@ -17,8 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Game\" />
     <Folder Include="RequestResponse\" />
-    <Folder Include="ModelDatabase\" />
+    <Folder Include="Database\" />
   </ItemGroup>
 
 </Project>
