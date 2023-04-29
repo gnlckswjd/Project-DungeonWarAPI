@@ -28,7 +28,7 @@ public class LoginController : ControllerBase
 		var response = new LoginResponse();
 
 		//유저 정보 확인
-		var (errorCode, accountId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
+		var (errorCode, playerId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;
@@ -36,12 +36,22 @@ public class LoginController : ControllerBase
 		}
 
 		//기본 데이터 게임디비에서 가져오기
+		var (userErrorCode, userData) = await _gameDatabase.LoadUserData(playerId);
+
+		if (userErrorCode != ErrorCode.None)
+		{
+			response.Result = userErrorCode;
+			return response;
+		}
+		response.UserLevel=userData.UserLevel;
+
+		//유저 아이템 게임디비에서 가져오기
 
 
 		//토큰 발행 후 추가
 		var authToken = Security.GetNewToken();
 
-		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, accountId);
+		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, playerId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -51,7 +61,7 @@ public class LoginController : ControllerBase
 
 		var (noticeErrorCode, notifications) = await _memoryDatabase.LoadNoticeAsync();
 
-		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =accountId},"Login Success");
+		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =playerId},"Login Success");
 
 		response.Notifications = notifications;
 		response.AuthToken = authToken;

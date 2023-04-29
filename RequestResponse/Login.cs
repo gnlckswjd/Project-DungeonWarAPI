@@ -1,4 +1,6 @@
 ﻿
+using DungeonWarAPI.Game;
+
 namespace DungeonWarAPI.ModelPacket;
 
 public class LoginRequest
@@ -11,6 +13,9 @@ public class LoginRequest
 public class LoginResponse
 {
 	public ErrorCode Result { get; set; }
+
+	public Int32 UserLevel { get; set; }
+
 
 	public String AuthToken { get; set; }
 

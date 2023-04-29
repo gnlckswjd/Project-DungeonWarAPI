@@ -24,8 +24,13 @@ public enum ErrorCode : int
 	LoginFailUserNotExist =2023,
 	LoginFailRegisterToRedis = 2024,
 	LoginFailRegisterToRedisException =2025,
-	NoticeFailExceptions=2050,
 
+	LoadUserDataFailException = 2030,
+	LoadUserDataFailSelect= 2031,
+
+	NoticeFailExceptions =2050,
+
+	
 	
 
 

@@ -35,7 +35,7 @@ public class AccountDatabase : IAccountDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<Tuple<ErrorCode, Int32>> CreateAccountAsync(String email, String password)
+	public async Task<(ErrorCode errorCode, int playerId)> CreateAccountAsync(string email, string password)
 	{
 		try
 		{
@@ -50,11 +50,12 @@ public class AccountDatabase : IAccountDatabase
 
 			if (accountId <= 0)
 			{
-				_logger.ZLogErrorWithPayload( new{ErrorCode= ErrorCode.CreateAccountFailInsert, Email= email }, "CreateAccountFailInsert");
-				return new Tuple<ErrorCode, Int32>(ErrorCode.CreateAccountFailInsert, 0);
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateAccountFailInsert, Email = email },
+					"CreateAccountFailInsert");
+				return new (ErrorCode.CreateAccountFailInsert, 0);
 			}
 
-			return new Tuple<ErrorCode, Int32>(ErrorCode.None, accountId) ;
+			return new (ErrorCode.None, accountId);
 		}
 		catch (MySqlException e)
 		{
@@ -62,12 +63,12 @@ public class AccountDatabase : IAccountDatabase
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateAccountFailDuplicate, Email = email },
 					$"CreateAccount Exception");
-				return new Tuple<ErrorCode, int>(ErrorCode.CreateAccountFailDuplicate, 0) ;
+				return (ErrorCode.CreateAccountFailDuplicate, 0);
 			}
 
 			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateAccountFailDuplicate },
 				$"CreateAccount Exception");
-			return new Tuple<ErrorCode, Int32>(ErrorCode.CreateAccountFailException, 0);
+			return new (ErrorCode.CreateAccountFailException, 0);
 		}
 	}
 
@@ -97,7 +98,7 @@ public class AccountDatabase : IAccountDatabase
 		}
 	}
 
-	public async Task<Tuple<ErrorCode, Int32>> VerifyAccount(string email, string password)
+	public async Task<(ErrorCode errorCode, Int32 playerId)> VerifyAccount(string email, string password)
 	{
 		try
 		{
@@ -108,15 +109,15 @@ public class AccountDatabase : IAccountDatabase
 			if (accountInformation == null)
 			{
 				_logger.ZLogErrorWithPayload(new { Email = email }, "VerifyAccount Fail");
-				return new Tuple<ErrorCode, Int32>(ErrorCode.LoginFailUserNotExist, 0);
+				return (ErrorCode.LoginFailUserNotExist, 0);
 			}
 
-			return new Tuple<ErrorCode, Int32>(ErrorCode.None, accountInformation.AccountId);
+			return (ErrorCode.None, accountInformation.AccountId);
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(new { Email = email }, "VerifyAccount Exception");
-			return new Tuple<ErrorCode, Int32>(ErrorCode.LoginFailException, 0);
+			return (ErrorCode.LoginFailException, 0);
 		}
 	}
 }

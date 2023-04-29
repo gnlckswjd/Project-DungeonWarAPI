@@ -5,6 +5,7 @@ using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.Data;
+using DungeonWarAPI.Game;
 using ZLogger;
 
 namespace DungeonWarAPI.Services;
@@ -36,7 +37,7 @@ public class GameDatabase : IGameDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<Tuple<ErrorCode, Int32>> CreateUserAsync(Int32 playerId)
+	public async Task<(ErrorCode errorCode, Int32 gameUserId)> CreateUserAsync(int playerId)
 	{
 		try
 		{
@@ -47,13 +48,13 @@ public class GameDatabase : IGameDatabase
 
 			_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId }, "CreateUser Success");
 
-			return new Tuple<ErrorCode,Int32> (ErrorCode.None, gameUserId);
+			return (ErrorCode.None, gameUserId);
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateUserFailException },
 				"CreateUserFailException");
-			return new Tuple<ErrorCode, Int32>(ErrorCode.CreateUserFailException, 0);
+			return (ErrorCode.CreateUserFailException, 0);
 		}
 	}
 
@@ -70,7 +71,7 @@ public class GameDatabase : IGameDatabase
 				new object[] { gameUserId, 3, 0, 1 }
 			};
 
-			var count = await _queryFactory.Query("owned_items").InsertAsync(columns, data);
+			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
 
 			if (count < 1)
 			{
@@ -111,9 +112,32 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogDebugWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailException },
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackUserDataFailException },
 				"RollbackUserDataFailException");
 			return ErrorCode.RollbackUserDataFailException;
 		}
 	}
+
+	public async Task<(ErrorCode errorCode, UserData userData)> LoadUserData(int playerId)
+	{
+		try
+		{
+			var userData = await _queryFactory.Query("user_data")
+				.Where("PlayerId", "=", playerId).FirstOrDefaultAsync<UserData>();
+			if (userData == null)
+			{
+				_logger.ZLogErrorWithPayload(new{ErrorCode= ErrorCode.LoadUserDataFailSelect, PlayerId=playerId }, "ErrorCode.LoadUserDataFailSelect");
+				return (ErrorCode.LoadUserDataFailSelect, null);
+			}
+
+			return (ErrorCode.None, userData);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new{ErrorCode= ErrorCode.LoadUserDataFailException, PlayerId=playerId }, "LoadUserDataFailException");
+			return (ErrorCode.LoadUserDataFailException, null);
+		}
+	}
+
+	
 }
