@@ -60,7 +60,7 @@ public class LoginController : ControllerBase
 		//토큰 발행 후 추가
 		var authToken = Security.GetNewToken();
 
-		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, playerId);
+		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, userData);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -68,7 +68,7 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
-		var (noticeErrorCode, notifications) = await _memoryDatabase.LoadNoticeAsync();
+		var (noticeErrorCode, notifications) = await _memoryDatabase.LoadNotificationsAsync();
 
 		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =playerId},"Login Success");
 

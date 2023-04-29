@@ -1,5 +1,7 @@
-﻿using CloudStructures;
+﻿
+using CloudStructures;
 using CloudStructures.Structures;
+using DungeonWarAPI.Game;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.ModelDatabase;
 using Microsoft.Extensions.Options;
@@ -19,14 +21,15 @@ public class RedisDatabase : IMemoryDatabase
 		_logger = logger;
 	}
 
-	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, Int32 gameUserId)
+	public async Task<ErrorCode> RegisterUserAsync(string email, string authToken, UserData uesrData)
 	{
 
 		_logger.ZLogDebugWithPayload(new {Email = email}, "RegisterUser Start");
 		var authInfo = new AuthInfo
 		{
 			AuthToken = authToken,
-			GameUserId = gameUserId
+			GameUserId = uesrData.GameUserId,
+			PlayerId=uesrData.PlayerId,
 		};
 
 		try
@@ -48,7 +51,7 @@ public class RedisDatabase : IMemoryDatabase
 		return ErrorCode.None;
 	}
 
-	public async Task<Tuple<ErrorCode, List<string>>> LoadNoticeAsync()
+	public async Task<(ErrorCode errorCode, List<string> notifications)> LoadNotificationsAsync()
 	{
 		try
 		{
@@ -58,17 +61,17 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!notifications.Any())
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.NoticeFailExceptions }, "Zeor Notification");
-				return new Tuple<ErrorCode, List<string>>(ErrorCode.None, new List<string> { "공지 없음" });
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadNotificationsZeroNotification }, "LoadNotificationsZeroNotification");
+				return (ErrorCode.None, new List<string> { "공지 없음" });
 			}
 
 
-			return new Tuple<ErrorCode, List<string>>(ErrorCode.None, notifications.ToList());
+			return (ErrorCode.None, notifications.ToList());
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new {ErrorCode = ErrorCode.NoticeFailExceptions }, "NotieFailExceptions" );
-			return new Tuple<ErrorCode, List<string>>(ErrorCode.NoticeFailExceptions, null);
+			_logger.ZLogErrorWithPayload(new {ErrorCode = ErrorCode.LoadNotificationsFailException }, "LoadNotificationsException");
+			return (ErrorCode.LoadNotificationsFailException, null);
 		}
 	}
 }

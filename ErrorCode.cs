@@ -31,7 +31,8 @@ public enum ErrorCode : int
 	LoadUserItemsFailException=2036,
 	LoadUserItemsFailSelect=2037,
 
-	NoticeFailExceptions =2050,
+	LoadNotificationsFailException =2050,
+	LoadNotificationsZeroNotification=2051,
 
 	
 	
