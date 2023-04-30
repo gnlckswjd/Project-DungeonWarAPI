@@ -37,13 +37,13 @@ public class AccountDatabase : IAccountDatabase
 
 	public async Task<(ErrorCode errorCode, int playerId)> CreateAccountAsync(string email, string password)
 	{
+		var saltValue = Security.GetNewSalt();
+		var hashingPassword = Security.GetNewHashedPassword(password, saltValue);
+
+		_logger.ZLogDebugWithPayload(new { Email = email, Password = password }, $"CreateAccount Start");
+
 		try
 		{
-			var saltValue = Security.GetNewSalt();
-			var hashingPassword = Security.GetNewHashedPassword(password, saltValue);
-
-
-			_logger.ZLogDebugWithPayload(new { Email = email, Password = password }, $"CreateAccount Start");
 			var accountId = await _queryFactory.Query("account")
 				.InsertGetIdAsync<Int32>(new
 					{ Email = email, SaltValue = saltValue, HashedPassword = hashingPassword });
@@ -52,10 +52,10 @@ public class AccountDatabase : IAccountDatabase
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateAccountFailInsert, Email = email },
 					"CreateAccountFailInsert");
-				return new (ErrorCode.CreateAccountFailInsert, 0);
+				return new(ErrorCode.CreateAccountFailInsert, 0);
 			}
 
-			return new (ErrorCode.None, accountId);
+			return new(ErrorCode.None, accountId);
 		}
 		catch (MySqlException e)
 		{
@@ -68,16 +68,16 @@ public class AccountDatabase : IAccountDatabase
 
 			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.CreateAccountFailDuplicate },
 				$"CreateAccount Exception");
-			return new (ErrorCode.CreateAccountFailException, 0);
+			return new(ErrorCode.CreateAccountFailException, 0);
 		}
 	}
 
 
 	public async Task<ErrorCode> RollbackAccountAsync(Int32 accountId)
 	{
+		_logger.ZLogDebugWithPayload(new { AccountId = accountId }, $"RollbackAccount Start");
 		try
 		{
-			_logger.ZLogDebugWithPayload(new { AccountId = accountId }, $"RollbackAccount Start");
 			var count = await _queryFactory.Query("account")
 				.Where("AccountId", "=", accountId).DeleteAsync();
 
@@ -100,9 +100,9 @@ public class AccountDatabase : IAccountDatabase
 
 	public async Task<(ErrorCode errorCode, Int32 playerId)> VerifyAccount(string email, string password)
 	{
+		_logger.ZLogDebugWithPayload(new { Email = email }, "VerifyAccount Start");
 		try
 		{
-			_logger.ZLogDebugWithPayload(new { Email = email }, "VerifyAccount Start");
 			var accountInformation =
 				await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
 

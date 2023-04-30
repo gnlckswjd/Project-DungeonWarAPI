@@ -70,6 +70,7 @@ public class LoginController : ControllerBase
 
 		var (noticeErrorCode, notifications) = await _memoryDatabase.LoadNotificationsAsync();
 
+		
 		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =playerId},"Login Success");
 
 		response.Notifications = notifications;

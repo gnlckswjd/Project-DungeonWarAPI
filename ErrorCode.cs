@@ -34,8 +34,22 @@ public enum ErrorCode : int
 	LoadNotificationsFailException =2050,
 	LoadNotificationsZeroNotification=2051,
 
-	
-	
+	InvalidRequestHttpBody=3020,
+	WrongAuthTokenRequest=3021,
+
+	LoadAuthUserDataFailException = 3030,
+	LoadAuthUserDataFailEmpty = 3031,
+
+
+	LockUserRequestFailExceptions=3040,
+	LockUserRequestFailISet=3041,
+
+	UnLockUserRequestFailException=3050,
+	UnLockUserRequestFailNullKey=3051,
+	UnLockUserRequestFailDelete=3052,
+
+
+
 
 
 }

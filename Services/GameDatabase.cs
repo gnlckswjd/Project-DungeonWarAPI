@@ -120,15 +120,16 @@ public class GameDatabase : IGameDatabase
 
 	public async Task<(ErrorCode errorCode, UserData userData)> LoadUserData(int playerId)
 	{
+		_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "LoadUserData Start");
+
 		try
 		{
-			_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "LoadUserData Start");
-
 			var userData = await _queryFactory.Query("user_data")
 				.Where("PlayerId", "=", playerId).FirstOrDefaultAsync<UserData>();
 			if (userData == null)
 			{
-				_logger.ZLogErrorWithPayload(new{ErrorCode= ErrorCode.LoadUserDataFailSelect, PlayerId=playerId }, "ErrorCode.LoadUserDataFailSelect");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserDataFailSelect, PlayerId = playerId },
+					"ErrorCode.LoadUserDataFailSelect");
 				return (ErrorCode.LoadUserDataFailSelect, null);
 			}
 
@@ -136,30 +137,35 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new{ErrorCode= ErrorCode.LoadUserDataFailException, PlayerId=playerId }, "LoadUserDataFailException");
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserDataFailException, PlayerId = playerId },
+				"LoadUserDataFailException");
 			return (ErrorCode.LoadUserDataFailException, null);
 		}
 	}
 
 	public async Task<(ErrorCode errorCode, List<OwnedItem> items)> LoadUserItems(Int32 gameUserId)
 	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadUserItems Start");
 		try
 		{
-			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadUserItems Start");
-
 			var items = await _queryFactory.Query("owned_item").Where("GameUserId", "=", gameUserId)
 				.GetAsync<OwnedItem>();
 
 			if (!items.Any())
 			{
-				_logger.ZLogErrorWithPayload(new{ErrorCode=ErrorCode.LoadUserItemsFailSelect, GameUserId=gameUserId}, "LoadUserItemsFailSelect");
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadUserItemsFailSelect, GameUserId = gameUserId },
+					"LoadUserItemsFailSelect");
 				return (ErrorCode.LoadUserItemsFailSelect, null);
 			}
+
 			return (ErrorCode.None, items.ToList());
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserItemsFailException, GameUserId = gameUserId }, "LoadUserItemsFailException");
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.LoadUserItemsFailException, GameUserId = gameUserId },
+				"LoadUserItemsFailException");
 			return (ErrorCode.LoadUserItemsFailException, null);
 		}
 	}

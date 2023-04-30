@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DungeonWarAPI.Middleware;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Services;
 using ZLogger;
@@ -16,7 +17,7 @@ SetLogger();
 
 var app = builder.Build();
 app.UseRouting();
-
+app.UseUserAuthentication();
 app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
 app.Run(configuration["ServerAddress"]);
