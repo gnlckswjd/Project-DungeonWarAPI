@@ -26,7 +26,9 @@ void DependencyInjection()
 {
 	builder.Services.AddTransient<IAccountDatabase, AccountDatabase>();
 	builder.Services.AddTransient<IGameDatabase, GameDatabase>();
+	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
+	builder.Services.AddSingleton<MasterDataManager>();
 }
 
 void SetLogger()

@@ -3,6 +3,22 @@
 public enum ErrorCode : int
 {
 	None=0,
+
+	LoadAttendanceRewardFailException =100,
+	LoadAttendanceRewardsFailSelect =101,
+	LoadItemsFailException =200,
+	LoadItemsFailSelect = 201,
+	LoadItemAttributeFailException =300,
+	LoadItemAttributeFailSelect = 301,
+	LoadPackageItemFailException =400,
+	LoadPackageItemFailSelect = 401,
+	LoadShopPackagesFailException =500,
+	LoadShopPackagesFailSelect = 501,
+	LoadStageItemsFailException =600,
+	LoadStageItemsFailSelect = 601,
+	LoadStageNpcsFailException =700,
+	LoadStageNpcsFailSelect = 701,
+
 	CreateAccountFailException = 1010,
 	CreateAccountFailDuplicate =1011,
 	CreateAccountFailInsert =1012,
@@ -35,7 +51,9 @@ public enum ErrorCode : int
 	LoadNotificationsZeroNotification=2051,
 
 	InvalidRequestHttpBody=3020,
-	WrongAuthTokenRequest=3021,
+	WrongAppVersion=3021,
+	WrongMasterDataVersion=3022,
+	WrongAuthTokenRequest=3023,
 
 	LoadAuthUserDataFailException = 3030,
 	LoadAuthUserDataFailEmpty = 3031,
