@@ -5,7 +5,6 @@ namespace DungeonWarAPI.ModelPacket;
 public class MailPageRequest
 {
 	public Int32  PageNumber { get; set; }
-	public String  Email { get; set; }
 }
 
 public class MailPageResponse

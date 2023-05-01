@@ -13,4 +13,6 @@ public interface IGameDatabase : IDisposable
 	public Task<(ErrorCode, List<OwnedItem> )> LoadUserItems(Int32 gameUserId);
 
 	public Task<(ErrorCode, List<Mail> )> LoadUserMails(Int32 gameUserId, Int32 pageNumber);
+
+	public Task<ErrorCode> MarkMailAsRead(Int32 gameUserId, Int64 mailId);
 }

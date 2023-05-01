@@ -179,7 +179,7 @@ public class GameDatabase : IGameDatabase
 			var mails = await _queryFactory.Query("mail")
 				.Where("GameUserId", "=", gameUserId)
 				.OrderByDesc("MailId")
-				.Limit(20).Offset((pageNumber-1)*20)
+				.Limit(Mail.MailCountInPage).Offset((pageNumber-1)* Mail.MailCountInPage)
 				.GetAsync<Mail>();
 			if (!mails.Any())
 			{
@@ -193,6 +193,61 @@ public class GameDatabase : IGameDatabase
 		{
 			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadMailsFailException, GameUserId = gameUserId, PageNumber = pageNumber }, "LoadMailsFailException");
 			return (ErrorCode.LoadMailsFailException, null);
+		}
+	}
+
+	public async Task<ErrorCode> MarkMailAsRead(Int32 gameUserId, Int64 mailId)
+	{
+		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId,MailId=mailId }, "SetTrueIsRead");
+
+		var errorCode= await VerifyMailOwnerId(gameUserId, mailId);
+
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
+
+		try
+		{
+			var count = await _queryFactory.Query("mail")
+				.Where("MailId", "=", mailId)
+				.UpdateAsync(new { IsRead = true });
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.MarkMailAsReadFailUpdate, GameUserId = gameUserId, MailId = mailId }, "MarkMailAsReadFailUpdate");
+				return ErrorCode.MarkMailAsReadFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.MarkMailAsReadFailExceptions, GameUserId = gameUserId, MailId = mailId }, "MarkMailAsReadFailExceptions");
+			return ErrorCode.MarkMailAsReadFailExceptions;
+		}
+	}
+
+	public async Task<ErrorCode> VerifyMailOwnerId(Int32 gameUserId, Int64 mailId)
+	{
+		try
+		{
+			var mailUserId = await _queryFactory.Query("mail")
+				.Where("MailId", "=", mailId)
+				.Select("GameUserId")
+				.FirstOrDefaultAsync<Int32>();
+
+			if (mailUserId != gameUserId)
+			{
+				_logger.ZLogErrorWithPayload(new{ErrorCode=ErrorCode.VerifyMailOwnerIdFailWrongId, GameUserId=gameUserId,MailId=mailId}, "VerifyMailOwnerIdFailWrongId");
+				return ErrorCode.VerifyMailOwnerIdFailWrongId;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.VerifyMailOwnerIdFailException, GameUserId = gameUserId, MailId = mailId }, "VerifyMailOwnerIdFailException");
+			return ErrorCode.VerifyMailOwnerIdFailException;
 		}
 	}
 }

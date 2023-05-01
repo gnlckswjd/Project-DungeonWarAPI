@@ -56,6 +56,11 @@ public enum ErrorCode : int
 	StoreUserMailPageFailException= 2070,
 	StoreUserMailPageFailSet=2071,
 
+	VerifyMailOwnerIdFailException = 2080,
+	VerifyMailOwnerIdFailWrongId= 2081,
+	MarkMailAsReadFailUpdate=2085,
+	MarkMailAsReadFailExceptions = 2086,
+
 	InvalidRequestHttpBody =3020,
 	WrongAppVersion=3021,
 	WrongMasterDataVersion=3022,
