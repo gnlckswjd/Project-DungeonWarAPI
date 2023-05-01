@@ -61,7 +61,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisSet<string>(_redisConnection, "Notifications", null);
+			var redis = new RedisSet<String>(_redisConnection, "Notifications", null);
 
 			var notifications = await redis.MembersAsync();
 
@@ -160,5 +160,29 @@ public class RedisDatabase : IMemoryDatabase
 				"UnLockUserRequestFailExceptions");
 			return ErrorCode.UnLockUserRequestFailException;
 		}
+	}
+
+	public async Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber)
+	{
+		_logger.ZLogDebugWithPayload(new{ GameUserId= authUserData.GameUserId, PageNumber=pageNumber},"StoreUserMailPage Start");
+		var key = MemoryDatabaseKeyGenerator.MakeMailPageKey(authUserData.Email);
+		try
+		{
+			var redis = new RedisString<Int32>(_redisConnection, key, TimeSpan.FromHours(2));
+
+			if (await redis.SetAsync(pageNumber) == false)
+			{
+				_logger.ZLogErrorWithPayload(new{ErrorCode=ErrorCode.StoreUserMailPageFailSet, GameUserId=authUserData.GameUserId}, "StoreUserMailPageFailSet");
+				return ErrorCode.StoreUserMailPageFailSet;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new{ErrorCode=ErrorCode.StoreUserMailPageFailException , GameUserId=authUserData.GameUserId}, "StoreUserMailPageFailException");
+			return ErrorCode.StoreUserMailPageFailException;
+		}
+		
 	}
 }

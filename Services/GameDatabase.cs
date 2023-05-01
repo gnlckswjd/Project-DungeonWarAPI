@@ -37,7 +37,7 @@ public class GameDatabase : IGameDatabase
 		//_queryFactory.Dispose();
 	}
 
-	public async Task<(ErrorCode errorCode, Int32 gameUserId)> CreateUserAsync(int playerId)
+	public async Task<(ErrorCode , Int32 )> CreateUserAsync(int playerId)
 	{
 		try
 		{
@@ -118,7 +118,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode errorCode, UserData userData)> LoadUserData(int playerId)
+	public async Task<(ErrorCode, UserData)> LoadUserData(int playerId)
 	{
 		_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "LoadUserData Start");
 
@@ -143,7 +143,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode errorCode, List<OwnedItem> items)> LoadUserItems(Int32 gameUserId)
+	public async Task<(ErrorCode , List<OwnedItem> )> LoadUserItems(Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadUserItems Start");
 		try
@@ -167,6 +167,32 @@ public class GameDatabase : IGameDatabase
 				new { ErrorCode = ErrorCode.LoadUserItemsFailException, GameUserId = gameUserId },
 				"LoadUserItemsFailException");
 			return (ErrorCode.LoadUserItemsFailException, null);
+		}
+	}
+
+	public async Task<(ErrorCode, List<Mail>)> LoadUserMails(int gameUserId, int pageNumber)
+	{
+		_logger.ZLogDebugWithPayload(new{GameUserId = gameUserId, PageNumber= pageNumber}, "LoadUserMails Start" );
+
+		try
+		{
+			var mails = await _queryFactory.Query("mail")
+				.Where("GameUserId", "=", gameUserId)
+				.OrderByDesc("MailId")
+				.Limit(20).Offset((pageNumber-1)*20)
+				.GetAsync<Mail>();
+			if (!mails.Any())
+			{
+				_logger.ZLogErrorWithPayload(new{ ErrorCode = ErrorCode.LoadMailsFailSelect, GameUserId = gameUserId, PageNumber=pageNumber }, "LoadMailsFailSelect");
+				return (ErrorCode.LoadMailsFailSelect, null);
+			}
+
+			return (ErrorCode.None, mails.ToList());
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadMailsFailException, GameUserId = gameUserId, PageNumber = pageNumber }, "LoadMailsFailException");
+			return (ErrorCode.LoadMailsFailException, null);
 		}
 	}
 }

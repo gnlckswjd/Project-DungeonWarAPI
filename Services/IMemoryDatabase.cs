@@ -13,4 +13,6 @@ public interface IMemoryDatabase
 
 	Task<ErrorCode> LockUserRequestAsync(String key, String authToken);
 	Task<ErrorCode> UnLockUserRequestAsync(String key);
+
+	Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber);
 }

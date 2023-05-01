@@ -50,7 +50,13 @@ public enum ErrorCode : int
 	LoadNotificationsFailException =2050,
 	LoadNotificationsZeroNotification=2051,
 
-	InvalidRequestHttpBody=3020,
+	LoadMailsFailException =2060,
+	LoadMailsFailSelect=2061,
+
+	StoreUserMailPageFailException= 2070,
+	StoreUserMailPageFailSet=2071,
+
+	InvalidRequestHttpBody =3020,
 	WrongAppVersion=3021,
 	WrongMasterDataVersion=3022,
 	WrongAuthTokenRequest=3023,

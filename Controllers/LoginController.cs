@@ -26,7 +26,7 @@ public class LoginController : ControllerBase
 	public async Task<LoginResponse> Post(LoginRequest request)
 	{
 		var response = new LoginResponse();
-
+		
 		//유저 정보 확인
 		var (errorCode, playerId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
 		if (errorCode != ErrorCode.None)
@@ -36,22 +36,22 @@ public class LoginController : ControllerBase
 		}
 
 		//기본 데이터 게임디비에서 가져오기
-		var (userErrorCode, userData) = await _gameDatabase.LoadUserData(playerId);
+		(errorCode, var userData) = await _gameDatabase.LoadUserData(playerId);
 
-		if (userErrorCode != ErrorCode.None)
+		if (errorCode != ErrorCode.None)
 		{
-			response.Result = userErrorCode;
+			response.Result = errorCode;
 			return response;
 		}
 		response.UserLevel=userData.UserLevel;
 
 		//유저 아이템 게임디비에서 가져오기
 
-		var (itemsErrorCode, items) = await _gameDatabase.LoadUserItems(userData.GameUserId);
+		(errorCode, var items) = await _gameDatabase.LoadUserItems(userData.GameUserId);
 
-		if (itemsErrorCode != ErrorCode.None)
+		if (errorCode != ErrorCode.None)
 		{
-			response.Result = itemsErrorCode;
+			response.Result = errorCode;
 			return response;
 		}
 

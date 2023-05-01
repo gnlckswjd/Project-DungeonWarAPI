@@ -34,19 +34,19 @@ public class CreateAccountController : ControllerBase
 			return response;
 		}
 
-		var (errorCodeGame, gameUserId) = await _gameDatabase.CreateUserAsync(accountId);
-		response.Result = errorCodeGame;
+		(errorCode, var gameUserId) = await _gameDatabase.CreateUserAsync(accountId);
+		response.Result = errorCode;
 
-		if (errorCodeGame != ErrorCode.None)
+		if (errorCode != ErrorCode.None)
 		{
 			await _accountDatabase.RollbackAccountAsync(accountId);
 			return response;
 		}
 
-		var errorCodeItem = await _gameDatabase.CreateUserItemAsync(gameUserId);
-		response.Result = errorCodeItem;
+		errorCode = await _gameDatabase.CreateUserItemAsync(gameUserId);
+		response.Result = errorCode;
 
-		if (errorCodeItem != ErrorCode.None)
+		if (errorCode != ErrorCode.None)
 		{
 			await _gameDatabase.RollbackUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);

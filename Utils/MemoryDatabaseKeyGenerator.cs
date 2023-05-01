@@ -2,17 +2,23 @@
 {
 	public class MemoryDatabaseKeyGenerator
 	{
-		const string loginUID = "UID_";
-		const string lockKey = "ULock_";
+		const String loginUID = "UID_";
+		const String lockKey = "ULock_";
+		private const String mailPageKey = "UMailPage_";
 
-		public static string MakeUIDKey(string id)
+		public static String MakeUIDKey(String id)
 		{
 			return loginUID + id;
 		}
 
-		public static string MakeUserLockKey(string id)
+		public static String MakeUserLockKey(String id)
 		{
 			return lockKey + id;
+		}
+
+		public static String MakeMailPageKey(String id)
+		{
+			return mailPageKey + id;
 		}
 	}
 }
