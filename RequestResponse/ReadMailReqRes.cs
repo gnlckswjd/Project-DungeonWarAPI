@@ -2,13 +2,13 @@
 
 namespace DungeonWarAPI.ModelPacket;
 
-public class MailReadRequest
+public class ReadMailRequest
 {
 	public Int32 MailId { get; set; }
 
 }
 
-public class MailReadResponse
+public class ReadMailResponse
 {
 	public ErrorCode Result { get; set; }
 

@@ -2,12 +2,12 @@
 
 namespace DungeonWarAPI.ModelPacket;
 
-public class MailPageRequest
+public class ViewMailPageRequest
 {
 	public Int32  PageNumber { get; set; }
 }
 
-public class MailPageResponse
+public class ViewMailPageResponse
 {
 	public ErrorCode Result { get; set; }
 	public List<Mail> Mails { get; set; }	

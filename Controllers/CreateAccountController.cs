@@ -48,7 +48,7 @@ public class CreateAccountController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			await _gameDatabase.RollbackUserAsync(gameUserId);
+			await _gameDatabase.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);
 		}
 
