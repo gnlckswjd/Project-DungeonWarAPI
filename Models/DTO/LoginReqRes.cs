@@ -1,7 +1,6 @@
-﻿
-using DungeonWarAPI.Game;
+﻿using DungeonWarAPI.Models.Database.Game;
 
-namespace DungeonWarAPI.ModelPacket;
+namespace DungeonWarAPI.Models.DTO;
 
 public class LoginRequest
 {

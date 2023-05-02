@@ -1,5 +1,5 @@
-﻿using DungeonWarAPI.ModelDatabase;
-using DungeonWarAPI.ModelPacket;
+﻿using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DTO;
 using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +7,7 @@ namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class ReadMailController : Controller
+public class ReadMailController : ControllerBase
 {
 	private readonly IGameDatabase _gameDatabase;
 	private readonly ILogger<ReadMailController> _logger;

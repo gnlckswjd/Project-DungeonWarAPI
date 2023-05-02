@@ -1,5 +1,5 @@
-﻿using DungeonWarAPI.ModelDatabase;
-using DungeonWarAPI.ModelPacket;
+﻿using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DTO;
 using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +8,12 @@ namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class ViewMailPageController : ControllerBase
+public class MailListController : ControllerBase
 {
 	private readonly IGameDatabase _gameDatabase;
-	private readonly ILogger<ViewMailPageController> _logger;
+	private readonly ILogger<MailListController> _logger;
 
-	public ViewMailPageController(ILogger<ViewMailPageController> logger, IGameDatabase gameDatabase)
+	public MailListController(ILogger<MailListController> logger, IGameDatabase gameDatabase)
 	{
 		_gameDatabase = gameDatabase;
 		_logger = logger;
@@ -25,7 +25,8 @@ public class ViewMailPageController : ControllerBase
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
 		var response = new ViewMailPageResponse();
 
-		var (errorCode, mails) = await _gameDatabase.LoadUserMails(authUserData.GameUserId, request.PageNumber);
+
+		var (errorCode, mails) = await _gameDatabase.LoadMailList(authUserData.GameUserId, request.PageNumber);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;

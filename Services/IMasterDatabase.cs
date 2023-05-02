@@ -1,4 +1,4 @@
-﻿using DungeonWarAPI.Game;
+﻿using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.Services;
 

@@ -1,4 +1,4 @@
-﻿using DungeonWarAPI.ModelPacket;
+﻿using DungeonWarAPI.Models.DTO;
 using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;

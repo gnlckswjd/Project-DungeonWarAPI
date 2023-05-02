@@ -1,4 +1,4 @@
-﻿using DungeonWarAPI.Game;
+﻿using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;

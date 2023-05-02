@@ -1,0 +1,11 @@
+﻿namespace DungeonWarAPI.Models.Database.Game;
+
+public class UserData
+{
+    public int GameUserId { get; set; }
+    public int PlayerId { get; set; }
+    public int UserLevel { get; set; }
+    public int AttendanceCount { get; set; }
+    public DateTime LastDate { get; set; }
+
+}

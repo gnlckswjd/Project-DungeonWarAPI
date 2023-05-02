@@ -1,5 +1,5 @@
-﻿using DungeonWarAPI.Game;
-using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.ModelConfiguration;
+using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;

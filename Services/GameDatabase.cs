@@ -5,8 +5,8 @@ using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.Data;
-using DungeonWarAPI.Game;
 using ZLogger;
+using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.Services;
 
@@ -170,9 +170,17 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, List<Mail>)> LoadUserMails(int gameUserId, int pageNumber)
+	public async Task<(ErrorCode, List<Mail>)> LoadMailList(int gameUserId, int pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
+
+		if (pageNumber < 1)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.LoadMailListWrongPage, GameUserId = gameUserId, PageNumber = pageNumber },
+				"LoadMailListWrongPage");
+			return (ErrorCode.LoadMailListWrongPage, null);
+		}
 
 		try
 		{
@@ -184,9 +192,12 @@ public class GameDatabase : IGameDatabase
 			if (!mails.Any())
 			{
 				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadMailsFailSelect, GameUserId = gameUserId, PageNumber = pageNumber },
-					"LoadMailsFailSelect");
-				return (ErrorCode.LoadMailsFailSelect, null);
+					new
+					{
+						ErrorCode = ErrorCode.LoadMailListEmptyMail, GameUserId = gameUserId, PageNumber = pageNumber
+					},
+					"LoadMailListEmptyMail");
+				return (ErrorCode.LoadMailListEmptyMail, null);
 			}
 
 			return (ErrorCode.None, mails.ToList());
@@ -194,9 +205,12 @@ public class GameDatabase : IGameDatabase
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.LoadMailsFailException, GameUserId = gameUserId, PageNumber = pageNumber },
-				"LoadMailsFailException");
-			return (ErrorCode.LoadMailsFailException, null);
+				new
+				{
+					ErrorCode = ErrorCode.LoadMailListFailException, GameUserId = gameUserId, PageNumber = pageNumber
+				},
+				"LoadMailListFailException");
+			return (ErrorCode.LoadMailListFailException, null);
 		}
 	}
 
@@ -228,22 +242,38 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, Mail)> MarkMailItemAsReceive(int gameUserId, long mailId)
+	public async Task<ErrorCode> MarkMailItemAsReceive(Int32 gameUserId, Int64 mailId)
 	{
+		// 수정 필요
+
 		try
 		{
-			var mail = await _queryFactory.Query("mail")
+			bool isReceived = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
-				//.Where("GameUserId", "=", gameUserId)
-				.FirstOrDefaultAsync<Mail>();
-			Console.WriteLine(mail.ItemCode);
+				.Select("IsReceived")
+				.FirstOrDefaultAsync<bool>();
 
-			if (mail == null)
+			if (isReceived == true)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.MarkMailItemAsReceiveFailSelect },
-					"MarkMailItemAsReceiveFailSelect");
-				return (ErrorCode.MarkMailItemAsReceiveFailSelect, null);
+				_logger.ZLogErrorWithPayload(new
+				{
+					ErrorCode = ErrorCode.MarkMailItemAsReceiveFailAlreadyReceived,
+					GameUserId = gameUserId, MailId = mailId
+				}, "MarkMailItemAsReceiveFailAlreadyReceived");
+				return (ErrorCode.MarkMailItemAsReceiveFailAlreadyReceived);
 			}
+
+
+			//if (isReceived == null)
+			//{
+			//	_logger.ZLogErrorWithPayload(
+			//		new
+			//		{
+			//			ErrorCode = ErrorCode.MarkMailItemAsReceiveFailSelect, GameUserId = gameUserId, MailId = mailId
+			//		},
+			//		"MarkMailItemAsReceiveFailSelect");
+			//	return (ErrorCode.MarkMailItemAsReceiveFailSelect, null);
+			//}
 
 			var count = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
@@ -255,17 +285,17 @@ public class GameDatabase : IGameDatabase
 					{
 						ErrorCode = ErrorCode.MarkMailItemAsReceiveFailUpdate, GameUserId = gameUserId, MailId = mailId
 					}, "MarkMailItemAsReceiveFailUpdate");
-				return (ErrorCode.MarkMailItemAsReceiveFailUpdate, null);
+				return (ErrorCode.MarkMailItemAsReceiveFailUpdate);
 			}
 
-			return (ErrorCode.None, mail);
+			return (ErrorCode.None);
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
 				new { ErrorCode = ErrorCode.MarkMailItemAsReceiveException, GameUserId = gameUserId, MailId = mailId },
 				"MarkMailItemAsReceiveException");
-			return (ErrorCode.MarkMailItemAsReceiveException, null);
+			return (ErrorCode.MarkMailItemAsReceiveException);
 		}
 	}
 
@@ -307,42 +337,37 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<ErrorCode> ReceiveItemAsync(int gameUserId, Mail mail)
+	public async Task<ErrorCode> ReceiveItemAsync(int gameUserId, Int64 mailId)
 	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mail.MailId },
-			"RollbackMarkMailItemAsReceive Start");
-
-		if (mail.ItemCode == 0)
-		{
-			_logger.ZLogErrorWithPayload(
-				new
-				{
-					ErrorCode = ErrorCode.ReceiveItemFailWrongItemCode,
-					GameUserId = gameUserId,
-					MailId = mail
-				}, "ReceiveItemFailWrongItemCode");
-			return ErrorCode.ReceiveItemFailWrongItemCode;
-			return (ErrorCode.ReceiveItemFailWrongItemCode);
-		}
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
+			"ReceiveItemAsync Start");
 		try
 		{
-			var columns = new[] { "GameUserId", "ItemCode", "EnhancedCount", "ItemCount" };
-			var data = new[]
+			var items = await _queryFactory.Query("mail_item")
+				.Where("MailId", "=", mailId)
+				.GetAsync<MailItem>();
+
+			if (!items.Any())
 			{
-				new object[] { gameUserId, mail.ItemCode, mail.EnhancedItem, mail.ItemCount },
-			};
+				_logger.ZLogErrorWithPayload(new
+					{
+						ErrorCode = ErrorCode.ReceiveItemFailMailHasNotItem, GameUserId = gameUserId, MailId = mailId
+					}
+					, "ReceiveItemFailMailHasNotItem");
+				return ErrorCode.ReceiveItemFailMailHasNotItem;
+			}
+
+			var columns = new[] { "GameUserId", "ItemCode", "EnhancedCount", "ItemCount" };
+			var data = items.Select(item => new object[]
+				{ gameUserId, item.ItemCode, item.EnhancedCount, item.ItemCount }).ToList();
 
 			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
 
-			if (count != 1)
+			if (count < 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.ReceiveItemFailInsert,
-						GameUserId = gameUserId,
-						MailId = mail
-					}, "ReceiveItemFailInsert");
+				_logger.ZLogErrorWithPayload(new
+						{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
+					, "ReceiveItemFailInsert");
 				return ErrorCode.ReceiveItemFailInsert;
 			}
 
@@ -350,9 +375,9 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mail },
-				"ReceiveItemFailException");
+			_logger.ZLogErrorWithPayload(new
+					{ ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mailId }
+				, "ReceiveItemFailException");
 			return ErrorCode.ReceiveItemFailException;
 		}
 	}

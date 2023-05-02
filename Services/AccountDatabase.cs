@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using DungeonWarAPI.ModelConfiguration;
-using DungeonWarAPI.ModelDatabase;
+using DungeonWarAPI.Models.DAO.Account;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;

@@ -54,8 +54,9 @@ public enum ErrorCode : int
 	LoadNotificationsFailException =250,
 	LoadNotificationsZeroNotification=251,
 
-	LoadMailsFailException =260,
-	LoadMailsFailSelect=261,
+	LoadMailListFailException =260,
+	LoadMailListEmptyMail=261,
+	LoadMailListWrongPage=262,
 
 	StoreUserMailPageFailException= 270,
 	StoreUserMailPageFailSet=271,
@@ -68,9 +69,10 @@ public enum ErrorCode : int
 	MarkMailItemAsReceiveException=290,
 	MarkMailItemAsReceiveFailUpdate=291,
 	MarkMailItemAsReceiveFailSelect= 292,
+	MarkMailItemAsReceiveFailAlreadyReceived= 293,
 	ReceiveItemFailException =300,
 	ReceiveItemFailInsert= 301,
-	ReceiveItemFailWrongItemCode=302,
+	ReceiveItemFailMailHasNotItem=302,
 	
 	
 

@@ -1,5 +1,5 @@
-﻿using DungeonWarAPI.ModelDatabase;
-using DungeonWarAPI.ModelPacket;
+﻿using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DTO;
 using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +7,7 @@ namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class ReceiveMailItemController : Controller
+public class ReceiveMailItemController : ControllerBase
 {
 	private readonly IGameDatabase _gameDatabase;
 	private readonly ILogger<ReceiveMailItemController> _logger;
@@ -32,14 +32,14 @@ public class ReceiveMailItemController : Controller
 			return response;
 		}
 
-		(errorCode, var mail) = await _gameDatabase.MarkMailItemAsReceive(ownerId, request.MailId);
+		errorCode = await _gameDatabase.MarkMailItemAsReceive(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;
 			return response;
 		}
 
-		errorCode = await _gameDatabase.ReceiveItemAsync(ownerId, mail);
+		errorCode = await _gameDatabase.ReceiveItemAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;
