@@ -32,13 +32,6 @@ public class ViewMailPageController : ControllerBase
 			return response;
 		}
 
-		//errorCode = await _memoryDatabase.StoreUserMailPageAsync(authUserData, request.PageNumber);
-
-		//if (errorCode != ErrorCode.None)
-		//{
-		//	response.Result = errorCode;
-		//	return response; 
-		//}
 
 		response.Mails = mails;
 		return response;

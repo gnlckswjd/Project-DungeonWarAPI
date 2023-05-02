@@ -42,6 +42,8 @@ void SetLogger()
 		Directory.CreateDirectory(fileDirection);
 	}
 
+	logging.AddZLoggerFile("MailLog.log");
+
 	logging.AddZLoggerRollingFile(
 		fileNameSelector: (dt, x) => $"{fileDirection}/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log",
 		timestampPattern: x => x.ToLocalTime().Date,
