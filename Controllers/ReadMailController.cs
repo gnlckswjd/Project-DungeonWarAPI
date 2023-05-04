@@ -12,7 +12,7 @@ public class ReadMailController : ControllerBase
 	private readonly IGameDatabase _gameDatabase;
 	private readonly ILogger<ReadMailController> _logger;
 
-	public ReadMailController(ILogger<ReadMailController> logger, IGameDatabase gameDatabase )
+	public ReadMailController(ILogger<ReadMailController> logger, IGameDatabase gameDatabase)
 	{
 		_gameDatabase = gameDatabase;
 		_logger = logger;
@@ -26,22 +26,9 @@ public class ReadMailController : ControllerBase
 
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _gameDatabase.VerifyMailOwnerId(ownerId, request.MailId);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Result = errorCode;
-			return response;
-		}
+		var errorCode = await _gameDatabase.MarkMailAsRead(ownerId, request.MailId);
 
-
-		errorCode = await _gameDatabase.MarkMailAsRead(ownerId, request.MailId);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Result = errorCode;
-			return response;
-		}
-
-		response.Result= errorCode;
+		response.Result = errorCode;
 		return response;
 	}
 }

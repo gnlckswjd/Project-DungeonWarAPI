@@ -2,13 +2,14 @@
 
 namespace DungeonWarAPI.Models.DTO;
 
-public class ViewMailPageRequest
+public class MailListRequest
 {
     public int PageNumber { get; set; }
 }
 
-public class ViewMailPageResponse
+public class MailListResponse
 {
     public ErrorCode Result { get; set; }
-    public List<Mail> Mails { get; set; }
+    public List<MailWithItems> MailsWithItems { get; set; }
+
 }

@@ -3,7 +3,6 @@ using CloudStructures.Structures;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.Database.Game;
-using DungeonWarAPI.Utils;
 using Microsoft.Extensions.Options;
 using ZLogger;
 

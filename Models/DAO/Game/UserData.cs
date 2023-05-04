@@ -8,4 +8,6 @@ public class UserData
     public int AttendanceCount { get; set; }
     public DateTime LastDate { get; set; }
 
+    public Int64 Gold { get; set; }
+
 }

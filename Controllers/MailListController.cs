@@ -20,10 +20,10 @@ public class MailListController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<ViewMailPageResponse> Post(ViewMailPageRequest request)
+	public async Task<MailListResponse> Post(MailListRequest request)
 	{
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
-		var response = new ViewMailPageResponse();
+		var response = new MailListResponse();
 
 
 		var (errorCode, mails) = await _gameDatabase.LoadMailList(authUserData.GameUserId, request.PageNumber);
@@ -34,7 +34,7 @@ public class MailListController : ControllerBase
 		}
 
 
-		response.Mails = mails;
+		response.MailsWithItems = mails;
 		return response;
 	}
 }

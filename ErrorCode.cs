@@ -36,7 +36,8 @@ public enum ErrorCode : int
 
 	RollbackMarkMailItemAsReceiveFailException=150,
 	RollbackMarkMailItemAsReceiveFailUpdate=151,
-	
+
+	AddNewItemAndGetIdFailException = 200,
 
 	LoginFailException = 220,
 	LoginFailNotUser = 221,
@@ -70,10 +71,21 @@ public enum ErrorCode : int
 	MarkMailItemAsReceiveFailUpdate=291,
 	MarkMailItemAsReceiveFailSelect= 292,
 	MarkMailItemAsReceiveFailAlreadyReceived= 293,
+
 	ReceiveItemFailException =300,
 	ReceiveItemFailInsert= 301,
-	ReceiveItemFailMailHasNotItem=302,
+	ReceiveItemFailMailHaveNoItem=302,
+	GetMailItemsFailException=303,
+	IncreaseGoldFailUpdate = 304,
+	IncreasePotionFailUpdateOrInsert = 305,
+	InsertOwnedItemFailInsert=306,
+	RollbackIncreaseGoldFail =307,
+	RollbackIncreasePotionFail=308,
+	RollbackInsertOwnedItemFail=309,
 	
+	DeleteMailFailException = 310,
+	DeleteMailFailDelete = 311,
+	DeleteMailFail=311,
 	
 
 	InvalidRequestHttpBody =320,

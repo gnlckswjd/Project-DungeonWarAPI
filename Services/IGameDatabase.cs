@@ -1,5 +1,6 @@
 ﻿
 using DungeonWarAPI.Models.Database.Game;
+using DungeonWarAPI.Models.DTO;
 
 namespace DungeonWarAPI.Services;
 
@@ -9,16 +10,17 @@ public interface IGameDatabase : IDisposable
 	public Task<ErrorCode> CreateUserItemAsync(Int32 gameId);
 	public Task<ErrorCode> RollbackCreateUserAsync(Int32 gameId);
 
+
 	public Task<(ErrorCode, UserData )> LoadUserData(Int32 playerId);
 	public Task<(ErrorCode, List<OwnedItem> )> LoadUserItems(Int32 gameUserId);
 
-	public Task<(ErrorCode, List<Mail> )> LoadMailList(Int32 gameUserId, Int32 pageNumber);
-
-	public Task<ErrorCode> VerifyMailOwnerId(Int32 gameUserId, Int64 mailId);
+	public Task<(ErrorCode, List<MailWithItems> )> LoadMailList(Int32 gameUserId, Int32 pageNumber);
 
 	public Task<ErrorCode> MarkMailAsRead(Int32 gameUserId, Int64 mailId);
-	public Task<ErrorCode> MarkMailItemAsReceive(int gameUserId, long mailId);
+	public Task<ErrorCode> MarkMailItemAsReceive(Int32 gameUserId, Int64 mailId);
 
 	public Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId);
-	public Task<ErrorCode> ReceiveItemAsync(int gameUserId, long mail);
+	public Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId);
+
+	public Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId);
 }

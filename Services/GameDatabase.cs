@@ -7,6 +7,9 @@ using SqlKata.Execution;
 using System.Data;
 using ZLogger;
 using DungeonWarAPI.Models.Database.Game;
+using System.Threading;
+using System.Transactions;
+using DungeonWarAPI.Models.DTO;
 
 namespace DungeonWarAPI.Services;
 
@@ -14,14 +17,17 @@ public class GameDatabase : IGameDatabase
 {
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<GameDatabase> _logger;
+	private readonly MasterDataManager _masterData;
 
 	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public GameDatabase(ILogger<GameDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
+	public GameDatabase(ILogger<GameDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions,
+		MasterDataManager masterData)
 	{
 		_configurationOptions = configurationOptions;
 		_logger = logger;
+		_masterData = masterData;
 
 		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
 		_databaseConnection.Open();
@@ -63,10 +69,9 @@ public class GameDatabase : IGameDatabase
 		try
 		{
 			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
-			var columns = new[] { "GameUserId", "ItemCode", "UpgradeLevel", "ItemCount" };
+			var columns = new[] { "GameUserId", "ItemCode", "EnhancedCount", "ItemCount" };
 			var data = new[]
 			{
-				new object[] { gameUserId, 5, 0, 5000 },
 				new object[] { gameUserId, 2, 0, 1 },
 				new object[] { gameUserId, 3, 0, 1 }
 			};
@@ -170,7 +175,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, List<Mail>)> LoadMailList(int gameUserId, int pageNumber)
+	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailList(int gameUserId, int pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
 
@@ -186,9 +191,12 @@ public class GameDatabase : IGameDatabase
 		{
 			var mails = await _queryFactory.Query("mail")
 				.Where("GameUserId", "=", gameUserId)
+				.Where("ExpirationDate", ">", DateTime.Today)
+				.Where("isRemoved", "=", false)
 				.OrderByDesc("MailId")
 				.Limit(Mail.MailCountInPage).Offset((pageNumber - 1) * Mail.MailCountInPage)
 				.GetAsync<Mail>();
+
 			if (!mails.Any())
 			{
 				_logger.ZLogErrorWithPayload(
@@ -200,7 +208,22 @@ public class GameDatabase : IGameDatabase
 				return (ErrorCode.LoadMailListEmptyMail, null);
 			}
 
-			return (ErrorCode.None, mails.ToList());
+			var mailsWithItems = new List<MailWithItems>();
+
+			foreach (var mail in mails)
+			{
+				var (errorCode, items) = await GetMailItemsAsync(gameUserId, mail.MailId);
+
+				if (errorCode != ErrorCode.None)
+				{
+					return (errorCode, null);
+				}
+
+				mailsWithItems.Add(new MailWithItems { Mail = mail, Items = items });
+			}
+
+
+			return (ErrorCode.None, mailsWithItems.ToList());
 		}
 		catch (Exception e)
 		{
@@ -222,6 +245,7 @@ public class GameDatabase : IGameDatabase
 		{
 			var count = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
+				//.Where("GameUserId","=",gameUserId)
 				.UpdateAsync(new { IsRead = true });
 			if (count != 1)
 			{
@@ -244,12 +268,11 @@ public class GameDatabase : IGameDatabase
 
 	public async Task<ErrorCode> MarkMailItemAsReceive(Int32 gameUserId, Int64 mailId)
 	{
-		// 수정 필요
-
 		try
 		{
 			bool isReceived = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
+				.Where("GameUserId", "=", gameUserId)
 				.Select("IsReceived")
 				.FirstOrDefaultAsync<bool>();
 
@@ -263,17 +286,6 @@ public class GameDatabase : IGameDatabase
 				return (ErrorCode.MarkMailItemAsReceiveFailAlreadyReceived);
 			}
 
-
-			//if (isReceived == null)
-			//{
-			//	_logger.ZLogErrorWithPayload(
-			//		new
-			//		{
-			//			ErrorCode = ErrorCode.MarkMailItemAsReceiveFailSelect, GameUserId = gameUserId, MailId = mailId
-			//		},
-			//		"MarkMailItemAsReceiveFailSelect");
-			//	return (ErrorCode.MarkMailItemAsReceiveFailSelect, null);
-			//}
 
 			var count = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
@@ -341,6 +353,100 @@ public class GameDatabase : IGameDatabase
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
 			"ReceiveItemAsync Start");
+
+		var (errorCode, items) = await GetMailItemsAsync(gameUserId, mailId);
+
+		if (!items.Any())
+		{
+			_logger.ZLogErrorWithPayload(new
+				{
+					ErrorCode = ErrorCode.ReceiveItemFailMailHaveNoItem,
+					GameUserId = gameUserId,
+					MailId = mailId
+				}
+				, "ReceiveItemFailMailHaveNoItem");
+			return (ErrorCode.ReceiveItemFailMailHaveNoItem);
+		}
+		
+
+		List<Func<Task>> rollbackActions = new List<Func<Task>>();
+
+		try
+		{
+			foreach (var item in items)
+			{
+				if (item.ItemCode == 1)
+				{
+					errorCode = await IncreaseGoldAsync(gameUserId, item.ItemCount, rollbackActions);
+				}
+				else if (item.ItemCode == 6)
+				{
+					errorCode = await IncreasePotionAsync(gameUserId, item.ItemCount, rollbackActions);
+				}
+				else
+				{
+					errorCode = await InsertOwnedItemAsync(gameUserId, item.ItemCode, item.ItemCount,
+						item.EnhancedCount,
+						rollbackActions);
+				}
+
+				if (errorCode != ErrorCode.None)
+				{
+					await RollbackReceiveItem(rollbackActions);
+					_logger.ZLogErrorWithPayload(new
+							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
+						, "ReceiveItemFailInsert");
+					return ErrorCode.ReceiveItemFailInsert;
+				}
+			}
+
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			await RollbackReceiveItem(rollbackActions);
+			_logger.ZLogErrorWithPayload(new
+					{ ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mailId }
+				, "ReceiveItemFailException");
+			return ErrorCode.ReceiveItemFailException;
+		}
+	}
+
+	public async Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "DeleteMail Start");
+
+
+		try
+		{
+			var count = await _queryFactory.Query("mail")
+				.Where("MailId", "=", mailId)
+				.Where("GameUserId", "=", gameUserId)
+				.Where("IsReceived", "=", true)
+				.UpdateAsync(new { IsRemoved = true });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.DeleteMailFailDelete, GameUserId = gameUserId, MailId = mailId },
+					"DeleteMailFailDelete");
+				return ErrorCode.DeleteMailFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.DeleteMailFailException, GameUserId = gameUserId, MailId = mailId },
+				"DeleteMailFailException");
+			return ErrorCode.DeleteMailFailException;
+		}
+	}
+
+	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(int gameUserId, Int64 mailId)
+	{
 		try
 		{
 			var items = await _queryFactory.Query("mail_item")
@@ -349,66 +455,138 @@ public class GameDatabase : IGameDatabase
 
 			if (!items.Any())
 			{
-				_logger.ZLogErrorWithPayload(new
-					{
-						ErrorCode = ErrorCode.ReceiveItemFailMailHasNotItem, GameUserId = gameUserId, MailId = mailId
-					}
-					, "ReceiveItemFailMailHasNotItem");
-				return ErrorCode.ReceiveItemFailMailHasNotItem;
+				return (ErrorCode.None, new List<MailItem>());
 			}
 
-			var columns = new[] { "GameUserId", "ItemCode", "EnhancedCount", "ItemCount" };
-			var data = items.Select(item => new object[]
-				{ gameUserId, item.ItemCode, item.EnhancedCount, item.ItemCount }).ToList();
-
-			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
-
-			if (count < 1)
-			{
-				_logger.ZLogErrorWithPayload(new
-						{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
-					, "ReceiveItemFailInsert");
-				return ErrorCode.ReceiveItemFailInsert;
-			}
-
-			return ErrorCode.None;
+			return (ErrorCode.None, items.ToList());
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(new
-					{ ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mailId }
-				, "ReceiveItemFailException");
-			return ErrorCode.ReceiveItemFailException;
+				{
+					ErrorCode = ErrorCode.GetMailItemsFailException,
+					GameUserId = gameUserId,
+					MailId = mailId
+				}
+				, "GetMailItemsFailException");
+			return (ErrorCode.GetMailItemsFailException, null);
 		}
 	}
 
-	public async Task<ErrorCode> VerifyMailOwnerId(Int32 gameUserId, Int64 mailId)
+	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
 	{
-		try
-		{
-			var mailUserId = await _queryFactory.Query("mail")
-				.Where("MailId", "=", mailId)
-				.Select("GameUserId")
-				.FirstOrDefaultAsync<Int32>();
+		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+			.IncrementAsync("Gold", itemCount);
 
-			if (mailUserId != gameUserId)
+		if (count != 1)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncreaseGoldFailUpdate, GameUserId = gameUserId },
+				"IncreaseGoldFailUpdate");
+			return ErrorCode.IncreaseGoldFailUpdate;
+		}
+
+		rollbackActions.Add(async () =>
+		{
+			var rollbackCount = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.DecrementAsync("Gold", itemCount);
+			if (rollbackCount != 1)
 			{
 				_logger.ZLogErrorWithPayload(
 					new
 					{
-						ErrorCode = ErrorCode.VerifyMailOwnerIdFailWrongId, GameUserId = gameUserId, MailId = mailId
-					}, "VerifyMailOwnerIdFailWrongId");
-				return ErrorCode.VerifyMailOwnerIdFailWrongId;
+						ErrorCode = ErrorCode.RollbackIncreaseGoldFail,
+						GameUserId = gameUserId,
+						ItemCount = itemCount
+					}, "RollbackIncreaseGoldFail");
 			}
+		});
+		return ErrorCode.None;
+	}
 
-			return ErrorCode.None;
+	private async Task<ErrorCode> IncreasePotionAsync(Int32 gameUserId, Int32 itemCount,
+		List<Func<Task>> rollbackActions)
+	{
+		ErrorCode errorCode = ErrorCode.None;
+		var count = await _queryFactory.Query("owned_item").Where("GameUserId", "=", gameUserId)
+			.Where("ItemCode", "=", 6)
+			.IncrementAsync("ItemCount", itemCount);
+		if (count == 0)
+		{
+			errorCode = await InsertOwnedItemAsync(gameUserId, 6, itemCount,
+				0, rollbackActions);
 		}
-		catch (Exception e)
+
+		if (errorCode != ErrorCode.None)
 		{
 			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.VerifyMailOwnerIdFailException, GameUserId = gameUserId, MailId = mailId },
-				"VerifyMailOwnerIdFailException");
-			return ErrorCode.VerifyMailOwnerIdFailException;
+				new { ErrorCode = ErrorCode.IncreasePotionFailUpdateOrInsert, GameUserId = gameUserId },
+				"IncreasePotionFailUpdateOrInsert");
+			return ErrorCode.IncreasePotionFailUpdateOrInsert;
+		}
+
+		rollbackActions.Add(async () =>
+		{
+			var rollbackCount = await _queryFactory.Query("owned_item").Where("GameUserId", "=", gameUserId)
+				.DecrementAsync("ItemCount", itemCount);
+
+			if (rollbackCount != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.RollbackIncreasePotionFail,
+						GameUserId = gameUserId,
+						ItemCount = itemCount
+					}, "RollbackIncreasePotionFail");
+			}
+		});
+		return ErrorCode.None;
+	}
+
+	private async Task<ErrorCode> InsertOwnedItemAsync(Int32 gameUserId, Int32 itemCode, Int32 itemCount,
+		Int32 enhancedCount, List<Func<Task>> rollbackActions)
+	{
+		var itemId = await _queryFactory.Query("owned_item").InsertGetIdAsync<Int32>(new
+		{
+			GameUserId = gameUserId,
+			ItemCode = itemCode,
+			ItemCount = itemCount,
+			EnhancedCount = enhancedCount
+		});
+
+		if (itemId == 0)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.InsertOwnedItemFailInsert, GameUserId = gameUserId },
+				"InsertOwnedItemFailInsert");
+			return ErrorCode.InsertOwnedItemFailInsert;
+		}
+
+		rollbackActions.Add(async () =>
+		{
+			var rollbackCount = await _queryFactory.Query("user_data").Where("ItemId", "=", itemId)
+					.DeleteAsync()
+				;
+			if (rollbackCount != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.RollbackInsertOwnedItemFail,
+						GameUserId = gameUserId,
+						ItemId = itemId
+					}, "RollbackInsertOwnedItemFail");
+			}
+		});
+
+		return ErrorCode.None;
+	}
+
+	public async Task RollbackReceiveItem(List<Func<Task>> rollbackActions)
+	{
+		foreach (var action in rollbackActions)
+		{
+			await action();
 		}
 	}
 }

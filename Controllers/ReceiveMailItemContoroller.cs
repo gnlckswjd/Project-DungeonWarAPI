@@ -25,14 +25,8 @@ public class ReceiveMailItemController : ControllerBase
 		var response = new ReceiveMailItemResponse();
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _gameDatabase.VerifyMailOwnerId(ownerId, request.MailId);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Result = errorCode;
-			return response;
-		}
 
-		errorCode = await _gameDatabase.MarkMailItemAsReceive(ownerId, request.MailId);
+		var errorCode = await _gameDatabase.MarkMailItemAsReceive(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;

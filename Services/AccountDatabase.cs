@@ -106,6 +106,11 @@ public class AccountDatabase : IAccountDatabase
 			var accountInformation =
 				await _queryFactory.Query("account").Where("Email", email).FirstOrDefaultAsync<Account>();
 
+			if (accountInformation.HashedPassword != Security.GetNewHashedPassword(password,accountInformation.SaltValue))
+			{
+				return (ErrorCode.LoginFailWrongPassword, 0);
+			}
+
 			if (accountInformation == null)
 			{
 				_logger.ZLogErrorWithPayload(new { Email = email }, "VerifyAccount Fail");
