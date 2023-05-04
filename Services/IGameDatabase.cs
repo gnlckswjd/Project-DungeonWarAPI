@@ -23,5 +23,7 @@ public interface IGameDatabase : IDisposable
 	public Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId);
 
 	public Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId);
-	public Task<(ErrorCode, DateTime lastLogin, Int32 attendanceCount)> UpdateLoginDateAsync(Int32 gameUserId);
+	public Task<(ErrorCode, DateTime lastLogin, Int16 attendanceCount)> UpdateLoginDateAsync(Int32 gameUserId);
+
+	public Task<ErrorCode> CreateAttendanceRewardMailAsync(AttendanceReward reward, Int32 gameUserId);
 }

@@ -50,6 +50,8 @@ public class CreateAccountController : ControllerBase
 		{
 			await _gameDatabase.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);
+
+			return response;
 		}
 
 		_logger.ZLogInformationWithPayload(new{Email = request.Email},"CreateAccount Success");

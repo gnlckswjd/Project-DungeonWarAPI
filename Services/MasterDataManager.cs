@@ -31,6 +31,11 @@ public class MasterDataManager
         
     }
 
+    public AttendanceReward CalcAttendanceReward(Int16 attendanceCount)
+    {
+	    return AttendanceRewardList[attendanceCount - 1];
+    }
+
     private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
     {
 	    (var errorCode, AttendanceRewardList) = await masterDatabase.LoadAttendanceRewardsAsync();

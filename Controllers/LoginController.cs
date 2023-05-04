@@ -68,11 +68,12 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
-		var (noticeErrorCode, notifications) = await _memoryDatabase.LoadNotificationsAsync();
+		(errorCode, var notifications) = await _memoryDatabase.LoadNotificationsAsync();
 
 		
 		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =playerId},"Login Success");
 
+		response.Result = errorCode;
 		response.Notifications = notifications;
 		response.AuthToken = authToken;
 		return response;

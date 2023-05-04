@@ -87,12 +87,17 @@ public enum ErrorCode : int
 	DeleteMailFailDelete = 311,
 	DeleteMailFail=311,
 
-	UpdateLoginAndGetAttendanceFailException=320,
+	UpdateLoginDateFailException = 320,
 	UpdateLoginDateFailUserNotFound= 321,
 	UpdateLoginDateFailUpdate=322,
-	UpdateLoginDateFailException=323,
+	UpdateLoginDateFailAlreadyReceived=323,
 
+	CreateAttendanceMailFailException=330,
+	CreateAttendanceMailFailInsertMail=331,
+	CreateAttendanceMailFailInsertItem=332,
 
+	RollbackCreateMailFailException =335,
+	RollbackCreateMailFailDelete=336,
 
 
 	InvalidRequestHttpBody =500,

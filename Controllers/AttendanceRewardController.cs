@@ -37,6 +37,16 @@ public class AttendanceRewardController : ControllerBase
 			return response;
 		}
 
+		var reward = _masterDataManager.CalcAttendanceReward(attendanceCount);
+
+		errorCode = await _gameDatabase.CreateAttendanceRewardMailAsync(reward, gameUserId);
+
+		if (errorCode != ErrorCode.None)
+		{
+			//Rollback with lastLogin and attendanceCount
+			response.Result=errorCode;
+			return response;
+		}
 
 		response.Result = ErrorCode.None;
 		return response;

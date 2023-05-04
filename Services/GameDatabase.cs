@@ -392,7 +392,7 @@ public class GameDatabase : IGameDatabase
 
 				if (errorCode != ErrorCode.None)
 				{
-					await RollbackReceiveItem(rollbackActions);
+					await RollbackReceiveItemAsync(rollbackActions);
 					_logger.ZLogErrorWithPayload(new
 							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
 						, "ReceiveItemFailInsert");
@@ -405,7 +405,7 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			await RollbackReceiveItem(rollbackActions);
+			await RollbackReceiveItemAsync(rollbackActions);
 			_logger.ZLogErrorWithPayload(new
 					{ ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mailId }
 				, "ReceiveItemFailException");
@@ -445,7 +445,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, DateTime lastLogin, Int32 attendanceCount)> UpdateLoginDateAsync(
+	public async Task<(ErrorCode, DateTime lastLogin, Int16 attendanceCount)> UpdateLoginDateAsync(
 		Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "UpdateLoginAndGetAttendance");
@@ -466,7 +466,15 @@ public class GameDatabase : IGameDatabase
 			var lastLogin = userData.LastDate.Date;
 			var today = DateTime.Now.Date;
 
-			Int32 attendanceCount = userData.AttendanceCount;
+			Int16 attendanceCount = userData.AttendanceCount;
+
+			if (lastLogin == today)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
+					"UpdateLoginDateFailAlreadyReceived");
+				return (ErrorCode.UpdateLoginDateFailAlreadyReceived, default, default);
+			}
 
 			if (lastLogin == today.AddDays(-1) && lastLogin.Date.Month == today.Month)
 			{
@@ -476,7 +484,7 @@ public class GameDatabase : IGameDatabase
 			{
 				attendanceCount = 1;
 			}
-			
+
 
 			var count = await _queryFactory.Query("user_data")
 				.Where("GameUserId", "=", gameUserId)
@@ -498,6 +506,76 @@ public class GameDatabase : IGameDatabase
 				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailException },
 				"UpdateLoginDateFailException");
 			return (ErrorCode.UpdateLoginDateFailException, default, default);
+		}
+	}
+
+	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(AttendanceReward reward, Int32 gameUserId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateAttendanceMail Start");
+		Int64 mailId=0;
+		try
+		{
+			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<Int64>(
+				new
+				{
+					GameUserId = gameUserId,
+					Title = reward.AttendanceCount.ToString() + "일 출석 보상",
+					Contents = reward.AttendanceCount.ToString() + "일 출석 보상 지급 안내",
+					isRead = false,
+					isReceived = false,
+					isInApp = false,
+					isRemoved = false,
+				});
+			if (mailId < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.CreateAttendanceMailFailInsertMail, GameUserId = gameUserId,
+						MailId = mailId
+					},
+					"CreateAttendanceMailFailInsertMail");
+				return ErrorCode.CreateAttendanceMailFailInsertMail;
+			}
+
+			var count = await _queryFactory.Query("mail_item").InsertAsync(new
+			{
+				MailId = mailId,
+				ItemCod = reward.ItemCode,
+				ItemCount = reward.ItemCount,
+			});
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.CreateAttendanceMailFailInsertItem,
+						GameUserId = gameUserId,
+						MailId = mailId
+					},
+					"CreateAttendanceMailFailInsertItem");
+
+				await RollbackCreateMailAsync(mailId);
+
+				return ErrorCode.CreateAttendanceMailFailInsertItem;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					ErrorCode = ErrorCode.CreateAttendanceMailFailException,
+					GameUserId = gameUserId,
+					MailId = mailId
+				},
+				"CreateAttendanceMailFailException");
+			await RollbackCreateMailAsync(mailId);
+			return ErrorCode.CreateAttendanceMailFailException;
 		}
 	}
 
@@ -638,11 +716,35 @@ public class GameDatabase : IGameDatabase
 		return ErrorCode.None;
 	}
 
-	public async Task RollbackReceiveItem(List<Func<Task>> rollbackActions)
+	private async Task RollbackReceiveItemAsync(List<Func<Task>> rollbackActions)
 	{
 		foreach (var action in rollbackActions)
 		{
 			await action();
+		}
+	}
+
+	private async Task RollbackCreateMailAsync(Int64 mailId)
+	{
+		if (mailId == 0)
+		{
+			return;
+		}
+		try
+		{
+			var count = await _queryFactory.Query("mail").Where("MailId", "=", mailId).DeleteAsync();
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackCreateMailFailDelete, MailId = mailId },
+					"RollbackCreateMailFailDelete");
+			}
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
+				"RollbackCreateMailFailException");
 		}
 	}
 }
