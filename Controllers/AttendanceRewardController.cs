@@ -29,7 +29,7 @@ public class AttendanceRewardController : ControllerBase
 
 		var gameUserId = authUserData.GameUserId;
 
-		var (errorCode, lastLogin, attendanceCount) = await _gameDatabase.UpdateLoginDateAsync(gameUserId);
+		var (errorCode, lastLoginDate, attendanceCount) = await _gameDatabase.UpdateLoginDateAsync(gameUserId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -43,7 +43,7 @@ public class AttendanceRewardController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			//Rollback with lastLogin and attendanceCount
+			await _gameDatabase.RollbackLoginDate(gameUserId, lastLoginDate, attendanceCount);
 			response.Result=errorCode;
 			return response;
 		}

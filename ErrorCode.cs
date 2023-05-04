@@ -99,6 +99,8 @@ public enum ErrorCode : int
 	RollbackCreateMailFailException =335,
 	RollbackCreateMailFailDelete=336,
 
+	RollbackLoginDateFailException=340,
+	RollbackLoginDateFailUpdate=341,
 
 	InvalidRequestHttpBody =500,
 	WrongAppVersion=501,

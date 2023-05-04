@@ -445,7 +445,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, DateTime lastLogin, Int16 attendanceCount)> UpdateLoginDateAsync(
+	public async Task<(ErrorCode, DateTime lastLoginDate, short attendanceCount)> UpdateLoginDateAsync(
 		Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "UpdateLoginAndGetAttendance");
@@ -463,12 +463,12 @@ public class GameDatabase : IGameDatabase
 				return (ErrorCode.UpdateLoginDateFailUserNotFound, default, default);
 			}
 
-			var lastLogin = userData.LastDate.Date;
+			var lastLoginDate = userData.LastLoginDate.Date;
 			var today = DateTime.Now.Date;
 
 			Int16 attendanceCount = userData.AttendanceCount;
 
-			if (lastLogin == today)
+			if (lastLoginDate == today)
 			{
 				_logger.ZLogErrorWithPayload(
 					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
@@ -476,7 +476,7 @@ public class GameDatabase : IGameDatabase
 				return (ErrorCode.UpdateLoginDateFailAlreadyReceived, default, default);
 			}
 
-			if (lastLogin == today.AddDays(-1) && lastLogin.Date.Month == today.Month)
+			if (lastLoginDate == today.AddDays(-1) && lastLoginDate.Date.Month == today.Month)
 			{
 				attendanceCount++;
 			}
@@ -488,7 +488,7 @@ public class GameDatabase : IGameDatabase
 
 			var count = await _queryFactory.Query("user_data")
 				.Where("GameUserId", "=", gameUserId)
-				.UpdateAsync(new { LastDate = today, AttendanceCount = attendanceCount });
+				.UpdateAsync(new { LastLoginDate = today, AttendanceCount = attendanceCount });
 
 			if (count != 1)
 			{
@@ -498,7 +498,7 @@ public class GameDatabase : IGameDatabase
 				return (ErrorCode.UpdateLoginDateFailUpdate, default, default);
 			}
 
-			return (ErrorCode.None, lastLogin, attendanceCount);
+			return (ErrorCode.None, lastLoginDate, attendanceCount);
 		}
 		catch (Exception e)
 		{
@@ -512,7 +512,7 @@ public class GameDatabase : IGameDatabase
 	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(AttendanceReward reward, Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateAttendanceMail Start");
-		Int64 mailId=0;
+		Int64 mailId = 0;
 		try
 		{
 			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<Int64>(
@@ -541,7 +541,7 @@ public class GameDatabase : IGameDatabase
 			var count = await _queryFactory.Query("mail_item").InsertAsync(new
 			{
 				MailId = mailId,
-				ItemCod = reward.ItemCode,
+				ItemCode = reward.ItemCode,
 				ItemCount = reward.ItemCount,
 			});
 
@@ -565,7 +565,6 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-
 			_logger.ZLogErrorWithPayload(
 				new
 				{
@@ -576,6 +575,46 @@ public class GameDatabase : IGameDatabase
 				"CreateAttendanceMailFailException");
 			await RollbackCreateMailAsync(mailId);
 			return ErrorCode.CreateAttendanceMailFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackLoginDate(int gameUserId, DateTime lastLoginDate, short attendanceCount)
+	{
+		_logger.ZLogDebugWithPayload(
+			new { GameUserId = gameUserId, LastLogin = lastLoginDate, AttendanceCount = attendanceCount },
+			"RollbackLoginDate Start");
+		try
+		{
+			var count = await _queryFactory.Query("user_data")
+				.Where("GameUserId", "=", gameUserId)
+				.UpdateAsync(new { LastLoginDate = lastLoginDate, AttendanceCount = attendanceCount - 1 });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.RollbackLoginDateFailUpdate,
+						LastLoginDate = lastLoginDate,
+						AttendnceCount = attendanceCount
+					},
+					"RollbackLoginDateFailUpdate");
+				return ErrorCode.RollbackLoginDateFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					ErrorCode = ErrorCode.RollbackLoginDateFailException,
+					LastLoginDate = lastLoginDate,
+					AttendnceCount = attendanceCount
+				},
+				"RollbackLoginDateFailException");
+			return ErrorCode.RollbackLoginDateFailException;
 		}
 	}
 
@@ -730,6 +769,7 @@ public class GameDatabase : IGameDatabase
 		{
 			return;
 		}
+
 		try
 		{
 			var count = await _queryFactory.Query("mail").Where("MailId", "=", mailId).DeleteAsync();

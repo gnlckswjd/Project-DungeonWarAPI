@@ -6,7 +6,7 @@ public class UserData
     public int PlayerId { get; set; }
     public int UserLevel { get; set; }
     public Int16 AttendanceCount { get; set; }
-    public DateTime LastDate { get; set; }
+    public DateTime LastLoginDate { get; set; }
 
     public Int64 Gold { get; set; }
 
