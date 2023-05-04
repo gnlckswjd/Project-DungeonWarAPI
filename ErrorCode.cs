@@ -86,15 +86,22 @@ public enum ErrorCode : int
 	DeleteMailFailException = 310,
 	DeleteMailFailDelete = 311,
 	DeleteMailFail=311,
-	
 
-	InvalidRequestHttpBody =320,
-	WrongAppVersion=321,
-	WrongMasterDataVersion=322,
-	WrongAuthTokenRequest=323,
+	UpdateLoginAndGetAttendanceFailException=320,
+	UpdateLoginDateFailUserNotFound= 321,
+	UpdateLoginDateFailUpdate=322,
+	UpdateLoginDateFailException=323,
 
-	LoadAuthUserDataFailException = 330,
-	LoadAuthUserDataFailEmpty = 331,
+
+
+
+	InvalidRequestHttpBody =500,
+	WrongAppVersion=501,
+	WrongMasterDataVersion=502,
+	WrongAuthTokenRequest=503,
+
+	LoadAuthUserDataFailException = 510,
+	LoadAuthUserDataFailEmpty = 511,
 
 
 	LockUserRequestFailExceptions=1000,

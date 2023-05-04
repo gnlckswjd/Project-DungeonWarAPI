@@ -367,7 +367,7 @@ public class GameDatabase : IGameDatabase
 				, "ReceiveItemFailMailHaveNoItem");
 			return (ErrorCode.ReceiveItemFailMailHaveNoItem);
 		}
-		
+
 
 		List<Func<Task>> rollbackActions = new List<Func<Task>>();
 
@@ -442,6 +442,62 @@ public class GameDatabase : IGameDatabase
 				new { ErrorCode = ErrorCode.DeleteMailFailException, GameUserId = gameUserId, MailId = mailId },
 				"DeleteMailFailException");
 			return ErrorCode.DeleteMailFailException;
+		}
+	}
+
+	public async Task<(ErrorCode, DateTime lastLogin, Int32 attendanceCount)> UpdateLoginDateAsync(
+		Int32 gameUserId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "UpdateLoginAndGetAttendance");
+
+		try
+		{
+			var userData = await _queryFactory.Query("user_data")
+				.Where("GameUserId", "=", gameUserId).FirstOrDefaultAsync<UserData>();
+
+			if (userData == null)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUserNotFound },
+					"UpdateLoginDateFailUserNotFound");
+				return (ErrorCode.UpdateLoginDateFailUserNotFound, default, default);
+			}
+
+			var lastLogin = userData.LastDate.Date;
+			var today = DateTime.Now.Date;
+
+			Int32 attendanceCount = userData.AttendanceCount;
+
+			if (lastLogin == today.AddDays(-1) && lastLogin.Date.Month == today.Month)
+			{
+				attendanceCount++;
+			}
+			else
+			{
+				attendanceCount = 1;
+			}
+			
+
+			var count = await _queryFactory.Query("user_data")
+				.Where("GameUserId", "=", gameUserId)
+				.UpdateAsync(new { LastDate = today, AttendanceCount = attendanceCount });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUpdate },
+					"UpdateLoginDateFailUpdate");
+				return (ErrorCode.UpdateLoginDateFailUpdate, default, default);
+			}
+
+			return (ErrorCode.None, lastLogin, attendanceCount);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailException },
+				"UpdateLoginDateFailException");
+			return (ErrorCode.UpdateLoginDateFailException, default, default);
 		}
 	}
 
