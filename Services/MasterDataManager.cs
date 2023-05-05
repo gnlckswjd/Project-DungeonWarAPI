@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.Database.Game;
+﻿using DungeonWarAPI.Models.DAO.Game;
+using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
@@ -17,9 +18,7 @@ public class MasterDataManager
 	public List<AttendanceReward> AttendanceRewardList { get; private set; }
     public List<Item> ItemList { get; private set; }
     public List<ItemAttribute> ItemAttributeList { get; private set; }
-
     public List<PackageItem> PackageItemList { get; private set; }
-    public List<ShopPackage> ShopPackageList { get; private set; }
     public List<StageItem> StageItemList { get; private set; }
     public List<StageNpc> StageNpcList { get; private set; }
     public Versions Versions { get; private set; }
@@ -31,10 +30,17 @@ public class MasterDataManager
         
     }
 
-    public AttendanceReward CalcAttendanceReward(Int16 attendanceCount)
+    public AttendanceReward GetAttendanceReward(Int16 attendanceCount)
     {
 	    return AttendanceRewardList[attendanceCount - 1];
     }
+
+    public List<PackageItem> GetPackageItems(Int32 packageId)
+    {
+	    return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
+    }
+
+
 
     private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
     {
@@ -50,8 +56,6 @@ public class MasterDataManager
 		(errorCode, PackageItemList) = await masterDatabase.LoadPackageItemsAsync();
 		ValidateErrorCode(errorCode);
 
-		(errorCode, ShopPackageList) = await masterDatabase.LoadShopPackagesAsync();
-	    ValidateErrorCode(errorCode);
 
 		(errorCode, StageItemList) = await masterDatabase.LoadStageItemsAsync();
 		ValidateErrorCode(errorCode);

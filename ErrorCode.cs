@@ -102,6 +102,21 @@ public enum ErrorCode : int
 	RollbackLoginDateFailException=340,
 	RollbackLoginDateFailUpdate=341,
 
+	StoreReceiptFailException=350,
+	StoreReceiptFailDuplicatedReceipt=351,
+	StoreReceiptFailInsert=352,
+
+	CreateInAppMailFailException=355,
+	CreateInAppMailFailInsertMail=356,
+	CreateInAppMailFailInsertItem=357,
+
+	RollbackStoreReceiptFailException=360,
+	RollbackStoreReceiptFailWrongId=361,
+	RollbackStoreReceiptFailDelete=362,
+
+
+
+
 	InvalidRequestHttpBody =500,
 	WrongAppVersion=501,
 	WrongMasterDataVersion=502,

@@ -1,4 +1,5 @@
 ﻿using DungeonWarAPI.ModelConfiguration;
+using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -106,7 +107,7 @@ public class MasterGameDatabase : IMasterDatabase
     {
         try
         {
-            var packageItems = await _queryFactory.Query("item_attribute")
+            var packageItems = await _queryFactory.Query("package_item")
                 .GetAsync<PackageItem>();
 
             if (packageItems == null)
@@ -123,32 +124,12 @@ public class MasterGameDatabase : IMasterDatabase
         }
     }
 
-    public async Task<(ErrorCode, List<ShopPackage>)> LoadShopPackagesAsync()
-    {
-        try
-        {
-            var shopPackages = await _queryFactory.Query("item_attribute")
-                .GetAsync<ShopPackage>();
-
-            if (shopPackages == null)
-            {
-                return (ErrorCode.LoadShopPackagesFailSelect, new List<ShopPackage>());
-            }
-
-            return (ErrorCode.None, shopPackages.ToList());
-        }
-        catch (Exception e)
-        {
-
-            return (ErrorCode.LoadShopPackagesFailException, new List<ShopPackage>());
-        }
-    }
 
     public async Task<(ErrorCode, List<StageItem>)> LoadStageItemsAsync()
     {
         try
         {
-            var stageItems = await _queryFactory.Query("item_attribute")
+            var stageItems = await _queryFactory.Query("stage_item")
                 .GetAsync<StageItem>();
 
             if (stageItems == null)
@@ -169,7 +150,7 @@ public class MasterGameDatabase : IMasterDatabase
     {
         try
         {
-            var stageNpcs = await _queryFactory.Query("item_attribute")
+            var stageNpcs = await _queryFactory.Query("stage_npc")
                 .GetAsync<StageNpc>();
 
             if (stageNpcs == null)

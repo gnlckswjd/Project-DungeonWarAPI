@@ -10,6 +10,7 @@ using DungeonWarAPI.Models.Database.Game;
 using System.Threading;
 using System.Transactions;
 using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DAO.Game;
 
 namespace DungeonWarAPI.Services;
 
@@ -123,7 +124,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, UserData)> LoadUserData(int playerId)
+	public async Task<(ErrorCode, UserData)> LoadUserDataAsync(int playerId)
 	{
 		_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "LoadUserData Start");
 
@@ -148,7 +149,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, List<OwnedItem> )> LoadUserItems(Int32 gameUserId)
+	public async Task<(ErrorCode, List<OwnedItem> )> LoadUserItemsAsync(Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadUserItems Start");
 		try
@@ -175,7 +176,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailList(int gameUserId, int pageNumber)
+	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(int gameUserId, int pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
 
@@ -237,7 +238,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailAsRead(Int32 gameUserId, Int64 mailId)
+	public async Task<ErrorCode> MarkMailAsReadAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "MarkMailAsRead Start");
 
@@ -266,7 +267,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailItemAsReceive(Int32 gameUserId, Int64 mailId)
+	public async Task<ErrorCode> MarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId)
 	{
 		try
 		{
@@ -509,7 +510,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(AttendanceReward reward, Int32 gameUserId)
+	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(Int32 gameUserId, AttendanceReward reward)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateAttendanceMail Start");
 		Int64 mailId = 0;
@@ -578,7 +579,7 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public async Task<ErrorCode> RollbackLoginDate(int gameUserId, DateTime lastLoginDate, short attendanceCount)
+	public async Task<ErrorCode> RollbackLoginDateAsync(int gameUserId, DateTime lastLoginDate, short attendanceCount)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { GameUserId = gameUserId, LastLogin = lastLoginDate, AttendanceCount = attendanceCount },
@@ -615,6 +616,148 @@ public class GameDatabase : IGameDatabase
 				},
 				"RollbackLoginDateFailException");
 			return ErrorCode.RollbackLoginDateFailException;
+		}
+	}
+
+	public async Task<(ErrorCode, Int32)> StoreReceiptAsync(Int32 gameUserId, String receiptSerialCode, Int32 packageId)
+	{
+		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, ReceiptSerialCode= receiptSerialCode },"StoreReceipt Start");
+
+		try
+		{
+			var existingReceipt = await _queryFactory.Query("receipt")
+				.Where("ReceiptSerialCode", receiptSerialCode)
+				.FirstOrDefaultAsync();
+
+			if (existingReceipt != null)
+			{
+				_logger.ZLogErrorWithPayload(new{ErrorCode=ErrorCode.StoreReceiptFailDuplicatedReceipt , GameUserId=gameUserId, ReceiptSerialCode=receiptSerialCode}
+				, "StoreReceiptFailDuplicatedReceipt");
+				return (ErrorCode.StoreReceiptFailDuplicatedReceipt, 0);
+			}
+
+			var receiptId = await _queryFactory.Query("receipt")
+				.InsertGetIdAsync<int>(new
+				{
+					GameUserId = gameUserId,
+					ReceiptSerialCode = receiptSerialCode,
+					PurchaseDate = DateTime.UtcNow,
+					PackageId= packageId
+				});
+
+			if (receiptId < 1)
+			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.StoreReceiptFailInsert, GameUserId = gameUserId, ReceiptSerialCode = receiptSerialCode }
+					, "StoreReceiptFailInsert");
+				return (ErrorCode.StoreReceiptFailInsert, 0);
+			}
+
+			return (ErrorCode.None, receiptId);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.StoreReceiptFailException, GameUserId = gameUserId, ReceiptSerialCode = receiptSerialCode }
+				, "StoreReceiptFailException");
+			return (ErrorCode.StoreReceiptFailException, 0);
+
+		}
+	}
+
+	public async Task<ErrorCode> CreateInAppMailAsync(int gameUserId, List<PackageItem> packageItems)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateInAppMail Start");
+		Int64 mailId = 0;
+		try
+		{
+			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<Int64>(
+				new
+				{
+					GameUserId = gameUserId,
+					Title = packageItems[0].PackageId + "구매 지급",
+					Contents = packageItems[0].PackageId + "구매 지급 안내",
+					isRead = false,
+					isReceived = false,
+					isInApp = true,
+					isRemoved = false,
+				});
+			if (mailId < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.CreateInAppMailFailInsertMail,
+						GameUserId = gameUserId,
+						MailId = mailId
+					},
+					"CreateInAppMailFailInsertMail");
+				return ErrorCode.CreateInAppMailFailInsertMail;
+			}
+
+			var mailItemsData = packageItems.Select(item => new object[] { mailId, item.ItemCode, item.ItemCount }).ToArray();
+			var mailItemsColumns = new[] { "MailId", "ItemCode", "ItemCount" };
+
+			var count = await _queryFactory.Query("mail_item").InsertAsync(mailItemsColumns, mailItemsData);
+
+
+			if (count < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.CreateInAppMailFailInsertItem,
+						GameUserId = gameUserId,
+						MailId = mailId
+					},
+					"CreateInAppMailFailInsertItem");
+
+				await RollbackCreateMailAsync(mailId);
+
+				return ErrorCode.CreateInAppMailFailInsertItem;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					ErrorCode = ErrorCode.CreateInAppMailFailException,
+					GameUserId = gameUserId,
+					MailId = mailId
+				},
+				"CreateInAppMailFailException");
+			await RollbackCreateMailAsync(mailId);
+			return ErrorCode.CreateInAppMailFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackStoreReceiptAsync(Int32 receiptId)
+	{
+		if (receiptId == 0)
+		{
+			return ErrorCode.RollbackStoreReceiptFailWrongId;
+		}
+
+		try
+		{
+			var count = await _queryFactory.Query("receipt").Where("ReceiptId", "=", receiptId).DeleteAsync();
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackStoreReceiptFailDelete, Receipt = receiptId },
+					"RollbackStoreReceiptFailDelete");
+				return ErrorCode.RollbackStoreReceiptFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackStoreReceiptFailException, Receipt = receiptId },
+				"RollbackStoreReceiptFailException");
+			return ErrorCode.RollbackStoreReceiptFailException;
 		}
 	}
 

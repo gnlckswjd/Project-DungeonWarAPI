@@ -26,7 +26,7 @@ public class MailListController : ControllerBase
 		var response = new MailListResponse();
 
 
-		var (errorCode, mails) = await _gameDatabase.LoadMailList(authUserData.GameUserId, request.PageNumber);
+		var (errorCode, mails) = await _gameDatabase.LoadMailListAsync(authUserData.GameUserId, request.PageNumber);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Result = errorCode;

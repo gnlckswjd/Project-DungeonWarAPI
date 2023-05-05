@@ -1,4 +1,4 @@
-﻿namespace DungeonWarAPI.Models.Database.Game;
+﻿namespace DungeonWarAPI.Models.DAO.Game;
 
 public class AttendanceReward
 {

@@ -26,7 +26,7 @@ public class ReadMailController : ControllerBase
 
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _gameDatabase.MarkMailAsRead(ownerId, request.MailId);
+		var errorCode = await _gameDatabase.MarkMailAsReadAsync(ownerId, request.MailId);
 
 		response.Result = errorCode;
 		return response;

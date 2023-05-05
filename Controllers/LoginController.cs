@@ -36,7 +36,7 @@ public class LoginController : ControllerBase
 		}
 
 		//기본 데이터 게임디비에서 가져오기
-		(errorCode, var userData) = await _gameDatabase.LoadUserData(playerId);
+		(errorCode, var userData) = await _gameDatabase.LoadUserDataAsync(playerId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -47,7 +47,7 @@ public class LoginController : ControllerBase
 
 		//유저 아이템 게임디비에서 가져오기
 
-		(errorCode, var items) = await _gameDatabase.LoadUserItems(userData.GameUserId);
+		(errorCode, var items) = await _gameDatabase.LoadUserItemsAsync(userData.GameUserId);
 
 		if (errorCode != ErrorCode.None)
 		{
