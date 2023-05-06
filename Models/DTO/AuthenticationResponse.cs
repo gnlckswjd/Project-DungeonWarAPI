@@ -2,5 +2,5 @@
 
 public class AuthenticationResponse
 {
-    public ErrorCode result { get; set; }
+    public ErrorCode Error { get; set; }
 }

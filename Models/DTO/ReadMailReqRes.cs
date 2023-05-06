@@ -8,6 +8,6 @@ public class ReadMailRequest
 
 public class ReadMailResponse
 {
-    public ErrorCode Result { get; set; }
+    public ErrorCode Error { get; set; }
 
 }

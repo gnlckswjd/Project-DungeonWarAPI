@@ -6,5 +6,5 @@ public class MailItem
     public long MailId { get; set; }
     public int ItemCode { get; set; }
     public int ItemCount { get; set; }
-    public int EnhancedCount { get; set; }
+    public int EnhancementCount { get; set; }
 }

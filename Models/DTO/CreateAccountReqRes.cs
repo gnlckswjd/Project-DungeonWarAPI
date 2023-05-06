@@ -8,5 +8,5 @@ public class CreateAccountRequest
 
 public class CreateAccountResponse
 {
-    public ErrorCode Result { get; set; }
+    public ErrorCode Error { get; set; }
 }

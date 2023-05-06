@@ -29,7 +29,7 @@ public class MailListController : ControllerBase
 		var (errorCode, mails) = await _gameDatabase.LoadMailListAsync(authUserData.GameUserId, request.PageNumber);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 

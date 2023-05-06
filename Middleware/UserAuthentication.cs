@@ -61,7 +61,7 @@ public class UserAuthentication
 
 				var jsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 				{
-					result = ErrorCode.InvalidRequestHttpBody
+					Error = ErrorCode.InvalidRequestHttpBody
 				});
 
 				var bytes = Encoding.UTF8.GetBytes(jsonResponse);
@@ -99,7 +99,7 @@ public class UserAuthentication
 			{
 				var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 				{
-					result = setLockError
+					Error = setLockError
 				});
 				var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 				await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
@@ -138,7 +138,7 @@ public class UserAuthentication
 		{
 			var jsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				result = ErrorCode.InvalidRequestHttpBody
+				Error = ErrorCode.InvalidRequestHttpBody
 			});
 			// json 형태 에러코드 입력
 			var bytes = Encoding.UTF8.GetBytes(jsonResponse);
@@ -155,7 +155,7 @@ public class UserAuthentication
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				result = ErrorCode.WrongAppVersion
+				Error = ErrorCode.WrongAppVersion
 			});
 			var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 			await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
@@ -172,7 +172,7 @@ public class UserAuthentication
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				result = ErrorCode.WrongAppVersion
+				Error = ErrorCode.WrongAppVersion
 			});
 			var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 			await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
@@ -189,7 +189,7 @@ public class UserAuthentication
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				result = ErrorCode.WrongAuthTokenRequest
+				Error = ErrorCode.WrongAuthTokenRequest
 			});
 			var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 			await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);

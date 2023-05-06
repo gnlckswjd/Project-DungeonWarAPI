@@ -31,7 +31,7 @@ public class LoginController : ControllerBase
 		var (errorCode, playerId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -40,7 +40,7 @@ public class LoginController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 		response.UserLevel=userData.UserLevel;
@@ -51,7 +51,7 @@ public class LoginController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -64,7 +64,7 @@ public class LoginController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -73,7 +73,7 @@ public class LoginController : ControllerBase
 		
 		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId =playerId},"Login Success");
 
-		response.Result = errorCode;
+		response.Error = errorCode;
 		response.Notifications = notifications;
 		response.AuthToken = authToken;
 		return response;

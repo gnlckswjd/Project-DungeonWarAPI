@@ -114,24 +114,32 @@ public enum ErrorCode : int
 	RollbackStoreReceiptFailWrongId=361,
 	RollbackStoreReceiptFailDelete=362,
 
+	LoadItemFailException = 370,
+	LoadItemFailSelect = 371,
+	CanNotEnhancement = 375,
+	WrongItemCode=376,
+
+	UpdateGoldFailException = 380,
+	UpdateGoldFailIncrease = 381,
+
+	UpdateEnhancementCountFailException = 390,
+	UpdateEnhancementCountFailUpdate = 391,
 
 
+	InvalidRequestHttpBody =1000,
+	WrongAppVersion=1001,
+	WrongMasterDataVersion=1002,
+	WrongAuthTokenRequest=1003,
 
-	InvalidRequestHttpBody =500,
-	WrongAppVersion=501,
-	WrongMasterDataVersion=502,
-	WrongAuthTokenRequest=503,
+	LoadAuthUserDataFailException = 1010,
+	LoadAuthUserDataFailEmpty = 1011,
 
-	LoadAuthUserDataFailException = 510,
-	LoadAuthUserDataFailEmpty = 511,
+	LockUserRequestFailExceptions=1020,
+	LockUserRequestFailISet=1021,
 
-
-	LockUserRequestFailExceptions=1000,
-	LockUserRequestFailISet=1001,
-
-	UnLockUserRequestFailException=1010,
-	UnLockUserRequestFailNullKey=1011,
-	UnLockUserRequestFailDelete=1012,
+	UnLockUserRequestFailException=1030,
+	UnLockUserRequestFailNullKey=1031,
+	UnLockUserRequestFailDelete=1032,
 
 
 

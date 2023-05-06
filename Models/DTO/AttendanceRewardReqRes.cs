@@ -6,5 +6,5 @@ public class AttendanceRewardRequest
 }
 public class AttendanceRewardResponse
 {
-	public ErrorCode Result { get; set; }
+	public ErrorCode Error { get; set; }
 }

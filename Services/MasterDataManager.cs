@@ -40,6 +40,16 @@ public class MasterDataManager
 	    return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
     }
 
+    public (Int16, Int32) GetEnhanceMaxCount(Int32 itemCode)
+    {
+	    var item = ItemList.Find(item => item.ItemCode == itemCode);
+	    if (item == null)
+	    {
+		    return (-1,0);
+	    }
+
+		return (item.EnhanceMaxCount, -1000);
+	}
 
 
     private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)

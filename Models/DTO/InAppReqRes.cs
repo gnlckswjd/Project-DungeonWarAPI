@@ -10,5 +10,5 @@ public class InAppRequest
 
 public class InAppResponse
 {
-	public ErrorCode Result { get; set; }
+	public ErrorCode Error { get; set; }
 }

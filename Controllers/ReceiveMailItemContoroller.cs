@@ -29,21 +29,20 @@ public class ReceiveMailItemController : ControllerBase
 		var errorCode = await _gameDatabase.MarkMailItemAsReceiveAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
 		errorCode = await _gameDatabase.ReceiveItemAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			await _gameDatabase.RollbackMarkMailItemAsReceiveAsync(ownerId, request.MailId);
 			return response;
 		}
 
 
-
-		response.Result = errorCode;
+		response.Error = errorCode;
 		return response;
 	}
 }

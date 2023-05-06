@@ -28,14 +28,14 @@ public class CreateAccountController : ControllerBase
 		var response = new CreateAccountResponse();
 
 		var (errorCode, accountId )= await _accountDatabase.CreateAccountAsync(request.Email, request.Password);
-		response.Result = errorCode;
+		response.Error = errorCode;
 		if (errorCode != ErrorCode.None)
 		{
 			return response;
 		}
 
 		(errorCode, var gameUserId) = await _gameDatabase.CreateUserAsync(accountId);
-		response.Result = errorCode;
+		response.Error = errorCode;
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -44,7 +44,7 @@ public class CreateAccountController : ControllerBase
 		}
 
 		errorCode = await _gameDatabase.CreateUserItemAsync(gameUserId);
-		response.Result = errorCode;
+		response.Error = errorCode;
 
 		if (errorCode != ErrorCode.None)
 		{

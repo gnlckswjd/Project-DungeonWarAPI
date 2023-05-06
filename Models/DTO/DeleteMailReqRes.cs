@@ -8,5 +8,5 @@ public class DeleteMailRequest
 
 public class DeleteMailResponse
 {
-    public ErrorCode Result { get; set; }
+    public ErrorCode Error { get; set; }
 }

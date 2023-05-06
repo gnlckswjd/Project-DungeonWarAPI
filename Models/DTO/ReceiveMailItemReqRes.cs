@@ -6,5 +6,5 @@ public class ReceiveMailItemRequest
 }
 public class ReceiveMailItemResponse
 {
-    public ErrorCode Result { get; set; }
+    public ErrorCode Error { get; set; }
 }

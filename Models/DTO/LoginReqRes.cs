@@ -11,7 +11,7 @@ public class LoginRequest
 
 public class LoginResponse
 {
-	public ErrorCode Result { get; set; }
+	public ErrorCode Error { get; set; }
 
 	public Int32 UserLevel { get; set; }
 

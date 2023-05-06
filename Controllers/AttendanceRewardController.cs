@@ -33,7 +33,7 @@ public class AttendanceRewardController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -44,11 +44,11 @@ public class AttendanceRewardController : ControllerBase
 		if (errorCode != ErrorCode.None)
 		{
 			await _gameDatabase.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
-			response.Result=errorCode;
+			response.Error=errorCode;
 			return response;
 		}
 
-		response.Result = ErrorCode.None;
+		response.Error = ErrorCode.None;
 		return response;
 	}
 }

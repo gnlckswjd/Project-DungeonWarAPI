@@ -28,7 +28,7 @@ public class DeleteMailController : Controller
 
 		var errorCode = await _gameDatabase.DeleteMailAsync(ownerId, request.MailId);
 
-		response.Result = errorCode;
+		response.Error = errorCode;
 		return response;
 
 	}

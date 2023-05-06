@@ -34,7 +34,7 @@ public class InAppController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -46,11 +46,11 @@ public class InAppController : ControllerBase
 		if (errorCode != ErrorCode.None)
 		{
 			await _gameDatabase.RollbackStoreReceiptAsync(receiptId);
-			response.Result = errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
-		response.Result = ErrorCode.None;
+		response.Error = ErrorCode.None;
 		return response;
 	}
 

@@ -9,7 +9,7 @@ public class MailListRequest
 
 public class MailListResponse
 {
-    public ErrorCode Result { get; set; }
+    public ErrorCode Error { get; set; }
     public List<MailWithItems> MailsWithItems { get; set; }
 
 }
