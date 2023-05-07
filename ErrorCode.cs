@@ -125,6 +125,11 @@ public enum ErrorCode : int
 	UpdateEnhancementCountFailException = 390,
 	UpdateEnhancementCountFailUpdate = 391,
 
+	InsertEnhancementHistoryFailException= 400,
+	InsertEnhancementHistoryFailInsert=401,
+
+	RollbackUpdateEnhancementCountFailException=410,
+	RollbackUpdateEnhancementCountFailUpdate=411,
 
 	InvalidRequestHttpBody =1000,
 	WrongAppVersion=1001,

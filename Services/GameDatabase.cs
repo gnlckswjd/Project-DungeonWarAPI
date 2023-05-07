@@ -829,7 +829,7 @@ public class GameDatabase : IGameDatabase
 	public async Task<ErrorCode> UpdateEnhancementCountAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount)
 	{
 		_logger.ZLogDebugWithPayload(
-			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount }, "UpdateGold Start");
+			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount }, "UpdateEnhancementCount Start");
 
 		try
 		{
@@ -860,21 +860,95 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
-	public Task<ErrorCode> InsertEnhancementHistoryAsync(int gameUserId, long itemId, int enhancementCount,
-		bool isSuccess)
+	public async Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount,
+		Boolean isSuccess)
 	{
-		throw new NotImplementedException();
+		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, ItemId=itemId,EnhancementCount= enhancementCount},"InsertEnhancementHistory Start");
+		
+		var enhancementCountAfter = enhancementCount;
+		if (isSuccess)
+		{
+			enhancementCountAfter = enhancementCount + 1;
+		}
+
+		try
+		{
+			var count = await _queryFactory.Query("enhancement_history").InsertAsync(new
+			{
+				GameUserId = gameUserId, ItemId = itemId,
+				EnhancementCountBefore = enhancementCount,
+				EnhancementCountAfter = enhancementCountAfter,
+				IsSuccess = isSuccess
+			});
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(new{
+					ErrorCode=ErrorCode.InsertEnhancementHistoryFailInsert,
+					GameUserId = gameUserId,
+					ItemId = itemId,
+					EnhancementCountBefore = enhancementCount,
+					EnhancementCountAfter = enhancementCountAfter,
+					IsSuccess = isSuccess
+				}, "InsertEnhancementHistoryFailInsert");
+				return ErrorCode.InsertEnhancementHistoryFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new {
+				ErrorCode = ErrorCode.InsertEnhancementHistoryFailException,
+				GameUserId = gameUserId,
+				ItemId = itemId,
+				EnhancementCountBefore = enhancementCount,
+				EnhancementCountAfter = enhancementCountAfter,
+				IsSuccess = isSuccess
+			}, "InsertEnhancementHistoryFailException");
+			return ErrorCode.InsertEnhancementHistoryFailException;
+		}
 	}
 
-	public Task<ErrorCode> RollbackUpdateMoneyAsync(int gameUserId, int gold)
+	public async Task<ErrorCode> RollbackUpdateMoneyAsync(int gameUserId, int gold)
 	{
-		throw new NotImplementedException();
+		return await UpdateGoldAsync(gameUserId, -gold);
 	}
 
 
-	public Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId)
+	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId)
 	{
-		throw new NotImplementedException();
+		_logger.ZLogDebugWithPayload(
+			new {  ItemId = itemId }, "RollbackUpdateEnhancementCount Start");
+
+		try
+		{
+			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.DecrementAsync("EnhancementCount",1);
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.RollbackUpdateEnhancementCountFailUpdate,
+			
+						ItemId = itemId,
+					}, "RollbackUpdateEnhancementCountFailUpdate");
+				return ErrorCode.RollbackUpdateEnhancementCountFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					ErrorCode = ErrorCode.RollbackUpdateEnhancementCountFailException,
+					ItemId = itemId,
+				}, "RollbackUpdateEnhancementCountFailException");
+			return ErrorCode.RollbackUpdateEnhancementCountFailException;
+		}
 	}
 
 	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(int gameUserId, Int64 mailId)
