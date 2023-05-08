@@ -40,7 +40,7 @@ public class MasterDataManager
 	    return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
     }
 
-    public (Int16, Int32) GetEnhanceMaxCount(Int32 itemCode)
+    public (Int16, Int32) GetEnhanceMaxCountWithGold(Int32 itemCode)
     {
 	    var item = ItemList.Find(item => item.ItemCode == itemCode);
 	    if (item == null)

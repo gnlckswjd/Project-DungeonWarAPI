@@ -131,6 +131,13 @@ public enum ErrorCode : int
 	RollbackUpdateEnhancementCountFailException=410,
 	RollbackUpdateEnhancementCountFailUpdate=411,
 
+	DestroyItemFailException=420,
+	DestroyItemFailUpdate = 421,
+	RollbackDestroyItemFailException=425,
+	RollbackDestroyItemFailUpdate = 426,
+
+
+
 	InvalidRequestHttpBody =1000,
 	WrongAppVersion=1001,
 	WrongMasterDataVersion=1002,

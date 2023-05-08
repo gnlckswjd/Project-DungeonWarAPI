@@ -813,7 +813,9 @@ public class GameDatabase : IGameDatabase
 				.IncrementAsync("Gold", gold);
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new {ErrorCode= ErrorCode.UpdateGoldFailIncrease, GameUserId = gameUserId, Gold = gold }, "UpdateGoldFailIncrease");
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.UpdateGoldFailIncrease, GameUserId = gameUserId, Gold = gold },
+					"UpdateGoldFailIncrease");
 				return ErrorCode.UpdateGoldFailIncrease;
 			}
 
@@ -821,7 +823,9 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateGoldFailException, GameUserId = gameUserId, Gold = gold }, "UpdateGoldFailException");
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.UpdateGoldFailException, GameUserId = gameUserId, Gold = gold },
+				"UpdateGoldFailException");
 			return ErrorCode.UpdateGoldFailException;
 		}
 	}
@@ -829,7 +833,8 @@ public class GameDatabase : IGameDatabase
 	public async Task<ErrorCode> UpdateEnhancementCountAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount)
 	{
 		_logger.ZLogDebugWithPayload(
-			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount }, "UpdateEnhancementCount Start");
+			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount },
+			"UpdateEnhancementCount Start");
 
 		try
 		{
@@ -860,11 +865,43 @@ public class GameDatabase : IGameDatabase
 		}
 	}
 
+	public async Task<ErrorCode> DestroyItemAsync(int gameUserId, long itemId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "DestroyItem Start");
+
+		try
+		{
+			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { IsDestroyed = true });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.DestroyItemFailUpdate, GameUserId = gameUserId, ItemId = itemId },
+					"DestroyItemFailUpdate");
+
+				return ErrorCode.DestroyItemFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
+				"DestroyItemFailException");
+
+			return ErrorCode.DestroyItemFailException;
+		}
+	}
+
 	public async Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount,
 		Boolean isSuccess)
 	{
-		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, ItemId=itemId,EnhancementCount= enhancementCount},"InsertEnhancementHistory Start");
-		
+		_logger.ZLogDebugWithPayload(
+			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount },
+			"InsertEnhancementHistory Start");
+
 		var enhancementCountAfter = enhancementCount;
 		if (isSuccess)
 		{
@@ -883,8 +920,9 @@ public class GameDatabase : IGameDatabase
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new{
-					ErrorCode=ErrorCode.InsertEnhancementHistoryFailInsert,
+				_logger.ZLogErrorWithPayload(new
+				{
+					ErrorCode = ErrorCode.InsertEnhancementHistoryFailInsert,
 					GameUserId = gameUserId,
 					ItemId = itemId,
 					EnhancementCountBefore = enhancementCount,
@@ -898,7 +936,8 @@ public class GameDatabase : IGameDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new {
+			_logger.ZLogErrorWithPayload(new
+			{
 				ErrorCode = ErrorCode.InsertEnhancementHistoryFailException,
 				GameUserId = gameUserId,
 				ItemId = itemId,
@@ -919,19 +958,19 @@ public class GameDatabase : IGameDatabase
 	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId)
 	{
 		_logger.ZLogDebugWithPayload(
-			new {  ItemId = itemId }, "RollbackUpdateEnhancementCount Start");
+			new { ItemId = itemId }, "RollbackUpdateEnhancementCount Start");
 
 		try
 		{
 			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.DecrementAsync("EnhancementCount",1);
+				.DecrementAsync("EnhancementCount", 1);
 			if (count != 1)
 			{
 				_logger.ZLogErrorWithPayload(
 					new
 					{
 						ErrorCode = ErrorCode.RollbackUpdateEnhancementCountFailUpdate,
-			
+
 						ItemId = itemId,
 					}, "RollbackUpdateEnhancementCountFailUpdate");
 				return ErrorCode.RollbackUpdateEnhancementCountFailUpdate;
@@ -948,6 +987,36 @@ public class GameDatabase : IGameDatabase
 					ItemId = itemId,
 				}, "RollbackUpdateEnhancementCountFailException");
 			return ErrorCode.RollbackUpdateEnhancementCountFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackDestroyItem(Int64 itemId)
+	{
+		_logger.ZLogDebugWithPayload(new {  ItemId = itemId }, "RollbackDestroyItem Start");
+
+		try
+		{
+			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { IsDestroyed = true });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackDestroyItemFailUpdate, ItemId = itemId },
+					"RollbackDestroyItemFailUpdate");
+
+				return ErrorCode.RollbackDestroyItemFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId },
+				"RollbackDestroyItemFailException");
+
+			return ErrorCode.RollbackDestroyItemFailException;
 		}
 	}
 
