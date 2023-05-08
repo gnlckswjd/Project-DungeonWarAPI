@@ -1,5 +1,4 @@
-﻿using DungeonWarAPI.Managers;
-using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;

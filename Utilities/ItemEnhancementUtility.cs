@@ -1,9 +1,6 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
-using Microsoft.AspNetCore.SignalR;
+﻿namespace DungeonWarAPI.Utilities;
 
-namespace DungeonWarAPI.Managers;
-
-public static class ItemEnhancementManager
+public static class ItemEnhancementUtility
 {
     public static ErrorCode CheckEnhancementPossibility(int maxCount, int enhancementCount)
     {

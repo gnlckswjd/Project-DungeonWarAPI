@@ -1,7 +1,8 @@
-﻿using DungeonWarAPI.Managers;
-using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;
+using DungeonWarAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -40,7 +41,7 @@ public class EnhancementController : ControllerBase
 
 		var (maxCount, gold) = _masterDataManager.GetEnhanceMaxCountWithGold(itemCode);
 
-		errorCode = ItemEnhancementManager.CheckEnhancementPossibility(maxCount, enhancementCount);
+		errorCode = ItemEnhancementUtility.CheckEnhancementPossibility(maxCount, enhancementCount);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -48,7 +49,7 @@ public class EnhancementController : ControllerBase
 			return response;
 		}
 
-		Boolean isSuccess = ItemEnhancementManager.EnhanceItem();
+		Boolean isSuccess = ItemEnhancementUtility.EnhanceItem();
 
 
 		errorCode = await _itemService.UpdateGoldAsync(gameUserId, gold);

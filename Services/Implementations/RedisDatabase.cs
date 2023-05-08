@@ -1,10 +1,10 @@
 ﻿using CloudStructures;
 using CloudStructures.Structures;
-using DungeonWarAPI.Managers;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
+using DungeonWarAPI.Utilities;
 using Microsoft.Extensions.Options;
 using ZLogger;
 
@@ -26,7 +26,7 @@ public class RedisDatabase : IMemoryDatabase
     {
         _logger.ZLogDebugWithPayload(new { Email = email }, "RegisterUser Start");
 
-        var key = MemoryDatabaseKeyManager.MakeUIDKey(email);
+        var key = MemoryDatabaseKeyUtility.MakeUIDKey(email);
         var authInfo = new AuthUserData
         {
             Email = email,
@@ -86,7 +86,7 @@ public class RedisDatabase : IMemoryDatabase
 
     public async Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(string email)
     {
-        var key = MemoryDatabaseKeyManager.MakeUIDKey(email);
+        var key = MemoryDatabaseKeyUtility.MakeUIDKey(email);
         _logger.ZLogDebugWithPayload(new { Email = email, Key = key }, "LoadAuthUserData Start");
         try
         {
@@ -166,7 +166,7 @@ public class RedisDatabase : IMemoryDatabase
     public async Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, int pageNumber)
     {
         _logger.ZLogDebugWithPayload(new { authUserData.GameUserId, PageNumber = pageNumber }, "StoreUserMailPage Start");
-        var key = MemoryDatabaseKeyManager.MakeMailPageKey(authUserData.Email);
+        var key = MemoryDatabaseKeyUtility.MakeMailPageKey(authUserData.Email);
         try
         {
             var redis = new RedisString<int>(_redisConnection, key, TimeSpan.FromHours(2));

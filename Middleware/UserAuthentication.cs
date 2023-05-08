@@ -1,9 +1,10 @@
 ﻿using System.Text;
 using System.Text.Json;
-using DungeonWarAPI.Managers;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;
+using DungeonWarAPI.Utilities;
 
 namespace DungeonWarAPI.Middleware;
 
@@ -93,7 +94,7 @@ public class UserAuthentication
 				return;
 			}
 
-			userLockKey = MemoryDatabaseKeyManager.MakeUserLockKey(authUserData.Email);
+			userLockKey = MemoryDatabaseKeyUtility.MakeUserLockKey(authUserData.Email);
 
 			var setLockError = await _memoryDatabase.LockUserRequestAsync(userLockKey, authToken);
 			if (ErrorCode.None != setLockError)

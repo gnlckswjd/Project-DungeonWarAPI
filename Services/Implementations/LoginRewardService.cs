@@ -1,5 +1,4 @@
-﻿using DungeonWarAPI.Managers;
-using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;

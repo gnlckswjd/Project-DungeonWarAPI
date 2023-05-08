@@ -8,7 +8,7 @@ using SqlKata.Execution;
 using StackExchange.Redis;
 using ZLogger;
 
-namespace DungeonWarAPI.Managers;
+namespace DungeonWarAPI.Services;
 
 public class MasterDataManager
 {
