@@ -1,6 +1,6 @@
-﻿namespace DungeonWarAPI
+﻿namespace DungeonWarAPI.Managers
 {
-    public class MemoryDatabaseKeyGenerator
+    public class MemoryDatabaseKeyManager
     {
         const string loginUID = "UID_";
         const string lockKey = "ULock_";

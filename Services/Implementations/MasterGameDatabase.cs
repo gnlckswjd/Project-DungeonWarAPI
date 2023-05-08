@@ -1,6 +1,7 @@
 ﻿using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
@@ -8,17 +9,17 @@ using SqlKata.Execution;
 using System.Data;
 using ZLogger;
 
-namespace DungeonWarAPI.Services;
+namespace DungeonWarAPI.Services.Implementations;
 
 public class MasterGameDatabase : IMasterDatabase
 {
     private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-    private readonly ILogger<GameDatabase> _logger;
+    private readonly ILogger<MasterGameDatabase> _logger;
 
     private readonly IDbConnection _databaseConnection;
     private readonly QueryFactory _queryFactory;
 
-    public MasterGameDatabase(ILogger<GameDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
+    public MasterGameDatabase(ILogger<MasterGameDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
     {
         _configurationOptions = configurationOptions;
         _logger = logger;

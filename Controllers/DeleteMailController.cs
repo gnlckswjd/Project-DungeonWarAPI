@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -9,12 +9,12 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class DeleteMailController : Controller
 {
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IMailService _mailService;
 	private readonly ILogger<DeleteMailController> _logger;
 
-	public DeleteMailController(ILogger<DeleteMailController> logger, IGameDatabase gameDatabase)
+	public DeleteMailController(ILogger<DeleteMailController> logger, IMailService mailService)
 	{
-		_gameDatabase = gameDatabase;
+		_mailService = mailService;
 		_logger = logger;
 	}
 
@@ -26,7 +26,7 @@ public class DeleteMailController : Controller
 
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _gameDatabase.DeleteMailAsync(ownerId, request.MailId);
+		var errorCode = await _mailService.DeleteMailAsync(ownerId, request.MailId);
 
 		response.Error = errorCode;
 		return response;

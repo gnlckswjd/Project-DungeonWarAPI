@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -9,12 +9,12 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class ReadMailController : ControllerBase
 {
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IMailService _mailService;
 	private readonly ILogger<ReadMailController> _logger;
 
-	public ReadMailController(ILogger<ReadMailController> logger, IGameDatabase gameDatabase)
+	public ReadMailController(ILogger<ReadMailController> logger, IMailService mailService)
 	{
-		_gameDatabase = gameDatabase;
+		_mailService = mailService;
 		_logger = logger;
 	}
 
@@ -26,7 +26,7 @@ public class ReadMailController : ControllerBase
 
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _gameDatabase.MarkMailAsReadAsync(ownerId, request.MailId);
+		var errorCode = await _mailService.MarkMailAsReadAsync(ownerId, request.MailId);
 
 		response.Error = errorCode;
 		return response;

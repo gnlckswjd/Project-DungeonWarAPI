@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -9,12 +9,12 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class ReceiveMailItemController : ControllerBase
 {
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IMailService _mailService;
 	private readonly ILogger<ReceiveMailItemController> _logger;
 
-	public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IGameDatabase gameDatabase)
+	public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IMailService mailService)
 	{
-		_gameDatabase = gameDatabase;
+		_mailService = mailService;
 		_logger = logger;
 	}
 
@@ -26,18 +26,18 @@ public class ReceiveMailItemController : ControllerBase
 		var ownerId = authUserData.GameUserId;
 
 
-		var errorCode = await _gameDatabase.MarkMailItemAsReceiveAsync(ownerId, request.MailId);
+		var errorCode = await _mailService.MarkMailItemAsReceiveAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		errorCode = await _gameDatabase.ReceiveItemAsync(ownerId, request.MailId);
+		errorCode = await _mailService.ReceiveItemAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
-			await _gameDatabase.RollbackMarkMailItemAsReceiveAsync(ownerId, request.MailId);
+			await _mailService.RollbackMarkMailItemAsReceiveAsync(ownerId, request.MailId);
 			return response;
 		}
 

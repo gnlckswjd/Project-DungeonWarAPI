@@ -1,8 +1,8 @@
-﻿using DungeonWarAPI.Services;
-using DungeonWarAPI;
+﻿using DungeonWarAPI;
 using DungeonWarAPI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
+using DungeonWarAPI.Services.Interfaces;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -12,13 +12,13 @@ public class CreateAccountController : ControllerBase
 {
 	private readonly IAccountDatabase _accountDatabase;
 	private readonly ILogger<CreateAccountController> _logger;
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IUserService _userService;
 
-	public CreateAccountController(IAccountDatabase accountDatabase, IGameDatabase gameDatabase,
+	public CreateAccountController(IAccountDatabase accountDatabase, IUserService userService,
 		ILogger<CreateAccountController> logger)
 	{
 		_accountDatabase = accountDatabase;
-		_gameDatabase = gameDatabase;
+		_userService = userService;
 		_logger = logger;
 	}
 
@@ -34,7 +34,7 @@ public class CreateAccountController : ControllerBase
 			return response;
 		}
 
-		(errorCode, var gameUserId) = await _gameDatabase.CreateUserAsync(accountId);
+		(errorCode, var gameUserId) = await _userService.CreateUserAsync(accountId);
 		response.Error = errorCode;
 
 		if (errorCode != ErrorCode.None)
@@ -43,12 +43,12 @@ public class CreateAccountController : ControllerBase
 			return response;
 		}
 
-		errorCode = await _gameDatabase.CreateUserItemAsync(gameUserId);
+		errorCode = await _userService.CreateUserItemAsync(gameUserId);
 		response.Error = errorCode;
 
 		if (errorCode != ErrorCode.None)
 		{
-			await _gameDatabase.RollbackCreateUserAsync(gameUserId);
+			await _userService.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);
 
 			return response;

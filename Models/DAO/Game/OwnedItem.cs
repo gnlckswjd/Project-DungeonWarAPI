@@ -2,9 +2,11 @@
 
 public class OwnedItem
 {
-    public int ItemId { get; set; }
+    public Int32 ItemId { get; set; }
     //public Int32 GameUserId { get; set; }
-    public int ItemCode { get; set; }
-    public int EnhancementCount { get; set; }
-    public int ItemCount { get; set; }
+    public Int32 ItemCode { get; set; }
+    public Int32 EnhancementCount { get; set; }
+    public Int32 ItemCount { get; set; }
+
+    public Boolean IsDestroyed { get; set; }
 }

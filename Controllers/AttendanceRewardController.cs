@@ -1,6 +1,7 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Managers;
+using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -9,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class AttendanceRewardController : ControllerBase
 {
-	private readonly IGameDatabase _gameDatabase;
+	private readonly ILoginRewardService _loginRewardService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<AttendanceRewardController> _logger;
 
 	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataManager masterDataManager,
-		IGameDatabase gameDatabase)
+		ILoginRewardService loginRewardService)
 	{
-		_gameDatabase = gameDatabase;
+		_loginRewardService = loginRewardService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -29,7 +30,7 @@ public class AttendanceRewardController : ControllerBase
 
 		var gameUserId = authUserData.GameUserId;
 
-		var (errorCode, lastLoginDate, attendanceCount) = await _gameDatabase.UpdateLoginDateAsync(gameUserId);
+		var (errorCode, lastLoginDate, attendanceCount) = await _loginRewardService.UpdateLoginDateAsync(gameUserId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -39,11 +40,11 @@ public class AttendanceRewardController : ControllerBase
 
 		var reward = _masterDataManager.GetAttendanceReward(attendanceCount);
 
-		errorCode = await _gameDatabase.CreateAttendanceRewardMailAsync(gameUserId, reward);
+		errorCode = await _loginRewardService.CreateAttendanceRewardMailAsync(gameUserId, reward);
 
 		if (errorCode != ErrorCode.None)
 		{
-			await _gameDatabase.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
+			await _loginRewardService.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
 			response.Error=errorCode;
 			return response;
 		}

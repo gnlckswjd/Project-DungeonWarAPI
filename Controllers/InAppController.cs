@@ -1,6 +1,7 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Managers;
+using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -9,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class InAppController : ControllerBase
 {
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IInAppPurchaseService _inAppPurchaseService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<InAppController> _logger;
 
 	public InAppController(ILogger<InAppController> logger, MasterDataManager masterDataManager,
-		IGameDatabase gameDatabase)
+		IInAppPurchaseService inAppPurchaseService)
 	{
-		_gameDatabase = gameDatabase;
+		_inAppPurchaseService = inAppPurchaseService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -30,7 +31,7 @@ public class InAppController : ControllerBase
 		var gameUserId = authUserData.GameUserId;
 
 
-		var (errorCode, receiptId) = await _gameDatabase.StoreReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
+		var (errorCode, receiptId) = await _inAppPurchaseService.StoreReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -41,11 +42,11 @@ public class InAppController : ControllerBase
 		var packageItems = _masterDataManager.GetPackageItems(request.PackageId);
 
 
-		errorCode = await _gameDatabase.CreateInAppMailAsync(gameUserId,packageItems);
+		errorCode = await _inAppPurchaseService.CreateInAppMailAsync(gameUserId,packageItems);
 
 		if (errorCode != ErrorCode.None)
 		{
-			await _gameDatabase.RollbackStoreReceiptAsync(receiptId);
+			await _inAppPurchaseService.RollbackStoreReceiptAsync(receiptId);
 			response.Error = errorCode;
 			return response;
 		}

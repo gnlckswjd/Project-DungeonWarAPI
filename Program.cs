@@ -1,7 +1,9 @@
 using System.Text.Json;
+using DungeonWarAPI.Managers;
 using DungeonWarAPI.Middleware;
 using DungeonWarAPI.ModelConfiguration;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Implementations;
+using DungeonWarAPI.Services.Interfaces;
 using ZLogger;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +27,12 @@ app.Run(configuration["ServerAddress"]);
 void DependencyInjection()
 {
 	builder.Services.AddTransient<IAccountDatabase, AccountDatabase>();
-	builder.Services.AddTransient<IGameDatabase, GameDatabase>();
+	builder.Services.AddTransient<IUserService,UserService>();
+	builder.Services.AddTransient<IMailService,MailService>();
+	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
+	builder.Services.AddTransient<ILoginRewardService,LoginRewardService>();
+	builder.Services.AddTransient<IItemService,ItemService>();
+	
 	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 	builder.Services.AddSingleton<MasterDataManager>();

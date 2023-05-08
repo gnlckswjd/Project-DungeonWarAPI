@@ -1,5 +1,5 @@
 ﻿using DungeonWarAPI.Models.DTO;
-using DungeonWarAPI.Services;
+using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 
@@ -10,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 public class LoginController : ControllerBase
 {
 	private readonly IAccountDatabase _accountDatabase;
-	private readonly IGameDatabase _gameDatabase;
+	private readonly IUserService _userService;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<LoginController> _logger;
 
-	public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IGameDatabase gameDatabase, IMemoryDatabase memoryDb)
+	public LoginController(ILogger<LoginController> logger, IAccountDatabase accountDb, IUserService userService, IMemoryDatabase memoryDb)
 	{
 		_accountDatabase = accountDb;
-		_gameDatabase = gameDatabase;
+		_userService = userService;
 		_memoryDatabase = memoryDb;
 		_logger = logger;
 	}
@@ -36,7 +36,7 @@ public class LoginController : ControllerBase
 		}
 
 		//기본 데이터 게임디비에서 가져오기
-		(errorCode, var userData) = await _gameDatabase.LoadUserDataAsync(playerId);
+		(errorCode, var userData) = await _userService.LoadUserDataAsync(playerId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -47,7 +47,7 @@ public class LoginController : ControllerBase
 
 		//유저 아이템 게임디비에서 가져오기
 
-		(errorCode, var items) = await _gameDatabase.LoadUserItemsAsync(userData.GameUserId);
+		(errorCode, var items) = await _userService.LoadUserItemsAsync(userData.GameUserId);
 
 		if (errorCode != ErrorCode.None)
 		{
