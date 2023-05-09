@@ -27,7 +27,6 @@ public class LoginController : ControllerBase
 	{
 		var response = new LoginResponse();
 		
-		//유저 정보 확인
 		var (errorCode, playerId) = await _accountDatabase.VerifyAccount(request.Email, request.Password);
 		if (errorCode != ErrorCode.None)
 		{
@@ -35,7 +34,6 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
-		//기본 데이터 게임디비에서 가져오기
 		(errorCode, var userData) = await _userService.LoadUserDataAsync(playerId);
 
 		if (errorCode != ErrorCode.None)
@@ -45,7 +43,6 @@ public class LoginController : ControllerBase
 		}
 		response.UserLevel=userData.UserLevel;
 
-		//유저 아이템 게임디비에서 가져오기
 
 		(errorCode, var items) = await _userService.LoadUserItemsAsync(userData.GameUserId);
 
@@ -57,7 +54,6 @@ public class LoginController : ControllerBase
 
 		response.items = items;
 
-		//토큰 발행 후 추가
 		var authToken = Security.GetNewToken();
 
 		errorCode = await _memoryDatabase.RegisterUserAsync(request.Email, authToken, userData);

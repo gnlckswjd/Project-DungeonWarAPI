@@ -24,11 +24,7 @@ public class UserAuthentication
 
 	public async Task InvokeAsync(HttpContext context)
 	{
-		if (IsLoginOrCreaetAccount(context))
-		{
-			await _next(context);
-			return;
-		}
+		
 
 		context.Request.EnableBuffering();
 
@@ -72,6 +68,22 @@ public class UserAuthentication
 				return;
 			}
 
+			if (IsLoginOrCreaetAccount(context))
+			{
+
+				if (await IsWrongMasterDataVersion(masterDataVersion, context))
+				{
+					return;
+				}
+
+				if (await IsWrongAppVersion(appVersion, context))
+				{
+					return;
+				}
+				context.Request.Body.Position = 0;
+				await _next(context);
+				return;
+			}
 
 			var (errorCode, authUserData) = await _memoryDatabase.LoadAuthUserDataAsync(email);
 
