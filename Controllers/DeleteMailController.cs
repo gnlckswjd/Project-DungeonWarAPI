@@ -1,5 +1,5 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

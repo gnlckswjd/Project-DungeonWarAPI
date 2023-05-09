@@ -1,5 +1,5 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,9 +26,16 @@ public class ReadMailController : ControllerBase
 
 		var ownerId = authUserData.GameUserId;
 
-		var errorCode = await _mailService.MarkMailAsReadAsync(ownerId, request.MailId);
+		var (errorCode, content )= await _mailService.ReadMailAsync(ownerId, request.MailId);
+
+		if (errorCode != ErrorCode.None)
+		{
+			response.Error = errorCode;
+			return response;
+		}
 
 		response.Error = errorCode;
+		response.Content = content;
 		return response;
 	}
 }

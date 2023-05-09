@@ -5,9 +5,9 @@ using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.Data;
-using DungeonWarAPI.Models.DTO;
 using DungeonWarAPI.Models.Database.Game;
 using ZLogger;
+using DungeonWarAPI.Models.DTO.Payloads;
 
 namespace DungeonWarAPI.Services.Implementations;
 
@@ -34,12 +34,12 @@ public class MailService : IMailService
 		_queryFactory = new QueryFactory(_databaseConnection, compiler);
 	}
 
-
 	public void Dispose()
 	{
 		_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
+
 	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
@@ -62,9 +62,11 @@ public class MailService : IMailService
 				.Limit(Mail.MailCountInPage).Offset((pageNumber - 1) * Mail.MailCountInPage)
 				.GetAsync<Mail>();
 
+			var mailsWithItems = new List<MailWithItems>();
+
 			if (!mails.Any())
 			{
-				_logger.ZLogErrorWithPayload(
+				_logger.ZLogInformationWithPayload(
 					new
 					{
 						ErrorCode = ErrorCode.LoadMailListEmptyMail,
@@ -72,10 +74,10 @@ public class MailService : IMailService
 						PageNumber = pageNumber
 					},
 					"LoadMailListEmptyMail");
-				return (ErrorCode.LoadMailListEmptyMail, null);
+				return (ErrorCode.None, mailsWithItems);
 			}
 
-			var mailsWithItems = new List<MailWithItems>();
+			
 
 			foreach (var mail in mails)
 			{
@@ -83,10 +85,13 @@ public class MailService : IMailService
 
 				if (errorCode != ErrorCode.None)
 				{
-					return (errorCode, null);
+					return (errorCode, new List<MailWithItems>());
 				}
 
-				mailsWithItems.Add(new MailWithItems { Mail = mail, Items = items });
+				var a = new List<MailWithItems>();
+				Console.WriteLine(a.Count());
+
+				mailsWithItems.Add(new MailWithItems (mail, items));
 			}
 
 
@@ -102,58 +107,70 @@ public class MailService : IMailService
 					PageNumber = pageNumber
 				},
 				"LoadMailListFailException");
-			return (ErrorCode.LoadMailListFailException, null);
+			return (ErrorCode.LoadMailListFailException, new List<MailWithItems>());
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailAsReadAsync(Int32 gameUserId, Int64 mailId)
+	public async Task<(ErrorCode, string content)> ReadMailAsync(int gameUserId, long mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "MarkMailAsRead Start");
-
+		
 		try
 		{
-			var count = await _queryFactory.Query("mail")
-				.Where("MailId", "=", mailId)
-				//.Where("GameUserId","=",gameUserId)
+			var (errorCode , content)= await SelectMailAsync(gameUserId, mailId);
+			if (errorCode != ErrorCode.None)
+			{
+				return (errorCode,"");
+			}
+
+			var count = await _queryFactory.Query("mail").Where("MailId", "=", mailId)
 				.UpdateAsync(new { IsRead = true });
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.MarkMailAsReadFailUpdate, GameUserId = gameUserId, MailId = mailId },
-					"MarkMailAsReadFailUpdate");
-				return ErrorCode.MarkMailAsReadFailUpdate;
+				_logger.ZLogErrorWithPayload(new{},"");
+				return (ErrorCode.ReadMailFailUpdate, "");
 			}
 
-			return ErrorCode.None;
+			return (ErrorCode.None, content);
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.MarkMailAsReadFailExceptions, GameUserId = gameUserId, MailId = mailId },
-				"MarkMailAsReadFailExceptions");
-			return ErrorCode.MarkMailAsReadFailExceptions;
+				new { ErrorCode = ErrorCode.ReadMailFailExceptions, GameUserId = gameUserId, MailId = mailId },
+				"ReadMailFailExceptions");
+			return (ErrorCode.ReadMailFailExceptions,"");
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId)
+	public async Task<ErrorCode> MarkMailAsReceiveAsync(Int32 gameUserId, Int64 mailId)
 	{
 		try
 		{
-			bool isReceived = await _queryFactory.Query("mail")
+			var mail = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
-				.Where("GameUserId", "=", gameUserId)
-				.Select("IsReceived")
-				.FirstOrDefaultAsync<bool>();
+				.FirstOrDefaultAsync<Mail>();
 
-			if (isReceived == true)
+			if (mail.GameUserId != gameUserId)
+			{
+				_logger.ZLogErrorWithPayload(new
+					{
+						ErrorCode = ErrorCode.MarkMailAsReceiveFailWrongGameUserId ,
+						GameUserId= gameUserId,
+						MailId= mailId,
+					},
+					"MarkMailAsReceiveFailWrongGameUserId");
+				return ErrorCode.MarkMailAsReceiveFailWrongGameUserId;
+			}
+
+			if (mail.IsReceived == true)
 			{
 				_logger.ZLogErrorWithPayload(new
 				{
-					ErrorCode = ErrorCode.MarkMailItemAsReceiveFailAlreadyReceived,
+					ErrorCode = ErrorCode.MarkMailAsReceiveFailAlreadyReceived,
 					GameUserId = gameUserId,
 					MailId = mailId
-				}, "MarkMailItemAsReceiveFailAlreadyReceived");
-				return ErrorCode.MarkMailItemAsReceiveFailAlreadyReceived;
+				}, "MarkMailAsReceiveFailAlreadyReceived");
+				return ErrorCode.MarkMailAsReceiveFailAlreadyReceived;
 			}
 
 
@@ -165,11 +182,11 @@ public class MailService : IMailService
 				_logger.ZLogErrorWithPayload(
 					new
 					{
-						ErrorCode = ErrorCode.MarkMailItemAsReceiveFailUpdate,
+						ErrorCode = ErrorCode.MarkMailAsReceiveFailUpdate,
 						GameUserId = gameUserId,
 						MailId = mailId
-					}, "MarkMailItemAsReceiveFailUpdate");
-				return ErrorCode.MarkMailItemAsReceiveFailUpdate;
+					}, "MarkMailAsReceiveFailUpdate");
+				return ErrorCode.MarkMailAsReceiveFailUpdate;
 			}
 
 			return ErrorCode.None;
@@ -177,9 +194,9 @@ public class MailService : IMailService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.MarkMailItemAsReceiveException, GameUserId = gameUserId, MailId = mailId },
-				"MarkMailItemAsReceiveException");
-			return ErrorCode.MarkMailItemAsReceiveException;
+				new { ErrorCode = ErrorCode.MarkMailAsReceiveException, GameUserId = gameUserId, MailId = mailId },
+				"MarkMailAsReceiveException");
+			return ErrorCode.MarkMailAsReceiveException;
 		}
 	}
 
@@ -236,11 +253,11 @@ public class MailService : IMailService
 		if (items.Count() < 1)
 		{
 			_logger.ZLogErrorWithPayload(new
-			{
-				ErrorCode = ErrorCode.ReceiveItemFailMailHaveNoItem,
-				GameUserId = gameUserId,
-				MailId = mailId
-			}
+				{
+					ErrorCode = ErrorCode.ReceiveItemFailMailHaveNoItem,
+					GameUserId = gameUserId,
+					MailId = mailId
+				}
 				, "ReceiveItemFailMailHaveNoItem");
 			return ErrorCode.ReceiveItemFailMailHaveNoItem;
 		}
@@ -271,7 +288,7 @@ public class MailService : IMailService
 				{
 					await RollbackReceiveItemAsync(rollbackActions);
 					_logger.ZLogErrorWithPayload(new
-					{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
+							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
 						, "ReceiveItemFailInsert");
 					return ErrorCode.ReceiveItemFailInsert;
 				}
@@ -322,6 +339,30 @@ public class MailService : IMailService
 		}
 	}
 
+	private async Task<(ErrorCode, String)> SelectMailAsync(Int32 gameUserId,Int64 mailId)
+	{
+		var mail = await _queryFactory.Query("mail")
+			.Where("MailId", "=", mailId)
+			.FirstOrDefaultAsync<Mail>();
+		if (mail == null)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.ReadMailFailSelect, GameUserId = gameUserId, MailId = mailId },
+				"ReadMailFailSelect");
+			return (ErrorCode.ReadMailFailSelect,"");
+		}
+
+		if (mail.GameUserId != gameUserId)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.ReadMailFailWrongUser, GameUserId = gameUserId, MailId = mailId },
+				"ReadMailFailWrongUser");
+			return (ErrorCode.ReadMailFailWrongUser, "");
+		}
+
+		return (ErrorCode.None, mail.Contents);	
+	}
+
 
 	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(Int32 gameUserId, Int64 mailId)
 	{
@@ -351,6 +392,7 @@ public class MailService : IMailService
 			return (ErrorCode.GetMailItemsFailException, null);
 		}
 	}
+
 	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
 	{
 		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
@@ -467,5 +509,4 @@ public class MailService : IMailService
 			await action();
 		}
 	}
-	
 }

@@ -1,4 +1,4 @@
-﻿namespace DungeonWarAPI.Models.DTO;
+﻿namespace DungeonWarAPI.Models.DTO.RequestRespose;
 
 public class ReadMailRequest
 {
@@ -9,5 +9,6 @@ public class ReadMailRequest
 public class ReadMailResponse
 {
     public ErrorCode Error { get; set; }
+    public String Content { get; set; }
 
 }

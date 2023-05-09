@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Utilities;

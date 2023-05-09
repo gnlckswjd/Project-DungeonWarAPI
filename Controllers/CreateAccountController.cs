@@ -1,8 +1,8 @@
 ﻿using DungeonWarAPI;
-using DungeonWarAPI.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 using DungeonWarAPI.Services.Interfaces;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -31,6 +31,7 @@ public class CreateAccountController : ControllerBase
 		response.Error = errorCode;
 		if (errorCode != ErrorCode.None)
 		{
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -40,6 +41,17 @@ public class CreateAccountController : ControllerBase
 		if (errorCode != ErrorCode.None)
 		{
 			await _accountDatabase.RollbackAccountAsync(accountId);
+			response.Error=errorCode;
+			return response;
+		}
+
+		errorCode = await _userService.CreateUserAttendanceAsync(gameUserId);
+
+		if (errorCode != ErrorCode.None)
+		{
+			await _userService.RollbackCreateUserAsync(gameUserId);
+			await _accountDatabase.RollbackAccountAsync(accountId);
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -48,6 +60,7 @@ public class CreateAccountController : ControllerBase
 
 		if (errorCode != ErrorCode.None)
 		{
+			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
 			await _userService.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);
 

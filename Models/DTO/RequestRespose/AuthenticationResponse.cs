@@ -1,4 +1,4 @@
-﻿namespace DungeonWarAPI.Models.DTO;
+﻿namespace DungeonWarAPI.Models.DTO.RequestRespose;
 
 public class AuthenticationResponse
 {

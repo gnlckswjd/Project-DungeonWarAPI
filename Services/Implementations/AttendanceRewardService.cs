@@ -49,10 +49,10 @@ public class AttendanceRewardService : IAttendanceRewardService
 
 		try
 		{
-			var attendanceCount = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+			var attendanceCount = await _queryFactory.Query("user_Attendance").Where("GameUserId", "=", gameUserId)
 				.Select("AttendanceCount")
 				.FirstOrDefaultAsync<Int32>();
-			;
+			//Date 검증 추가
 
 			if (attendanceCount < 1)
 			{
@@ -68,7 +68,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
-				e, 
+				e,
 				new { ErrorCode = ErrorCode.LoadAttendanceCountFailException, GameUserId = gameUserId },
 				"LoadAttendanceCountFailSelect");
 			return (ErrorCode.LoadAttendanceCountFailException, 0);
@@ -82,7 +82,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 
 		try
 		{
-			var userData = await _queryFactory.Query("user_data")
+			var userData = await _queryFactory.Query("user_attendance")
 				.Where("GameUserId", "=", gameUserId).FirstOrDefaultAsync<UserData>();
 
 			if (userData == null)
@@ -116,7 +116,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 			}
 
 
-			var count = await _queryFactory.Query("user_data")
+			var count = await _queryFactory.Query("user_attendance")
 				.Where("GameUserId", "=", gameUserId)
 				.UpdateAsync(new { LastLoginDate = today, AttendanceCount = attendanceCount });
 
@@ -218,7 +218,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 			"RollbackLoginDate Start");
 		try
 		{
-			var count = await _queryFactory.Query("user_data")
+			var count = await _queryFactory.Query("user_attendance")
 				.Where("GameUserId", "=", gameUserId)
 				.UpdateAsync(new { LastLoginDate = lastLoginDate, AttendanceCount = attendanceCount - 1 });
 

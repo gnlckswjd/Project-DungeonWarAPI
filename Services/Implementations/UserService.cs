@@ -39,6 +39,7 @@ public class UserService : IUserService
 		_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
+
 	public async Task<(ErrorCode, Int32)> CreateUserAsync(Int32 playerId)
 	{
 		try
@@ -57,6 +58,70 @@ public class UserService : IUserService
 			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.CreateUserFailException },
 				"CreateUserFailException");
 			return (ErrorCode.CreateUserFailException, 0);
+		}
+	}
+
+	public async Task<ErrorCode> CreateUserAttendanceAsync(Int32 gameUserId)
+	{
+		try
+		{
+			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserAttendance Start");
+
+			var count = await _queryFactory.Query("user_attendance")
+				.InsertAsync(new
+				{
+					GameUserId = gameUserId, AttendanceCount = 0,
+					LastLoginDate = DateTime.Today.AddDays(-1)
+				});
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.CreateUserAttendanceFailInsert, GameUserId = gameUserId },
+					"CreateUserAttendanceFailInsert");
+				return ErrorCode.CreateUserAttendanceFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.CreateUserAttendanceFailException, GameUserId = gameUserId },
+				"CreateUserAttendanceFailException");
+			return ErrorCode.CreateUserAttendanceFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackCreateUserAttendanceAsync(Int32 gameUserId)
+	{
+		try
+		{
+			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserAttendance Start");
+
+			var count = await _queryFactory.Query("user_attendance")
+				.Where("GameUserId", "=", gameUserId)
+				.DeleteAsync();
+
+			if (count != 0)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackCreateUserAttendanceFailDelete, GameUserId = gameUserId },
+					"RollbackCreateUserAttendanceFailDelete");
+				return ErrorCode.RollbackCreateUserAttendanceFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					e, ErrorCode = ErrorCode.RollbackCreateUserAttendanceFailException, GameUserId = gameUserId
+				},
+				"RollbackCreateUserAttendanceFailException");
+			return ErrorCode.RollbackCreateUserAttendanceFailException;
 		}
 	}
 
@@ -173,5 +238,4 @@ public class UserService : IUserService
 			return (ErrorCode.LoadUserItemsFailException, null);
 		}
 	}
-
 }

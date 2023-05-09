@@ -1,8 +1,8 @@
-﻿namespace DungeonWarAPI.Models.DTO;
+﻿namespace DungeonWarAPI.Models.DTO.RequestRespose;
 
 public class DeleteMailRequest
 {
-    public Int32 MailId { get; set; }
+    public int MailId { get; set; }
 }
 
 

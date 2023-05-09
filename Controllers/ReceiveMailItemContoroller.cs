@@ -1,5 +1,5 @@
 ﻿using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +26,7 @@ public class ReceiveMailItemController : ControllerBase
 		var ownerId = authUserData.GameUserId;
 
 
-		var errorCode = await _mailService.MarkMailItemAsReceiveAsync(ownerId, request.MailId);
+		var errorCode = await _mailService.MarkMailAsReceiveAsync(ownerId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

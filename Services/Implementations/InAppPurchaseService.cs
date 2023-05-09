@@ -110,6 +110,7 @@ public class InAppPurchaseService : IInAppPurchaseService
 				new
 				{
 					GameUserId = gameUserId,
+					// PackageId는 모두 동일하기 때문에 어느 인덱스에 접근하든 무방
 					Title = packageItems[0].PackageId + "구매 지급",
 					Contents = packageItems[0].PackageId + "구매 지급 안내",
 					isRead = false,

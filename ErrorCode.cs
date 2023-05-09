@@ -28,6 +28,13 @@ public enum ErrorCode : int
 	CreateUserFailInsert = 122,
 	RollbackAccountFailException=126,
 	RollbackAccountFailDelete=127,
+	CreateUserAttendanceFailException=130,
+	CreateUserAttendanceFailInsert=131,
+
+	RollbackCreateUserAttendanceFailException=135,
+	RollbackCreateUserAttendanceFailDelete=136,
+	
+	
 
 	CreateUserItemFailException=140,
 	CreateUserItemFailInsert = 141,
@@ -64,13 +71,16 @@ public enum ErrorCode : int
 
 	VerifyMailOwnerIdFailException = 280,
 	VerifyMailOwnerIdFailWrongId= 281,
-	MarkMailAsReadFailUpdate=285,
-	MarkMailAsReadFailExceptions = 286,
+	ReadMailFailSelect=285,
+	ReadMailFailExceptions = 286,
+	ReadMailFailWrongUser= 287,
+	ReadMailFailUpdate = 288,
 
-	MarkMailItemAsReceiveException=290,
-	MarkMailItemAsReceiveFailUpdate=291,
-	MarkMailItemAsReceiveFailSelect= 292,
-	MarkMailItemAsReceiveFailAlreadyReceived= 293,
+	MarkMailAsReceiveException=290,
+	MarkMailAsReceiveFailUpdate=291,
+	MarkMailAsReceiveFailSelect= 292,
+	MarkMailAsReceiveFailAlreadyReceived= 293,
+	MarkMailAsReceiveFailWrongGameUserId=294,
 
 	ReceiveItemFailException =300,
 	ReceiveItemFailInsert= 301,

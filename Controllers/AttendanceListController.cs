@@ -2,7 +2,7 @@
 using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -29,7 +29,7 @@ public class AttendanceListController : ControllerBase
 		var response = new AttendanceListResponse();
 
 		var gameUserId = authUserData.GameUserId;
-
+		// 리스트 확인할 때 Date 확인
 		var (errorCode, attendanceCount) = await _attendanceRewardService.LoadAttendanceCountAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
