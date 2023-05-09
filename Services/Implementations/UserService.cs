@@ -39,14 +39,14 @@ public class UserService : IUserService
 		_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
-	public async Task<(ErrorCode, int)> CreateUserAsync(int playerId)
+	public async Task<(ErrorCode, Int32)> CreateUserAsync(Int32 playerId)
 	{
 		try
 		{
 			_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "CreateUser Start");
 
 			var gameUserId = await _queryFactory.Query("user_data")
-				.InsertGetIdAsync<int>(new { PlayerId = playerId });
+				.InsertGetIdAsync<Int32>(new { PlayerId = playerId });
 
 			_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId }, "CreateUser Success");
 
@@ -60,7 +60,7 @@ public class UserService : IUserService
 		}
 	}
 
-	public async Task<ErrorCode> CreateUserItemAsync(int gameUserId)
+	public async Task<ErrorCode> CreateUserItemAsync(Int32 gameUserId)
 	{
 		try
 		{
@@ -93,7 +93,7 @@ public class UserService : IUserService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackCreateUserAsync(int gameUserId)
+	public async Task<ErrorCode> RollbackCreateUserAsync(Int32 gameUserId)
 	{
 		try
 		{
@@ -119,7 +119,7 @@ public class UserService : IUserService
 		}
 	}
 
-	public async Task<(ErrorCode, UserData)> LoadUserDataAsync(int playerId)
+	public async Task<(ErrorCode, UserData)> LoadUserDataAsync(Int32 playerId)
 	{
 		_logger.ZLogDebugWithPayload(new { PlayerId = playerId }, "LoadUserData Start");
 
@@ -145,7 +145,7 @@ public class UserService : IUserService
 		}
 	}
 
-	public async Task<(ErrorCode, List<OwnedItem>)> LoadUserItemsAsync(int gameUserId)
+	public async Task<(ErrorCode, List<OwnedItem>)> LoadUserItemsAsync(Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadUserItems Start");
 		try

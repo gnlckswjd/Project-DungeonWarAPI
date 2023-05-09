@@ -31,17 +31,17 @@ public class MasterDataManager
 
     }
 
-    public AttendanceReward GetAttendanceReward(short attendanceCount)
+    public AttendanceReward GetAttendanceReward(Int16 attendanceCount)
     {
         return AttendanceRewardList[attendanceCount - 1];
     }
 
-    public List<PackageItem> GetPackageItems(int packageId)
+    public List<PackageItem> GetPackageItems(Int32 packageId)
     {
         return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
     }
 
-    public (short, int) GetEnhanceMaxCountWithGold(int itemCode)
+    public (Int16, Int32) GetEnhanceMaxCountWithGold(Int32 itemCode)
     {
         var item = ItemList.Find(item => item.ItemCode == itemCode);
         if (item == null)

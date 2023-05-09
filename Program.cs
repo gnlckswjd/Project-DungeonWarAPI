@@ -26,7 +26,7 @@ app.Run(configuration["ServerAddress"]);
 
 void DependencyInjection()
 {
-	builder.Services.AddTransient<IAccountDatabase, AccountDatabase>();
+	builder.Services.AddTransient<IAccountService, AccountService>();
 	builder.Services.AddTransient<IUserService,UserService>();
 	builder.Services.AddTransient<IMailService,MailService>();
 	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();

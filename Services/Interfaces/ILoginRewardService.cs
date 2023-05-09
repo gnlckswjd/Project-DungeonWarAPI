@@ -4,7 +4,7 @@ namespace DungeonWarAPI.Services.Interfaces;
 
 public interface ILoginRewardService
 {
-    public Task<(ErrorCode, DateTime lastLoginDate, short attendanceCount)> UpdateLoginDateAsync(int gameUserId);
-    public Task<ErrorCode> CreateAttendanceRewardMailAsync(int gameUserId, AttendanceReward reward);
-    public Task<ErrorCode> RollbackLoginDateAsync(int gameUserId, DateTime lastLoginDate, short attendanceCount);
+    public Task<(ErrorCode, DateTime lastLoginDate, Int16 attendanceCount)> UpdateLoginDateAsync(Int32 gameUserId);
+    public Task<ErrorCode> CreateAttendanceRewardMailAsync(Int32 gameUserId, AttendanceReward reward);
+    public Task<ErrorCode> RollbackLoginDateAsync(Int32 gameUserId, DateTime lastLoginDate, Int16 attendanceCount);
 }

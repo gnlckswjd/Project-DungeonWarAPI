@@ -4,10 +4,10 @@ namespace DungeonWarAPI.Services.Interfaces;
 
 public interface IMailService
 {
-    public Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(int gameUserId, int pageNumber);
-    public Task<ErrorCode> MarkMailAsReadAsync(int gameUserId, long mailId);
-    public Task<ErrorCode> MarkMailItemAsReceiveAsync(int gameUserId, long mailId);
-    public Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(int gameUserId, long mailId);
-    public Task<ErrorCode> ReceiveItemAsync(int gameUserId, long mailId);
-    public Task<ErrorCode> DeleteMailAsync(int gameUserId, long mailId);
+    public Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber);
+    public Task<ErrorCode> MarkMailAsReadAsync(Int32 gameUserId, Int64 mailId);
+    public Task<ErrorCode> MarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId);
+    public Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId);
+    public Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId);
+    public Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId);
 }

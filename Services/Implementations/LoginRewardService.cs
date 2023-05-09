@@ -13,7 +13,6 @@ namespace DungeonWarAPI.Services.Implementations;
 
 public class LoginRewardService : ILoginRewardService
 {
-
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<LoginRewardService> _logger;
 	private readonly MasterDataManager _masterData;
@@ -43,9 +42,8 @@ public class LoginRewardService : ILoginRewardService
 	}
 
 
-
-	public async Task<(ErrorCode, DateTime lastLoginDate, short attendanceCount)> UpdateLoginDateAsync(
-		int gameUserId)
+	public async Task<(ErrorCode, DateTime lastLoginDate, Int16 attendanceCount)> UpdateLoginDateAsync(
+		Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "UpdateLoginAndGetAttendance");
 
@@ -102,19 +100,20 @@ public class LoginRewardService : ILoginRewardService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailException },
 				"UpdateLoginDateFailException");
 			return (ErrorCode.UpdateLoginDateFailException, default, default);
 		}
 	}
 
-	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(int gameUserId, AttendanceReward reward)
+	public async Task<ErrorCode> CreateAttendanceRewardMailAsync(Int32 gameUserId, AttendanceReward reward)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateAttendanceMail Start");
 		long mailId = 0;
 		try
 		{
-			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<long>(
+			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<Int64>(
 				new
 				{
 					GameUserId = gameUserId,
@@ -166,6 +165,7 @@ public class LoginRewardService : ILoginRewardService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new
 				{
 					ErrorCode = ErrorCode.CreateAttendanceMailFailException,
@@ -178,7 +178,7 @@ public class LoginRewardService : ILoginRewardService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackLoginDateAsync(int gameUserId, DateTime lastLoginDate, short attendanceCount)
+	public async Task<ErrorCode> RollbackLoginDateAsync(Int32 gameUserId, DateTime lastLoginDate, Int16 attendanceCount)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { GameUserId = gameUserId, LastLogin = lastLoginDate, AttendanceCount = attendanceCount },
@@ -207,6 +207,7 @@ public class LoginRewardService : ILoginRewardService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new
 				{
 					ErrorCode = ErrorCode.RollbackLoginDateFailException,
@@ -219,7 +220,7 @@ public class LoginRewardService : ILoginRewardService
 	}
 
 
-	private async Task RollbackCreateMailAsync(long mailId)
+	private async Task RollbackCreateMailAsync(Int64 mailId)
 	{
 		if (mailId == 0)
 		{
@@ -239,7 +240,8 @@ public class LoginRewardService : ILoginRewardService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
+			_logger.ZLogErrorWithPayload(
+				e, new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
 				"RollbackCreateMailFailException");
 		}
 	}

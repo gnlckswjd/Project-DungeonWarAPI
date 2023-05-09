@@ -19,7 +19,8 @@ public class InAppPurchaseService : IInAppPurchaseService
 	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public InAppPurchaseService(ILogger<InAppPurchaseService> logger, IOptions<DatabaseConfiguration> configurationOptions,
+	public InAppPurchaseService(ILogger<InAppPurchaseService> logger,
+		IOptions<DatabaseConfiguration> configurationOptions,
 		MasterDataManager masterData)
 	{
 		_configurationOptions = configurationOptions;
@@ -39,10 +40,11 @@ public class InAppPurchaseService : IInAppPurchaseService
 		_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
-	public async Task<(ErrorCode, int)> StoreReceiptAsync(int gameUserId, string receiptSerialCode, int packageId)
+
+	public async Task<(ErrorCode, Int32)> StoreReceiptAsync(Int32 gameUserId, String receiptSerialCode, Int32 packageId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ReceiptSerialCode = receiptSerialCode },
-		"StoreReceipt Start");
+			"StoreReceipt Start");
 
 		try
 		{
@@ -53,11 +55,11 @@ public class InAppPurchaseService : IInAppPurchaseService
 			if (existingReceipt != null)
 			{
 				_logger.ZLogErrorWithPayload(new
-				{
-					ErrorCode = ErrorCode.StoreReceiptFailDuplicatedReceipt,
-					GameUserId = gameUserId,
-					ReceiptSerialCode = receiptSerialCode
-				}
+					{
+						ErrorCode = ErrorCode.StoreReceiptFailDuplicatedReceipt,
+						GameUserId = gameUserId,
+						ReceiptSerialCode = receiptSerialCode
+					}
 					, "StoreReceiptFailDuplicatedReceipt");
 				return (ErrorCode.StoreReceiptFailDuplicatedReceipt, 0);
 			}
@@ -74,11 +76,11 @@ public class InAppPurchaseService : IInAppPurchaseService
 			if (receiptId < 1)
 			{
 				_logger.ZLogErrorWithPayload(new
-				{
-					ErrorCode = ErrorCode.StoreReceiptFailInsert,
-					GameUserId = gameUserId,
-					ReceiptSerialCode = receiptSerialCode
-				}
+					{
+						ErrorCode = ErrorCode.StoreReceiptFailInsert,
+						GameUserId = gameUserId,
+						ReceiptSerialCode = receiptSerialCode
+					}
 					, "StoreReceiptFailInsert");
 				return (ErrorCode.StoreReceiptFailInsert, 0);
 			}
@@ -87,24 +89,24 @@ public class InAppPurchaseService : IInAppPurchaseService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new
-			{
-				ErrorCode = ErrorCode.StoreReceiptFailException,
-				GameUserId = gameUserId,
-				ReceiptSerialCode = receiptSerialCode
-			}
+			_logger.ZLogErrorWithPayload(e, new
+				{
+					ErrorCode = ErrorCode.StoreReceiptFailException,
+					GameUserId = gameUserId,
+					ReceiptSerialCode = receiptSerialCode
+				}
 				, "StoreReceiptFailException");
 			return (ErrorCode.StoreReceiptFailException, 0);
 		}
 	}
 
-	public async Task<ErrorCode> CreateInAppMailAsync(int gameUserId, List<PackageItem> packageItems)
+	public async Task<ErrorCode> CreateInAppMailAsync(Int32 gameUserId, List<PackageItem> packageItems)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateInAppMail Start");
 		long mailId = 0;
 		try
 		{
-			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<long>(
+			mailId = await _queryFactory.Query("mail").InsertGetIdAsync<Int64>(
 				new
 				{
 					GameUserId = gameUserId,
@@ -155,7 +157,7 @@ public class InAppPurchaseService : IInAppPurchaseService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new
 				{
 					ErrorCode = ErrorCode.CreateInAppMailFailException,
@@ -168,7 +170,7 @@ public class InAppPurchaseService : IInAppPurchaseService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackStoreReceiptAsync(int receiptId)
+	public async Task<ErrorCode> RollbackStoreReceiptAsync(Int32 receiptId)
 	{
 		if (receiptId == 0)
 		{
@@ -191,7 +193,7 @@ public class InAppPurchaseService : IInAppPurchaseService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new { ErrorCode = ErrorCode.RollbackStoreReceiptFailException, Receipt = receiptId },
 				"RollbackStoreReceiptFailException");
 			return ErrorCode.RollbackStoreReceiptFailException;
@@ -218,7 +220,8 @@ public class InAppPurchaseService : IInAppPurchaseService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
 				"RollbackCreateMailFailException");
 		}
 	}

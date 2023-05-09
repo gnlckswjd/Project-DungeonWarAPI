@@ -5,13 +5,13 @@ namespace DungeonWarAPI.Services.Interfaces;
 
 public interface IMemoryDatabase
 {
-    Task<ErrorCode> RegisterUserAsync(string id, string authToken, UserData userData);
-    Task<(ErrorCode, List<string>)> LoadNotificationsAsync();
+    Task<ErrorCode> RegisterUserAsync(String id, String authToken, UserData userData);
+    Task<(ErrorCode, List<String>)> LoadNotificationsAsync();
 
-    Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(string email);
+    Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(String email);
 
-    Task<ErrorCode> LockUserRequestAsync(string key, string authToken);
-    Task<ErrorCode> UnLockUserRequestAsync(string key);
+    Task<ErrorCode> LockUserRequestAsync(String key, String authToken);
+    Task<ErrorCode> UnLockUserRequestAsync(String key);
 
-    Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, int pageNumber);
+    Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber);
 }

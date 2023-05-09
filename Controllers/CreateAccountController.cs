@@ -10,11 +10,11 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class CreateAccountController : ControllerBase
 {
-	private readonly IAccountDatabase _accountDatabase;
+	private readonly IAccountService _accountDatabase;
 	private readonly ILogger<CreateAccountController> _logger;
 	private readonly IUserService _userService;
 
-	public CreateAccountController(IAccountDatabase accountDatabase, IUserService userService,
+	public CreateAccountController(IAccountService accountDatabase, IUserService userService,
 		ILogger<CreateAccountController> logger)
 	{
 		_accountDatabase = accountDatabase;

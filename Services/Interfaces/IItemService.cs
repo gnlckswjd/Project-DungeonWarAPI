@@ -2,19 +2,19 @@
 
 public interface IItemService
 {
-    public Task<(ErrorCode, int itemCode, int enhancementCount)> LoadItemAsync(int gameUserId, long itemId);
+    public Task<(ErrorCode, Int32 itemCode, Int32 enhancementCount)> LoadItemAsync(Int32 gameUserId, Int64 itemId);
 
-    public Task<ErrorCode> UpdateGoldAsync(int gameUserId, int gold);
+    public Task<ErrorCode> UpdateGoldAsync(Int32 gameUserId, Int32 gold);
 
-    public Task<ErrorCode> UpdateEnhancementCountAsync(int gameUserId, long itemId, int enhancementCount);
+    public Task<ErrorCode> UpdateEnhancementCountAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount);
 
-    public Task<ErrorCode> DestroyItemAsync(int gameUserId, long itemId);
+    public Task<ErrorCode> DestroyItemAsync(Int32 gameUserId, Int64 itemId);
 
-    public Task<ErrorCode> InsertEnhancementHistoryAsync(int gameUserId, long itemId, int enhancementCount, bool isSuccess);
+    public Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount, Boolean isSuccess);
 
-    public Task<ErrorCode> RollbackUpdateMoneyAsync(int gameUserId, int gold);
+    public Task<ErrorCode> RollbackUpdateMoneyAsync(Int32 gameUserId, Int32 gold);
 
-    public Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId);
+    public Task<ErrorCode> RollbackUpdateEnhancementCountAsync(Int64 itemId);
 
-    public Task<ErrorCode> RollbackDestroyItemAsync(long itemId);
+    public Task<ErrorCode> RollbackDestroyItemAsync(Int64 itemId);
 }

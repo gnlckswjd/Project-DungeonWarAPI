@@ -10,7 +10,7 @@ using ZLogger;
 
 namespace DungeonWarAPI.Services.Implementations;
 
-public class ItemService: IItemService
+public class ItemService : IItemService
 {
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<ItemService> _logger;
@@ -41,7 +41,7 @@ public class ItemService: IItemService
 	}
 
 
-	public async Task<(ErrorCode, int itemCode, int enhancementCount)> LoadItemAsync(int gameUserId, long itemId)
+	public async Task<(ErrorCode, Int32 itemCode, Int32 enhancementCount)> LoadItemAsync(Int32 gameUserId, Int64 itemId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "LoadItem Start");
 		try
@@ -63,13 +63,14 @@ public class ItemService: IItemService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
 				"LoadItemFailException");
 			return (ErrorCode.LoadItemFailException, 0, 0);
 		}
 	}
 
-	public async Task<ErrorCode> UpdateGoldAsync(int gameUserId, int gold)
+	public async Task<ErrorCode> UpdateGoldAsync(Int32 gameUserId, Int32 gold)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, Gold = gold }, "UpdateGold Start");
 
@@ -89,14 +90,14 @@ public class ItemService: IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new { ErrorCode = ErrorCode.UpdateGoldFailException, GameUserId = gameUserId, Gold = gold },
 				"UpdateGoldFailException");
 			return ErrorCode.UpdateGoldFailException;
 		}
 	}
 
-	public async Task<ErrorCode> UpdateEnhancementCountAsync(int gameUserId, long itemId, int enhancementCount)
+	public async Task<ErrorCode> UpdateEnhancementCountAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount },
@@ -124,6 +125,7 @@ public class ItemService: IItemService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new
 				{
 					ErrorCode = ErrorCode.UpdateEnhancementCountFailException,
@@ -135,7 +137,7 @@ public class ItemService: IItemService
 		}
 	}
 
-	public async Task<ErrorCode> DestroyItemAsync(int gameUserId, long itemId)
+	public async Task<ErrorCode> DestroyItemAsync(Int32 gameUserId, Int64 itemId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "DestroyItem Start");
 
@@ -158,6 +160,7 @@ public class ItemService: IItemService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				  e,
 				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
 				"DestroyItemFailException");
 
@@ -165,8 +168,8 @@ public class ItemService: IItemService
 		}
 	}
 
-	public async Task<ErrorCode> InsertEnhancementHistoryAsync(int gameUserId, long itemId, int enhancementCount,
-		bool isSuccess)
+	public async Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount,
+		Boolean isSuccess)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount },
@@ -207,7 +210,7 @@ public class ItemService: IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new
+			_logger.ZLogErrorWithPayload(e,new
 			{
 				ErrorCode = ErrorCode.InsertEnhancementHistoryFailException,
 				GameUserId = gameUserId,
@@ -220,13 +223,13 @@ public class ItemService: IItemService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackUpdateMoneyAsync(int gameUserId, int gold)
+	public async Task<ErrorCode> RollbackUpdateMoneyAsync(Int32 gameUserId, Int32 gold)
 	{
 		return await UpdateGoldAsync(gameUserId, -gold);
 	}
 
 
-	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId)
+	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(Int64 itemId)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { ItemId = itemId }, "RollbackUpdateEnhancementCount Start");
@@ -261,7 +264,7 @@ public class ItemService: IItemService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackDestroyItemAsync(long itemId)
+	public async Task<ErrorCode> RollbackDestroyItemAsync(Int64 itemId)
 	{
 		_logger.ZLogDebugWithPayload(new { ItemId = itemId }, "RollbackDestroyItem Start");
 
@@ -284,11 +287,11 @@ public class ItemService: IItemService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
+				e,
 				new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId },
 				"RollbackDestroyItemFailException");
 
 			return ErrorCode.RollbackDestroyItemFailException;
 		}
 	}
-
 }

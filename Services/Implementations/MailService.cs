@@ -40,7 +40,7 @@ public class MailService : IMailService
 		_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
-	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(int gameUserId, int pageNumber)
+	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
 
@@ -106,7 +106,7 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailAsReadAsync(int gameUserId, long mailId)
+	public async Task<ErrorCode> MarkMailAsReadAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "MarkMailAsRead Start");
 
@@ -135,7 +135,7 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<ErrorCode> MarkMailItemAsReceiveAsync(int gameUserId, long mailId)
+	public async Task<ErrorCode> MarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId)
 	{
 		try
 		{
@@ -183,7 +183,7 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(int gameUserId, long mailId)
+	public async Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
 			"RollbackMarkMailItemAsReceive Start");
@@ -222,12 +222,16 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<ErrorCode> ReceiveItemAsync(int gameUserId, long mailId)
+	public async Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
 			"ReceiveItemAsync Start");
 
 		var (errorCode, items) = await GetMailItemsAsync(gameUserId, mailId);
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
 
 		if (items.Count() < 1)
 		{
@@ -286,7 +290,7 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<ErrorCode> DeleteMailAsync(int gameUserId, long mailId)
+	public async Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "DeleteMail Start");
 
@@ -319,7 +323,7 @@ public class MailService : IMailService
 	}
 
 
-	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(int gameUserId, long mailId)
+	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(Int32 gameUserId, Int64 mailId)
 	{
 		try
 		{
@@ -336,7 +340,8 @@ public class MailService : IMailService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new
+			_logger.ZLogErrorWithPayload(e,
+				new
 				{
 					ErrorCode = ErrorCode.GetMailItemsFailException,
 					GameUserId = gameUserId,
@@ -346,7 +351,7 @@ public class MailService : IMailService
 			return (ErrorCode.GetMailItemsFailException, null);
 		}
 	}
-	private async Task<ErrorCode> IncreaseGoldAsync(int gameUserId, int itemCount, List<Func<Task>> rollbackActions)
+	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
 	{
 		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
 			.IncrementAsync("Gold", itemCount);
@@ -376,7 +381,7 @@ public class MailService : IMailService
 		return ErrorCode.None;
 	}
 
-	private async Task<ErrorCode> IncreasePotionAsync(int gameUserId, int itemCount,
+	private async Task<ErrorCode> IncreasePotionAsync(Int32 gameUserId, Int32 itemCount,
 		List<Func<Task>> rollbackActions)
 	{
 		ErrorCode errorCode = ErrorCode.None;
@@ -416,8 +421,8 @@ public class MailService : IMailService
 		return ErrorCode.None;
 	}
 
-	private async Task<ErrorCode> InsertOwnedItemAsync(int gameUserId, int itemCode, int itemCount,
-		int enhancementCount, List<Func<Task>> rollbackActions)
+	private async Task<ErrorCode> InsertOwnedItemAsync(Int32 gameUserId, Int32 itemCode, Int32 itemCount,
+		Int32 enhancementCount, List<Func<Task>> rollbackActions)
 	{
 		var itemId = await _queryFactory.Query("owned_item").InsertGetIdAsync<int>(new
 		{
