@@ -72,15 +72,6 @@ public class UserAuthentication
 				return;
 			}
 
-			if (await IsWrongMasterDataVersion(masterDataVersion, context))
-			{
-				return;
-			}
-
-			if (await IsWrongAppVersion(appVersion, context))
-			{
-				return;
-			}
 
 			var (errorCode, authUserData) = await _memoryDatabase.LoadAuthUserDataAsync(email);
 
@@ -94,6 +85,19 @@ public class UserAuthentication
 				return;
 			}
 
+
+			if (await IsWrongMasterDataVersion(masterDataVersion, context))
+			{
+				return;
+			}
+
+			if (await IsWrongAppVersion(appVersion, context))
+			{
+				return;
+			}
+
+
+			
 			userLockKey = MemoryDatabaseKeyUtility.MakeUserLockKey(authUserData.Email);
 
 			var setLockError = await _memoryDatabase.LockUserRequestAsync(userLockKey, authToken);

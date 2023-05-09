@@ -225,6 +225,7 @@ public class ItemService : IItemService
 
 	public async Task<ErrorCode> RollbackUpdateMoneyAsync(Int32 gameUserId, Int32 gold)
 	{
+		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, Gold= -gold},"RollbackUpdateMoneyAsync");
 		return await UpdateGoldAsync(gameUserId, -gold);
 	}
 
@@ -254,7 +255,7 @@ public class ItemService : IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new
 				{
 					ErrorCode = ErrorCode.RollbackUpdateEnhancementCountFailException,

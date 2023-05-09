@@ -11,16 +11,17 @@ using ZLogger;
 
 namespace DungeonWarAPI.Services.Implementations;
 
-public class LoginRewardService : ILoginRewardService
+public class AttendanceRewardService : IAttendanceRewardService
 {
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-	private readonly ILogger<LoginRewardService> _logger;
+	private readonly ILogger<AttendanceRewardService> _logger;
 	private readonly MasterDataManager _masterData;
 
 	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public LoginRewardService(ILogger<LoginRewardService> logger, IOptions<DatabaseConfiguration> configurationOptions,
+	public AttendanceRewardService(ILogger<AttendanceRewardService> logger,
+		IOptions<DatabaseConfiguration> configurationOptions,
 		MasterDataManager masterData)
 	{
 		_configurationOptions = configurationOptions;
@@ -41,6 +42,38 @@ public class LoginRewardService : ILoginRewardService
 		//_queryFactory.Dispose();
 	}
 
+
+	public async Task<(ErrorCode, Int32)> LoadAttendanceCountAsync(Int32 gameUserId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "LoadLoginDate");
+
+		try
+		{
+			var attendanceCount = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.Select("AttendanceCount")
+				.FirstOrDefaultAsync<Int32>();
+			;
+
+			if (attendanceCount < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadAttendanceCountFailSelect, GameUserId = gameUserId },
+					"LoadAttendanceCountFailSelect");
+				return (ErrorCode.LoadAttendanceCountFailSelect, 0);
+			}
+
+
+			return (ErrorCode.None, attendanceCount);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				e, 
+				new { ErrorCode = ErrorCode.LoadAttendanceCountFailException, GameUserId = gameUserId },
+				"LoadAttendanceCountFailSelect");
+			return (ErrorCode.LoadAttendanceCountFailException, 0);
+		}
+	}
 
 	public async Task<(ErrorCode, DateTime lastLoginDate, Int16 attendanceCount)> UpdateLoginDateAsync(
 		Int32 gameUserId)

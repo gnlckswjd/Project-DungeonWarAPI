@@ -87,6 +87,9 @@ public enum ErrorCode : int
 	DeleteMailFailDelete = 311,
 	DeleteMailFail=311,
 
+	LoadAttendanceCountFailException=315,
+	LoadAttendanceCountFailSelect=316,
+
 	UpdateLoginDateFailException = 320,
 	UpdateLoginDateFailUserNotFound= 321,
 	UpdateLoginDateFailUpdate=322,

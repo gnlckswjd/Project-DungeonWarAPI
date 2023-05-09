@@ -10,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class AttendanceRewardController : ControllerBase
 {
-	private readonly ILoginRewardService _loginRewardService;
+	private readonly IAttendanceRewardService _attendanceRewardService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<AttendanceRewardController> _logger;
 
 	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataManager masterDataManager,
-		ILoginRewardService loginRewardService)
+		IAttendanceRewardService attendanceRewardService)
 	{
-		_loginRewardService = loginRewardService;
+		_attendanceRewardService = attendanceRewardService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -30,7 +30,7 @@ public class AttendanceRewardController : ControllerBase
 
 		var gameUserId = authUserData.GameUserId;
 
-		var (errorCode, lastLoginDate, attendanceCount) = await _loginRewardService.UpdateLoginDateAsync(gameUserId);
+		var (errorCode, lastLoginDate, attendanceCount) = await _attendanceRewardService.UpdateLoginDateAsync(gameUserId);
 
 		if (errorCode != ErrorCode.None)
 		{
@@ -40,11 +40,11 @@ public class AttendanceRewardController : ControllerBase
 
 		var reward = _masterDataManager.GetAttendanceReward(attendanceCount);
 
-		errorCode = await _loginRewardService.CreateAttendanceRewardMailAsync(gameUserId, reward);
+		errorCode = await _attendanceRewardService.CreateAttendanceRewardMailAsync(gameUserId, reward);
 
 		if (errorCode != ErrorCode.None)
 		{
-			await _loginRewardService.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
+			await _attendanceRewardService.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
 			response.Error=errorCode;
 			return response;
 		}

@@ -30,7 +30,7 @@ void DependencyInjection()
 	builder.Services.AddTransient<IUserService,UserService>();
 	builder.Services.AddTransient<IMailService,MailService>();
 	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
-	builder.Services.AddTransient<ILoginRewardService,LoginRewardService>();
+	builder.Services.AddTransient<IAttendanceRewardService,AttendanceRewardService>();
 	builder.Services.AddTransient<IItemService,ItemService>();
 	
 	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
