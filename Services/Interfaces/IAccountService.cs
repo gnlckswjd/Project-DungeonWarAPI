@@ -1,4 +1,6 @@
-﻿namespace DungeonWarAPI.Services.Interfaces;
+﻿using DungeonWarAPI.Enum;
+
+namespace DungeonWarAPI.Services.Interfaces;
 
 public interface IAccountService : IDisposable
 {

@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.Services.Interfaces;

@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.Database.Game;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.Payloads;
 
 namespace DungeonWarAPI.Models.DTO.RequestRespose;

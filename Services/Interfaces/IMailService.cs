@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.DTO.Payloads;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DTO.Payloads;
 
 namespace DungeonWarAPI.Services.Interfaces;
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using DungeonWarAPI;
 using DungeonWarAPI.Middleware;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Services;
@@ -31,11 +32,12 @@ void DependencyInjection()
 	builder.Services.AddTransient<IMailService,MailService>();
 	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
 	builder.Services.AddTransient<IAttendanceRewardService,AttendanceRewardService>();
-	builder.Services.AddTransient<IItemService,ItemService>();
+	builder.Services.AddTransient<IEnhancementService,EnhancementService>();
 	
 	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 	builder.Services.AddSingleton<MasterDataManager>();
+	builder.Services.AddSingleton<OwnedItemFactory>();
 }
 
 void SetLogger()

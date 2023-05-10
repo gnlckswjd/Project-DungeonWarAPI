@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
@@ -10,21 +11,18 @@ using ZLogger;
 
 namespace DungeonWarAPI.Services.Implementations;
 
-public class ItemService : IItemService
+public class EnhancementService : IEnhancementService
 {
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-	private readonly ILogger<ItemService> _logger;
-	private readonly MasterDataManager _masterData;
+	private readonly ILogger<EnhancementService> _logger;
 
 	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public ItemService(ILogger<ItemService> logger, IOptions<DatabaseConfiguration> configurationOptions,
-		MasterDataManager masterData)
+	public EnhancementService(ILogger<EnhancementService> logger, IOptions<DatabaseConfiguration> configurationOptions)
 	{
 		_configurationOptions = configurationOptions;
 		_logger = logger;
-		_masterData = masterData;
 
 		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
 		_databaseConnection.Open();
@@ -40,25 +38,66 @@ public class ItemService : IItemService
 		//_queryFactory.Dispose();
 	}
 
+	public async Task<ErrorCode> ValidateEnoughGoldAsync(Int32 gameUserId, Int64 cost)
+	{
+		_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, Cost = cost }, "ValidateEnoughGold Start");
 
-	public async Task<(ErrorCode, Int32 itemCode, Int32 enhancementCount)> LoadItemAsync(Int32 gameUserId, Int64 itemId)
+		try
+		{
+			var gold = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.Select("Gold")
+				.FirstOrDefaultAsync<Int64>();
+
+			if (gold == 0)
+			{
+				_logger.ZLogErrorWithPayload(new { GameUser = gameUserId, Cost = cost },
+					"ValidateEnoughGoldFailSelect");
+				return ErrorCode.ValidateEnoughGoldFailSelect;
+			}
+
+			if (gold < cost)
+			{
+				_logger.ZLogErrorWithPayload(new { GameUser = gameUserId, Cost = cost },
+					"ValidateEnoughGoldFailNotEnoughGold");
+				return ErrorCode.ValidateEnoughGoldFailNotEnoughGold;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e, new { GameUserId = gameUserId }, "ValidateEnoughGoldFailException");
+			return ErrorCode.ValidateEnoughGoldFailException;
+		}
+	}
+
+	public async Task<(ErrorCode, OwnedItem)> LoadItemAsync(Int32 gameUserId, Int64 itemId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "LoadItem Start");
 		try
 		{
-			var item = await _queryFactory.Query("owned_item").Where("GameUserId", "=", gameUserId)
-				.Where("ItemId", "=", itemId)
+			var item = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
 				.FirstOrDefaultAsync<OwnedItem>();
 
-			if (item == null || item.IsDestroyed)
+			if (item == null)
 			{
 				_logger.ZLogErrorWithPayload(
 					new { ErrorCode = ErrorCode.LoadItemFailSelect, GameUserId = gameUserId, ItemId = itemId },
 					"LoadItemFailSelect");
-				return (ErrorCode.LoadItemFailSelect, 0, 0);
+				return (ErrorCode.LoadItemFailSelect, new OwnedItem());
 			}
 
-			return (ErrorCode.None, item.ItemCode, item.EnhancementCount);
+
+			if (item.GameUserId != gameUserId)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadItemFailWrongGameUser, GameUserId = gameUserId, ItemId = itemId },
+					"LoadItemFailWrongGameUser");
+				return (ErrorCode.LoadItemFailWrongGameUser, new OwnedItem());
+			}
+
+
+			return (ErrorCode.None, item);
 		}
 		catch (Exception e)
 		{
@@ -66,7 +105,7 @@ public class ItemService : IItemService
 				e,
 				new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
 				"LoadItemFailException");
-			return (ErrorCode.LoadItemFailException, 0, 0);
+			return (ErrorCode.LoadItemFailException, new OwnedItem());
 		}
 	}
 
@@ -77,7 +116,7 @@ public class ItemService : IItemService
 		try
 		{
 			var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
-				.IncrementAsync("Gold", gold);
+				.DecrementAsync("Gold", gold);
 			if (count != 1)
 			{
 				_logger.ZLogErrorWithPayload(
@@ -97,16 +136,17 @@ public class ItemService : IItemService
 		}
 	}
 
-	public async Task<ErrorCode> UpdateEnhancementCountAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount)
+	public async Task<ErrorCode> UpdateEnhancementResultAsync(int gameUserId, long itemId, int enhancementCount,
+		int attributeCode, int attack, int defense)
 	{
 		_logger.ZLogDebugWithPayload(
-			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = enhancementCount },
+			new { GameUserId = gameUserId, ItemId = itemId, EnhancementCount = attributeCode },
 			"UpdateEnhancementCount Start");
 
 		try
 		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.UpdateAsync(new { EnhancementCount = enhancementCount + 1 });
+			var count = await UpdateEnhancedItemAsync(itemId, enhancementCount, attributeCode, attack, defense);
+
 			if (count != 1)
 			{
 				_logger.ZLogErrorWithPayload(
@@ -131,7 +171,7 @@ public class ItemService : IItemService
 					ErrorCode = ErrorCode.UpdateEnhancementCountFailException,
 					GameUserId = gameUserId,
 					ItemId = itemId,
-					EnhancementCount = enhancementCount
+					EnhancementCount = attributeCode
 				}, "UpdateEnhancementCountFailException");
 			return ErrorCode.UpdateEnhancementCountFailException;
 		}
@@ -160,7 +200,7 @@ public class ItemService : IItemService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
-				  e,
+				e,
 				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
 				"DestroyItemFailException");
 
@@ -210,7 +250,7 @@ public class ItemService : IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,new
+			_logger.ZLogErrorWithPayload(e, new
 			{
 				ErrorCode = ErrorCode.InsertEnhancementHistoryFailException,
 				GameUserId = gameUserId,
@@ -225,20 +265,31 @@ public class ItemService : IItemService
 
 	public async Task<ErrorCode> RollbackUpdateMoneyAsync(Int32 gameUserId, Int32 gold)
 	{
-		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, Gold= -gold},"RollbackUpdateMoneyAsync");
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, Gold = -gold }, "RollbackUpdateMoneyAsync");
 		return await UpdateGoldAsync(gameUserId, -gold);
 	}
 
 
-	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(Int64 itemId)
+	public async Task<ErrorCode> RollbackUpdateEnhancementCountAsync(long itemId, int attributeCode, int attack,
+		int defense, int enhancementCount)
 	{
 		_logger.ZLogDebugWithPayload(
 			new { ItemId = itemId }, "RollbackUpdateEnhancementCount Start");
 
 		try
 		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.DecrementAsync("EnhancementCount", 1);
+			Int32 count;
+			if (attributeCode == (int)ItemAttributeCode.Weapon)
+			{
+				count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+					.UpdateAsync(new{ EnhancementCount=enhancementCount , Attack= attack});
+			}
+			else
+			{
+				count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+					.UpdateAsync(new{ EnhancementCount = enhancementCount, Defense = defense });
+			}
+			
 			if (count != 1)
 			{
 				_logger.ZLogErrorWithPayload(
@@ -294,5 +345,38 @@ public class ItemService : IItemService
 
 			return ErrorCode.RollbackDestroyItemFailException;
 		}
+	}
+
+	private ErrorCode ValidateItemForEnhancement(Int32 gameUserId, OwnedItem item)
+	{
+		if (item.GameUserId != gameUserId)
+		{
+			return ErrorCode.LoadItemFailWrongGameUser;
+		}
+
+		if (item.IsDestroyed == true)
+		{
+			return ErrorCode.LoadItemFailisDestroyed;
+		}
+
+		return ErrorCode.None;
+	}
+
+	private async Task<Int32> UpdateEnhancedItemAsync(Int64 itemId, Int32 enhancementCount, Int32 attributeCode, Int32 attack, Int32 defense
+		)
+	{
+		Int32 count;
+		if (attributeCode == (int)ItemAttributeCode.Weapon)
+		{
+			count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { EnhancementCount = enhancementCount + 1, Attack = attack });
+		}
+		else
+		{
+			count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { EnhancementCount = enhancementCount + 1, defense });
+		}
+
+		return count;
 	}
 }

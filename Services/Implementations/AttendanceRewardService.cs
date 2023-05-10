@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
@@ -49,19 +50,20 @@ public class AttendanceRewardService : IAttendanceRewardService
 
 		try
 		{
-			var attendanceCount = await _queryFactory.Query("user_Attendance").Where("GameUserId", "=", gameUserId)
-				.Select("AttendanceCount")
-				.FirstOrDefaultAsync<Int32>();
-			//Date 검증 추가
+			var userAttendance= await _queryFactory.Query("user_attendance").Where("GameUserId", "=", gameUserId)
+				.FirstOrDefaultAsync<UserAttendance>();
 
-			if (attendanceCount < 1)
+			if (userAttendance == null)
 			{
 				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadAttendanceCountFailSelect, GameUserId = gameUserId },
+					new { GameUserId = gameUserId, ErrorCode = ErrorCode.LoadAttendanceCountFailSelect },
 					"LoadAttendanceCountFailSelect");
-				return (ErrorCode.LoadAttendanceCountFailSelect, 0);
+				return (ErrorCode.LoadAttendanceCountFailSelect, default);
 			}
 
+			var (_, attendanceCount) = CalcAttendanceDate(gameUserId, userAttendance);
+
+			
 
 			return (ErrorCode.None, attendanceCount);
 		}
@@ -82,10 +84,10 @@ public class AttendanceRewardService : IAttendanceRewardService
 
 		try
 		{
-			var userData = await _queryFactory.Query("user_attendance")
-				.Where("GameUserId", "=", gameUserId).FirstOrDefaultAsync<UserData>();
+			var userAttendance = await _queryFactory.Query("user_attendance")
+				.Where("GameUserId", "=", gameUserId).FirstOrDefaultAsync<UserAttendance>();
 
-			if (userData == null)
+			if (userAttendance == null)
 			{
 				_logger.ZLogErrorWithPayload(
 					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUserNotFound },
@@ -93,32 +95,17 @@ public class AttendanceRewardService : IAttendanceRewardService
 				return (ErrorCode.UpdateLoginDateFailUserNotFound, default, default);
 			}
 
-			var lastLoginDate = userData.LastLoginDate.Date;
-			var today = DateTime.Now.Date;
+			var(errorCode, attendanceCount) = CalcAttendanceDate(gameUserId, userAttendance);
 
-			short attendanceCount = userData.AttendanceCount;
-
-			if (lastLoginDate == today)
+			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
-					"UpdateLoginDateFailAlreadyReceived");
-				return (ErrorCode.UpdateLoginDateFailAlreadyReceived, default, default);
-			}
-
-			if (lastLoginDate == today.AddDays(-1) && lastLoginDate.Date.Month == today.Month)
-			{
-				attendanceCount++;
-			}
-			else
-			{
-				attendanceCount = 1;
+				return (errorCode, userAttendance.LastLoginDate, attendanceCount);
 			}
 
 
 			var count = await _queryFactory.Query("user_attendance")
 				.Where("GameUserId", "=", gameUserId)
-				.UpdateAsync(new { LastLoginDate = today, AttendanceCount = attendanceCount });
+				.UpdateAsync(new { LastLoginDate = DateTime.Today.Date, AttendanceCount = attendanceCount });
 
 			if (count != 1)
 			{
@@ -128,7 +115,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 				return (ErrorCode.UpdateLoginDateFailUpdate, default, default);
 			}
 
-			return (ErrorCode.None, lastLoginDate, attendanceCount);
+			return (ErrorCode.None, userAttendance.LastLoginDate, attendanceCount);
 		}
 		catch (Exception e)
 		{
@@ -277,5 +264,32 @@ public class AttendanceRewardService : IAttendanceRewardService
 				e, new { ErrorCode = ErrorCode.RollbackCreateMailFailException, MailId = mailId },
 				"RollbackCreateMailFailException");
 		}
+	}
+
+	private (ErrorCode,Int16 attendanceCount) CalcAttendanceDate(Int32 gameUserId, UserAttendance userAttendance)
+	{
+		var lastLoginDate = userAttendance.LastLoginDate.Date;
+		var today = DateTime.Now.Date;
+
+		short attendanceCount = userAttendance.AttendanceCount;
+
+		if (lastLoginDate == today)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
+				"UpdateLoginDateFailAlreadyReceived");
+			return (ErrorCode.UpdateLoginDateFailAlreadyReceived, attendanceCount);
+		}
+
+		if (lastLoginDate == today.AddDays(-1) && lastLoginDate.Date.Month == today.Month)
+		{
+			attendanceCount++;
+		}
+		else
+		{
+			attendanceCount = 1;
+		}
+
+		return (ErrorCode.None, attendanceCount);
 	}
 }

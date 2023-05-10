@@ -1,8 +1,10 @@
-﻿namespace DungeonWarAPI.Utilities;
+﻿using DungeonWarAPI.Enum;
+
+namespace DungeonWarAPI.Utilities;
 
 public static class ItemEnhancementUtility
 {
-    public static ErrorCode CheckEnhancementPossibility(int maxCount, int enhancementCount)
+    public static ErrorCode CheckEnhancementPossibility(int maxCount, int enhancementCount,int attributeCode)
     {
         if (maxCount == -1)
         {
@@ -19,6 +21,12 @@ public static class ItemEnhancementUtility
             return ErrorCode.CanNotEnhancement;
         }
 
+        if (attributeCode != 1 && attributeCode != 2 )
+        {
+	        return ErrorCode.CanNotEnhancement;
+
+        }
+
         return ErrorCode.None;
     }
 
@@ -29,16 +37,14 @@ public static class ItemEnhancementUtility
         return randomNumber < 0.3;
     }
 
-    public static int GetAttackPower(int baseAttack, int enhancementCount)
+    public static Int32 GetAttackPower(int baseAttack)
     {
         double interestRate = 1.1;
-        double finalAttackPower = baseAttack * Math.Pow(interestRate, enhancementCount);
-        return (int)finalAttackPower;
-    }
-    public static int GetDefensePower(int baseDefense, int enhancementCount)
+        return (int)Math.Round(baseAttack * interestRate);
+	}
+    public static int GetDefensePower(int baseDefense)
     {
-        double interestRate = 1.1;
-        double finalDefensePower = baseDefense * Math.Pow(interestRate, enhancementCount);
-        return (int)finalDefensePower;
-    }
+	    double interestRate = 1.1;
+	    return (int)Math.Round(baseDefense * interestRate);
+	}
 }

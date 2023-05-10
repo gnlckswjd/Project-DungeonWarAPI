@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.DAO.Game;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
@@ -41,7 +42,7 @@ public class MasterDataManager
         return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
     }
 
-    public (Int16, Int32) GetEnhanceMaxCountWithGold(Int32 itemCode)
+    public (Int16, Int32) GetEnhanceMaxCountWithCost(Int32 itemCode)
     {
         var item = ItemList.Find(item => item.ItemCode == itemCode);
         if (item == null)
@@ -49,11 +50,22 @@ public class MasterDataManager
             return (-1, 0);
         }
 
-        return (item.EnhanceMaxCount, -1000);
+        return (item.EnhanceMaxCount, 1000);
     }
 
+    public Item GetItem(Int32 ItemCode)
+    {
+	    return ItemList[ItemCode - 1];
+    }
 
-    private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
+    public Int32 GetAttributeCode(Int32 ItemCode)
+    {
+        return ItemList[ItemCode-1].AttributeCode;
+
+	}
+
+
+	private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
     {
         (var errorCode, AttendanceRewardList) = await masterDatabase.LoadAttendanceRewardsAsync();
         ValidateErrorCode(errorCode);

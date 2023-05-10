@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;

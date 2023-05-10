@@ -3,6 +3,7 @@ using DungeonWarAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestRespose;
+using DungeonWarAPI.Enum;
 
 namespace DungeonWarAPI.Controllers;
 

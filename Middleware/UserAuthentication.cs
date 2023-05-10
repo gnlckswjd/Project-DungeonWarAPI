@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services;

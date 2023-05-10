@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using DungeonWarAPI.Enum;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Services.Interfaces;

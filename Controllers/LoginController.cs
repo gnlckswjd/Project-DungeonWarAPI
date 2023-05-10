@@ -1,4 +1,5 @@
-﻿using DungeonWarAPI.Models.DTO.RequestRespose;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;

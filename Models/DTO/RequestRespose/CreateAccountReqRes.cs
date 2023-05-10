@@ -1,4 +1,6 @@
-﻿namespace DungeonWarAPI.Models.DTO.RequestRespose;
+﻿using DungeonWarAPI.Enum;
+
+namespace DungeonWarAPI.Models.DTO.RequestRespose;
 
 public class CreateAccountRequest
 {

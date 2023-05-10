@@ -1,8 +1,8 @@
-﻿using DungeonWarAPI;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Models.DTO.RequestRespose;
+using DungeonWarAPI.Enum;
 
 namespace DungeonWarAPI.Controllers;
 

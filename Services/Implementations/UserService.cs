@@ -1,8 +1,10 @@
-﻿using DungeonWarAPI.ModelConfiguration;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
+using SqlKata;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.Data;
@@ -14,17 +16,17 @@ public class UserService : IUserService
 {
 	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<UserService> _logger;
-	private readonly MasterDataManager _masterData;
+	private readonly OwnedItemFactory _ownedItemFactory;
 
 	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
 	public UserService(ILogger<UserService> logger, IOptions<DatabaseConfiguration> configurationOptions,
-		MasterDataManager masterData)
+		OwnedItemFactory ownedItemFactory)
 	{
 		_configurationOptions = configurationOptions;
 		_logger = logger;
-		_masterData = masterData;
+		_ownedItemFactory = ownedItemFactory;
 
 		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
 		_databaseConnection.Open();
@@ -130,14 +132,30 @@ public class UserService : IUserService
 		try
 		{
 			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
-			var columns = new[] { "GameUserId", "ItemCode", "EnhancementCount", "ItemCount" };
-			var data = new[]
+
+			var columns = new[] { "GameUserId", "ItemCode", "EnhancementCount", "ItemCount", "Attack", "Defense" };
+
+			var items = new List<OwnedItem>();
+			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.SmallSword));
+			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.OrdinaryHat));
+
+
+			var data = new List<object[]>();
+			foreach (var item in items)
 			{
-				new object[] { gameUserId, 2, 0, 1 },
-				new object[] { gameUserId, 3, 0, 1 }
-			};
+				data.Add(new object[]
+				{
+					item.GameUserId,
+					item.ItemCode,
+					item.EnhancementCount,
+					item.ItemCount,
+					item.Attack,
+					item.Defense
+				});
+			}
 
 			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
+
 
 			if (count < 1)
 			{
@@ -222,10 +240,7 @@ public class UserService : IUserService
 
 			if (!items.Any())
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadUserItemsFailSelect, GameUserId = gameUserId },
-					"LoadUserItemsFailSelect");
-				return (ErrorCode.LoadUserItemsFailSelect, null);
+				return (ErrorCode.None, new List<OwnedItem>());
 			}
 
 			return (ErrorCode.None, items.ToList());
@@ -235,7 +250,7 @@ public class UserService : IUserService
 			_logger.ZLogErrorWithPayload(e,
 				new { ErrorCode = ErrorCode.LoadUserItemsFailException, GameUserId = gameUserId },
 				"LoadUserItemsFailException");
-			return (ErrorCode.LoadUserItemsFailException, null);
+			return (ErrorCode.LoadUserItemsFailException, new List<OwnedItem>());
 		}
 	}
 }

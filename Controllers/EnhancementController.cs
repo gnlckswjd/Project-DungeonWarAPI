@@ -1,9 +1,12 @@
-﻿using DungeonWarAPI.Models.DAO.Account;
+﻿using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestRespose;
 using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -11,14 +14,14 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class EnhancementController : ControllerBase
 {
-	private readonly IItemService _itemService;
+	private readonly IEnhancementService _enhancementService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<EnhancementController> _logger;
 
 	public EnhancementController(ILogger<EnhancementController> logger, MasterDataManager masterDataManager,
-		IItemService itemService)
+		IEnhancementService enhancementService)
 	{
-		_itemService = itemService;
+		_enhancementService = enhancementService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -32,27 +35,38 @@ public class EnhancementController : ControllerBase
 		var gameUserId = authUserData.GameUserId;
 		var itemId = request.ItemId;
 
-		var (errorCode, itemCode, enhancementCount) = await _itemService.LoadItemAsync(gameUserId, itemId);
+		var (errorCode, item) = await _enhancementService.LoadItemAsync(gameUserId, itemId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		var (maxCount, gold) = _masterDataManager.GetEnhanceMaxCountWithGold(itemCode);
+		var itemCode = item.ItemCode;
+		var enhancementCount = item.EnhancementCount;
 
-		errorCode = ItemEnhancementUtility.CheckEnhancementPossibility(maxCount, enhancementCount);
+		var (maxCount, cost) = _masterDataManager.GetEnhanceMaxCountWithCost(itemCode);
+		var attributeCode = _masterDataManager.GetAttributeCode(itemCode);
 
+		errorCode = ItemEnhancementUtility.CheckEnhancementPossibility(maxCount, enhancementCount, attributeCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
+
+		errorCode = await _enhancementService.ValidateEnoughGoldAsync(gameUserId, cost);
+		if (errorCode != ErrorCode.None)
+		{
+			response.Error = errorCode;
+			return response;
+		}
+
+		
 
 		Boolean isSuccess = ItemEnhancementUtility.EnhanceItem();
 
-
-		errorCode = await _itemService.UpdateGoldAsync(gameUserId, gold);
+		errorCode = await _enhancementService.UpdateGoldAsync(gameUserId, cost);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -61,40 +75,44 @@ public class EnhancementController : ControllerBase
 
 		if (isSuccess)
 		{
-			errorCode = await _itemService.UpdateEnhancementCountAsync(gameUserId, itemId, enhancementCount);
+			Int32 itemAttack = ItemEnhancementUtility.GetAttackPower(item.Attack);
+			Int32 itemDefense = ItemEnhancementUtility.GetDefensePower(item.Defense);
+
+			errorCode = await _enhancementService.UpdateEnhancementResultAsync(gameUserId, itemId, enhancementCount,
+				attributeCode, itemAttack, itemDefense);
 			if (errorCode != ErrorCode.None)
 			{
-				_itemService.RollbackUpdateMoneyAsync(gameUserId, gold);
+				await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
 				response.Error = errorCode;
 				return response;
 			}
 		}
 		else
 		{
-			errorCode = await _itemService.DestroyItemAsync(gameUserId, itemId);
+			errorCode = await _enhancementService.DestroyItemAsync(gameUserId, itemId);
 			if (errorCode != ErrorCode.None)
 			{
-				_itemService.RollbackUpdateMoneyAsync(gameUserId, gold);
+				await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
 				response.Error = errorCode;
 				return response;
 			}
 		}
 
 
-		errorCode = await _itemService.InsertEnhancementHistoryAsync(gameUserId, request.ItemId, enhancementCount,
-			isSuccess);
+		errorCode = await _enhancementService.InsertEnhancementHistoryAsync(gameUserId, request.ItemId,
+			enhancementCount, isSuccess);
 		if (errorCode != ErrorCode.None)
 		{
 			if (isSuccess)
 			{
-				_itemService.RollbackUpdateEnhancementCountAsync(itemId);
+				await _enhancementService.RollbackUpdateEnhancementCountAsync(itemId,attributeCode,item.Attack,item.Defense, enhancementCount);
 			}
 			else
 			{
-				_itemService.RollbackDestroyItemAsync(itemId);
+				await _enhancementService.RollbackDestroyItemAsync(itemId);
 			}
 
-			_itemService.RollbackUpdateMoneyAsync(gameUserId, gold);
+			await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
 			response.Error = errorCode;
 			return response;
 		}
