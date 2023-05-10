@@ -22,8 +22,14 @@ public enum ErrorCode : int
     CreateAccountFailException = 110,
     CreateAccountFailDuplicate = 111,
     CreateAccountFailInsert = 112,
+    CreateUserStageFailException = 115,
+    CreateUserStageFailInsert = 116, 
+    RollbackCreateUserStageFailException = 117,
+    RollbackCreateUserStageFailDelete = 118,
 
-    CreateUserFailException = 120,
+
+
+	CreateUserFailException = 120,
     CreateUserFailDuplicate = 121,
     CreateUserFailInsert = 122,
     RollbackAccountFailException = 126,
@@ -156,6 +162,8 @@ public enum ErrorCode : int
     RollbackDestroyItemFailException = 425,
     RollbackDestroyItemFailUpdate = 426,
 
+    LoadUserStageFailException= 500,
+    LoadUserStageFailSelect= 501,
 
 
     InvalidRequestHttpBody = 1000,

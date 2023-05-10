@@ -127,6 +127,54 @@ public class UserService : IUserService
 		}
 	}
 
+	public async Task<ErrorCode> CreateUserStageAsync(Int32 gameUserId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserClear Start");
+		try
+		{
+			var count = await _queryFactory.Query("user_stage")
+				.InsertAsync(new { GameUserId = gameUserId, ClearedStage = 0 });
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.CreateUserStageFailInsert },
+					"CreateUserStageFailInsert");
+				return ErrorCode.CreateUserStageFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { GameUserId= gameUserId, ErrorCode = ErrorCode.CreateUserStageFailException },
+				"CreateUserStageFailException");
+			return ErrorCode.CreateUserStageFailException;
+		}
+	}
+
+	public async Task<ErrorCode> RollbackCreateUserStageAsync(Int32 gameUserId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "RollbackCreateUserStage Start");
+		try
+		{
+			var count = await _queryFactory.Query("user_stage").Where("GameUserId","=",gameUserId)
+				.DeleteAsync();
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.RollbackCreateUserStageFailDelete },
+					"RollbackCreateUserStageFailDelete");
+				return ErrorCode.RollbackCreateUserStageFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.RollbackCreateUserStageFailException },
+				"RollbackCreateUserStageFailException");
+			return ErrorCode.RollbackCreateUserStageFailException;
+		}
+	}
+
 	public async Task<ErrorCode> CreateUserItemAsync(Int32 gameUserId)
 	{
 		try

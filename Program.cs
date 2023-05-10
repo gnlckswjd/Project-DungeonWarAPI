@@ -33,6 +33,7 @@ void DependencyInjection()
 	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
 	builder.Services.AddTransient<IAttendanceRewardService,AttendanceRewardService>();
 	builder.Services.AddTransient<IEnhancementService,EnhancementService>();
+	builder.Services.AddTransient<IDungeonStageService, DungeonStageService>();
 	
 	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();

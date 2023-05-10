@@ -28,7 +28,6 @@ public class CreateAccountController : ControllerBase
 		var response = new CreateAccountResponse();
 
 		var (errorCode, accountId )= await _accountDatabase.CreateAccountAsync(request.Email, request.Password);
-		response.Error = errorCode;
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -36,8 +35,6 @@ public class CreateAccountController : ControllerBase
 		}
 
 		(errorCode, var gameUserId) = await _userService.CreateUserAsync(accountId);
-		response.Error = errorCode;
-
 		if (errorCode != ErrorCode.None)
 		{
 			await _accountDatabase.RollbackAccountAsync(accountId);
@@ -46,7 +43,6 @@ public class CreateAccountController : ControllerBase
 		}
 
 		errorCode = await _userService.CreateUserAttendanceAsync(gameUserId);
-
 		if (errorCode != ErrorCode.None)
 		{
 			await _userService.RollbackCreateUserAsync(gameUserId);
@@ -55,15 +51,24 @@ public class CreateAccountController : ControllerBase
 			return response;
 		}
 
-		errorCode = await _userService.CreateUserItemAsync(gameUserId);
-		response.Error = errorCode;
-
+		errorCode = await _userService.CreateUserStageAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
 			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
 			await _userService.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackAccountAsync(accountId);
+			response.Error = errorCode;
+			return response;
+		}
 
+		errorCode = await _userService.CreateUserItemAsync(gameUserId);
+		if (errorCode != ErrorCode.None)
+		{
+			await _userService.RollbackCreateUserStageAsync(gameUserId);
+			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
+			await _userService.RollbackCreateUserAsync(gameUserId);
+			await _accountDatabase.RollbackAccountAsync(accountId);
+			response.Error = errorCode;
 			return response;
 		}
 
