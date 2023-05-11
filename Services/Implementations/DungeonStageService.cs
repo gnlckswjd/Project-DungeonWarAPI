@@ -68,4 +68,25 @@ public class DungeonStageService : IDungeonStageService
 			return (ErrorCode.LoadUserStageFailException, 0);
 		}
 	}
+
+	public async Task<ErrorCode> CheckStageAccessibility(Int32 gameUserId, Int32 selectedStageLevel)
+	{
+		_logger.ZLogDebugWithPayload(new{GameUserId=gameUserId, SelectedStageLevel=selectedStageLevel},"CheckStageAccessibility Start");
+
+		var (errorCode, maxClearedStage) = await LoadStageList(gameUserId);
+
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
+
+		if (maxClearedStage + 1 < selectedStageLevel)
+		{
+			_logger.ZLogErrorWithPayload(new{ GameUserId = gameUserId, SelectedStageLevel = selectedStageLevel }, "CheckStageAccessibilityFailExceedStageLevel");
+
+			return ErrorCode.CheckStageAccessibilityFailExceedStageLevel;
+		}
+
+		return ErrorCode.None;
+	}
 }

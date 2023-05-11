@@ -164,9 +164,11 @@ public enum ErrorCode : int
 
     LoadUserStageFailException= 500,
     LoadUserStageFailSelect= 501,
+	CheckStageAccessibilityFailExceedStageLevel=502,
 
 
-    InvalidRequestHttpBody = 1000,
+
+	InvalidRequestHttpBody = 1000,
     WrongAppVersion = 1001,
     WrongMasterDataVersion = 1002,
     WrongAuthTokenRequest = 1003,

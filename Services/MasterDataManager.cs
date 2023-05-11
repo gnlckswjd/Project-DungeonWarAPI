@@ -64,6 +64,16 @@ public class MasterDataManager
 
 	}
 
+    public List<StageItem> GetStageItems(Int32 stageLevel)
+    {
+		return StageItemList.Where(item => item.StageLevel == stageLevel).ToList();
+	}
+
+    public List<StageNpc> GetStageNpcs(Int32 stageLevel)
+    {
+	    return StageNpcList.Where(npc => npc.StageLevel == stageLevel).ToList();
+	}
+
 
 	private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
     {
