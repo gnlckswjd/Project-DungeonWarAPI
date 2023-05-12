@@ -1,8 +1,10 @@
 ﻿using CloudStructures;
 using CloudStructures.Structures;
+using Dapper;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Utilities;
@@ -82,7 +84,7 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadNotificationsFailException },
 				"LoadNotificationsException");
-			return (ErrorCode.LoadNotificationsFailException, null);
+			return (ErrorCode.LoadNotificationsFailException, new List<string>());
 		}
 	}
 
@@ -98,7 +100,7 @@ public class RedisDatabase : IMemoryDatabase
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadAuthUserDataFailEmpty, Key = key },
 					"LoadAuthUserDataFailEmpty");
-				return (ErrorCode.LoadAuthUserDataFailEmpty, null);
+				return (ErrorCode.LoadAuthUserDataFailEmpty, new AuthUserData());
 			}
 
 			return (ErrorCode.None, userData.Value);
@@ -107,7 +109,7 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadAuthUserDataFailException, Key = key },
 				"LoadAuthUserDataFailException");
-			return (ErrorCode.LoadAuthUserDataFailException, null);
+			return (ErrorCode.LoadAuthUserDataFailException, new AuthUserData());
 		}
 	}
 
@@ -165,6 +167,120 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
+	public async Task<ErrorCode> InitializeStageDataAsync(String key, List<StageItem> items, List<StageNpc> npcs,
+		Int32 stageLevel)
+	{
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+			if (await redis.ExistsAsync() == true)
+			{
+				var errorCode = await DeleteStageDataAsync(redis, key);
+				if (errorCode != ErrorCode.None)
+				{
+					return errorCode;
+				}
+			}
+
+			var itemKeys = items.Select(item => MemoryDatabaseKeyUtility.MakeStageItemKey(item.ItemCode));
+
+			var npcKeys = npcs.Select(npc => MemoryDatabaseKeyUtility.MakeStageNpcKey(npc.NpcCode));
+
+			var list = itemKeys.Concat(npcKeys)
+				.Select(key => new KeyValuePair<String, Int32>(key, 0))
+				.ToList();
+
+			list.Add(
+				new KeyValuePair<String, Int32>(MemoryDatabaseKeyUtility.MakeStageLevelKey(stageLevel), stageLevel));
+			await redis.SetAsync(list);
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
+				"InitializeStageDataFailException");
+			return ErrorCode.InitializeStageDataFailException;
+		}
+	}
+
+	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode)
+	{
+		var field = MemoryDatabaseKeyUtility.MakeStageItemKey(itemCode);
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+
+			if (await redis.ExistsAsync(field) == false)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.IncrementItemFailNoExist, Key = key, Field = field },
+					"IncrementItemFailNoExist");
+				return ErrorCode.IncrementItemFailNoExist;
+			}
+
+			var value = await redis.IncrementAsync(field, 1);
+
+			if (value == 0)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.IncrementItemFailIncrease, Key = key, Field = field },
+					"IncrementItemFailIncrease");
+				return ErrorCode.IncrementItemFailIncrease;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.IncrementItemFailException, Key = key, Field = field },
+				"IncrementItemFailException");
+			return ErrorCode.IncrementItemFailException;
+		}
+	}
+
+	public async Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode)
+	{
+		var field = MemoryDatabaseKeyUtility.MakeStageNpcKey(npcCode);
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+
+			if (await redis.ExistsAsync(field) == false)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.IncrementNpcKillCountFailNoExist, Key = key, Field = field },
+					"IncrementNpcKillCountFailNoExist");
+				return ErrorCode.IncrementNpcKillCountFailNoExist;
+			}
+
+			var value = await redis.IncrementAsync(field, 1);
+
+			if (value == 0)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.IncrementNpcKillCountFailIncrease, Key = key, Field = field },
+					"IncrementNpcKillCountFailIncrease");
+				return ErrorCode.IncrementNpcKillCountFailIncrease;
+			}
+
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.IncrementNpcKillCountFailException, Key = key, Field = field },
+				"IncrementNpcKillCountFailException");
+			return ErrorCode.IncrementNpcKillCountFailException;
+		}
+	}
+
+
 	public async Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { authUserData.GameUserId, PageNumber = pageNumber },
@@ -191,5 +307,17 @@ public class RedisDatabase : IMemoryDatabase
 				"StoreUserMailPageFailException");
 			return ErrorCode.StoreUserMailPageFailException;
 		}
+	}
+
+	private async Task<ErrorCode> DeleteStageDataAsync(RedisDictionary<String, Int32> redis, String key)
+	{
+		if (await redis.DeleteAsync() == false)
+		{
+			_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InitializeStageDataFailDelete, Key = key },
+				"InitializeStageDataFailDelete");
+			return ErrorCode.InitializeStageDataFailDelete;
+		}
+
+		return ErrorCode.None;
 	}
 }

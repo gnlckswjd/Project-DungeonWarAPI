@@ -59,16 +59,27 @@ public enum ErrorCode : int
     LoginFailRegisterToRedis = 224,
     LoginFailRegisterToRedisException = 225,
 
-    LoadUserDataFailException = 230,
-    LoadUserDataFailSelect = 231,
+    LoadUserDataFailException = 226,
+    LoadUserDataFailSelect = 227,
 
-    LoadUserItemsFailException = 236,
-    LoadUserItemsFailSelect = 237,
+    LoadUserItemsFailException = 230,
+    LoadUserItemsFailSelect = 231,
 
-    LoadNotificationsFailException = 250,
-    LoadNotificationsZeroNotification = 251,
+    LoadNotificationsFailException = 232,
+    LoadNotificationsZeroNotification = 233,
 
-    LoadMailListFailException = 260,
+    InitializeStageDataFailException =235,
+    InitializeStageDataFailDelete =236,
+    IncrementItemFailException=237,
+    IncrementItemFailIncrease=238,
+    IncrementItemFailNoExist=239,
+	IncrementNpcKillCountFailException = 240,
+	IncrementNpcKillCountFailIncrease = 241,
+	IncrementNpcKillCountFailNoExist = 242,
+
+
+
+	LoadMailListFailException = 260,
     LoadMailListEmptyMail = 261,
     LoadMailListWrongPage = 262,
 

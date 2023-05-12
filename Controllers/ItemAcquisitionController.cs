@@ -3,43 +3,51 @@ using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Services;
+using DungeonWarAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class StageListController : ControllerBase
+public class ItemAcquisitionController : ControllerBase
 {
 	private readonly IDungeonStageService _dungeonStageService;
 	private readonly MasterDataManager _masterDataManager;
-	private readonly ILogger<StageListController> _logger;
+	private readonly IMemoryDatabase _memoryDatabase;
+	private readonly ILogger<ItemAcquisitionController> _logger;
 
-	public StageListController(ILogger<StageListController> logger, MasterDataManager masterDataManager,
+	public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase,
+		MasterDataManager masterDataManager,
 		IDungeonStageService dungeonStageService)
 	{
+		_memoryDatabase = memoryDatabase;
 		_dungeonStageService = dungeonStageService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
 
 	[HttpPost]
-	public async Task<StageListResponse> Post(StageListRequest request)
+	public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
 	{
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
-		var response = new StageListResponse();
+		var response = new ItemAcquisitionResponse();
 		var gameUserId = authUserData.GameUserId;
 
-		var (errorCode, maxClearedStage )= await _dungeonStageService.LoadStageList(gameUserId);
+		var key = MemoryDatabaseKeyUtility.MakeStageKey(request.Email);
+
+		var errorCode= await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		response.MaxClearedStage= maxClearedStage;
+		
 		response.Error = ErrorCode.None;
 		return response;
 	}
+
+
 
 }

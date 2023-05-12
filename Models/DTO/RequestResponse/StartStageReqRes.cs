@@ -1,11 +1,12 @@
 ﻿using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.Database.Game;
 
-namespace DungeonWarAPI.Models.DTO.RequestRespose;
+namespace DungeonWarAPI.Models.DTO.RequestResponse;
 
 
 public class StartStageRequest
 {
+	public String Email { get; set; }
 	public Int32 SelectedStageLevel { get; set; }
 }
 public class StartStageResponse
