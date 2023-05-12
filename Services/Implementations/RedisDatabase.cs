@@ -178,7 +178,9 @@ public class RedisDatabase : IMemoryDatabase
 				var errorCode = await DeleteStageDataAsync(redis, key);
 				if (errorCode != ErrorCode.None)
 				{
-					return errorCode;
+					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InitializeStageDataFailDelete, Key = key },
+						"InitializeStageDataFailDelete");
+					return ErrorCode.InitializeStageDataFailDelete;
 				}
 			}
 
@@ -204,7 +206,7 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode)
+	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount)
 	{
 		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 		try
@@ -220,7 +222,12 @@ public class RedisDatabase : IMemoryDatabase
 				return ErrorCode.IncrementItemFailNoExist;
 			}
 
-			var value = await redis.IncrementAsync(field, 1);
+			if (itemCode != (Int32)ItemCode.Gold && itemCode != (Int32)ItemCode.Potion)
+			{
+				ItemCount = 1;
+			}
+
+			var value = await redis.IncrementAsync(field, ItemCount);
 
 			if (value == 0)
 			{
@@ -336,13 +343,33 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
+	public async Task<ErrorCode> DeleteStageDataAsync(String key)
+	{
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+			var errorCode = await DeleteStageDataAsync(redis, key);
+			if (errorCode != ErrorCode.None)
+			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailDelete, Key = key }, "DeleteStageDataFailDelete");
+				return ErrorCode.DeleteStageDataFailDelete;
+			}
+			return errorCode;
+		}
+		catch (Exception e)
+		{
+			
+			_logger.ZLogErrorWithPayload(new{ ErrorCode= ErrorCode.DeleteStageDataFailException, Key = key}, "DeleteStageDataFailException");
+			return ErrorCode.DeleteStageDataFailException;
+		}
+		
+	}
 	private async Task<ErrorCode> DeleteStageDataAsync(RedisDictionary<String, Int32> redis, String key)
 	{
 		if (await redis.DeleteAsync() == false)
 		{
-			_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InitializeStageDataFailDelete, Key = key },
-				"InitializeStageDataFailDelete");
-			return ErrorCode.InitializeStageDataFailDelete;
+			return ErrorCode.StageDataDeleteFail;
 		}
 
 		return ErrorCode.None;

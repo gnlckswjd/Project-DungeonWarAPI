@@ -35,7 +35,7 @@ public class ItemAcquisitionController : ControllerBase
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var errorCode= await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode);
+		var errorCode= await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode, request.ItemCount);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

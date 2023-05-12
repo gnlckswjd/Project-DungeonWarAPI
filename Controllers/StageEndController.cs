@@ -49,6 +49,7 @@ public class StageEndController : ControllerBase
 
 		if (isCleared == false)
 		{
+			await _memoryDatabase.DeleteStageDataAsync(key);
 			response.IsCleared = isCleared;
 			response.Error = ErrorCode.None;
 			return response;
@@ -87,7 +88,7 @@ public class StageEndController : ControllerBase
 			return response;
 		}
 
-
+		await _memoryDatabase.DeleteStageDataAsync(key);
 		response.IsCleared = isCleared;
 		response.Error = ErrorCode.None;
 		return response;

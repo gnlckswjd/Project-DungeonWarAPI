@@ -88,7 +88,7 @@ public class MasterDataManager
 	    {
 		    var killedNpc = killedNpcCodeAndCount.FirstOrDefault(npcCodeAndCount => npcCodeAndCount.Item1 == stageNpc.NpcCode);
 
-		    if (killedNpc.Item2 < stageNpc.NpcCount)
+		    if (killedNpc.Item2 != stageNpc.NpcCount)
 		    {
 			    return (false, 0);
 		    }

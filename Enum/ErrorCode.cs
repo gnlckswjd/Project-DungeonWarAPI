@@ -77,6 +77,7 @@ public enum ErrorCode : int
 	LoadStageDataFailException = 243,
 	LoadStageDataFailGet = 244,
 	WrongStageLevel = 250,
+	StageDataDeleteFail=251,
 
 
 	LoadMailListFailException = 260,
@@ -85,6 +86,9 @@ public enum ErrorCode : int
 
 	StoreUserMailPageFailException = 270,
 	StoreUserMailPageFailSet = 271,
+
+	DeleteStageDataFailException=272,
+	DeleteStageDataFailDelete=272,
 
 	VerifyMailOwnerIdFailException = 280,
 	VerifyMailOwnerIdFailWrongId = 281,

@@ -16,8 +16,10 @@ public interface IMemoryDatabase
     Task<ErrorCode> UnLockUserRequestAsync(String key);
     Task<ErrorCode> InitializeStageDataAsync( String key, List<StageItem> items, List<StageNpc> npcs, Int32 stageLevel);
 
-    Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode);
+    Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount);
     Task<ErrorCode> IncrementNpcKillCountAsync(string key, int npcCode);
     Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key);
-    Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber);
+    Task<ErrorCode> DeleteStageDataAsync(String key);
+
+	Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber);
 }
