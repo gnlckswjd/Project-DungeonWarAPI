@@ -3,7 +3,6 @@ using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Services.Interfaces;
 using DungeonWarAPI.Services;
-using DungeonWarAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -34,7 +33,7 @@ public class MonsterKillController : Controller
 		var response = new MonsterKillResponse();
 		var gameUserId = authUserData.GameUserId;
 
-		var key = MemoryDatabaseKeyUtility.MakeStageKey(request.Email);
+		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
 		var errorCode = await _memoryDatabase.IncrementNpcKillCountAsync(key, request.NpcCode);
 		if (errorCode != ErrorCode.None)

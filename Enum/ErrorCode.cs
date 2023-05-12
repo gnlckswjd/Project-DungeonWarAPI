@@ -56,8 +56,8 @@ public enum ErrorCode : int
     LoginFailNotUser = 221,
     LoginFailWrongPassword = 222,
     LoginFailUserNotExist = 223,
-    LoginFailRegisterToRedis = 224,
-    LoginFailRegisterToRedisException = 225,
+    RegisterUserFailSet = 224,
+    RegisterUserFailException = 225,
 
     LoadUserDataFailException = 226,
     LoadUserDataFailSelect = 227,
@@ -76,6 +76,9 @@ public enum ErrorCode : int
 	IncrementNpcKillCountFailException = 240,
 	IncrementNpcKillCountFailIncrease = 241,
 	IncrementNpcKillCountFailNoExist = 242,
+    LoadStageDataFailException=243,
+    LoadStageDataFailGet=244,
+    
 
 
 

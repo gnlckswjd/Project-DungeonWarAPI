@@ -4,20 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
-using DungeonWarAPI.Utilities;
 
 namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class StartStageController : ControllerBase
+public class StageStartController : ControllerBase
 {
 	private readonly IDungeonStageService _dungeonStageService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly IMemoryDatabase _memoryDatabase;
-	private readonly ILogger<StartStageController> _logger;
+	private readonly ILogger<StageStartController> _logger;
 
-	public StartStageController(ILogger<StartStageController> logger, IMemoryDatabase memoryDatabase,
+	public StageStartController(ILogger<StageStartController> logger, IMemoryDatabase memoryDatabase,
 		MasterDataManager masterDataManager,
 		IDungeonStageService dungeonStageService)
 	{
@@ -28,10 +27,10 @@ public class StartStageController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<StartStageResponse> Post(StartStageRequest request)
+	public async Task<StageStartResponse> Post(StageStartRequest request)
 	{
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
-		var response = new StartStageResponse();
+		var response = new StageStartResponse();
 		var gameUserId = authUserData.GameUserId;
 
 		var errorCode = await _dungeonStageService.CheckStageAccessibility(gameUserId, request.SelectedStageLevel);
@@ -44,7 +43,7 @@ public class StartStageController : ControllerBase
 		var itemList = _masterDataManager.GetStageItems(request.SelectedStageLevel);
 		var npcList = _masterDataManager.GetStageNpcs(request.SelectedStageLevel);
 
-		errorCode = await _memoryDatabase.InitializeStageDataAsync(MemoryDatabaseKeyUtility.MakeStageKey(request.Email),
+		errorCode = await _memoryDatabase.InitializeStageDataAsync(MemoryDatabaseKeyGenerator.MakeStageKey(request.Email),
 			itemList, npcList, request.SelectedStageLevel);
 		if (errorCode != ErrorCode.None)
 		{

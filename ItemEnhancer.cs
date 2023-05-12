@@ -1,10 +1,10 @@
 ﻿using DungeonWarAPI.Enum;
 
-namespace DungeonWarAPI.Utilities;
+namespace DungeonWarAPI;
 
-public static class ItemEnhancementUtility
+public static class ItemEnhancer
 {
-    public static ErrorCode CheckEnhancementPossibility(int maxCount, int enhancementCount,int attributeCode)
+    public static ErrorCode CheckEnhancementPossibility(int maxCount, int enhancementCount, int attributeCode)
     {
         if (maxCount == -1)
         {
@@ -21,30 +21,30 @@ public static class ItemEnhancementUtility
             return ErrorCode.CanNotEnhancement;
         }
 
-        if (attributeCode != 1 && attributeCode != 2 )
+        if (attributeCode != 1 && attributeCode != 2)
         {
-	        return ErrorCode.CanNotEnhancement;
+            return ErrorCode.CanNotEnhancement;
 
         }
 
         return ErrorCode.None;
     }
 
-    public static bool EnhanceItem()
+    public static bool TryEnhancement()
     {
         Random random = new Random();
         double randomNumber = random.NextDouble();
         return randomNumber < 0.3;
     }
 
-    public static Int32 GetAttackPower(int baseAttack)
+    public static int GetAttackPower(int baseAttack)
     {
         double interestRate = 1.1;
         return (int)Math.Round(baseAttack * interestRate);
-	}
+    }
     public static int GetDefensePower(int baseDefense)
     {
-	    double interestRate = 1.1;
-	    return (int)Math.Round(baseDefense * interestRate);
-	}
+        double interestRate = 1.1;
+        return (int)Math.Round(baseDefense * interestRate);
+    }
 }

@@ -3,7 +3,6 @@ using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Services;
 using DungeonWarAPI.Services.Interfaces;
-using DungeonWarAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 
@@ -47,7 +46,7 @@ public class EnhancementController : ControllerBase
 		var (maxCount, cost) = _masterDataManager.GetEnhanceMaxCountWithCost(itemCode);
 		var attributeCode = _masterDataManager.GetAttributeCode(itemCode);
 
-		errorCode = ItemEnhancementUtility.CheckEnhancementPossibility(maxCount, enhancementCount, attributeCode);
+		errorCode = ItemEnhancer.CheckEnhancementPossibility(maxCount, enhancementCount, attributeCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -63,7 +62,7 @@ public class EnhancementController : ControllerBase
 
 		
 
-		Boolean isSuccess = ItemEnhancementUtility.EnhanceItem();
+		Boolean isSuccess = ItemEnhancer.TryEnhancement();
 
 		errorCode = await _enhancementService.UpdateGoldAsync(gameUserId, cost);
 		if (errorCode != ErrorCode.None)
@@ -74,8 +73,8 @@ public class EnhancementController : ControllerBase
 
 		if (isSuccess)
 		{
-			Int32 itemAttack = ItemEnhancementUtility.GetAttackPower(item.Attack);
-			Int32 itemDefense = ItemEnhancementUtility.GetDefensePower(item.Defense);
+			Int32 itemAttack = ItemEnhancer.GetAttackPower(item.Attack);
+			Int32 itemDefense = ItemEnhancer.GetDefensePower(item.Defense);
 
 			errorCode = await _enhancementService.UpdateEnhancementResultAsync(gameUserId, itemId, enhancementCount,
 				attributeCode, itemAttack, itemDefense);
