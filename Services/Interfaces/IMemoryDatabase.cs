@@ -18,5 +18,6 @@ public interface IMemoryDatabase
 
     Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode);
     Task<ErrorCode> IncrementNpcKillCountAsync(string key, int npcCode);
+    Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key);
     Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber);
 }

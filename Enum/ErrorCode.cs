@@ -78,7 +78,7 @@ public enum ErrorCode : int
 	IncrementNpcKillCountFailNoExist = 242,
     LoadStageDataFailException=243,
     LoadStageDataFailGet=244,
-    
+    WrongStageLevel=250,
 
 
 
@@ -179,7 +179,8 @@ public enum ErrorCode : int
     LoadUserStageFailException= 500,
     LoadUserStageFailSelect= 501,
 	CheckStageAccessibilityFailExceedStageLevel=502,
-
+	ReceiveRewardItemFailException = 505,
+	ReceiveRewardItemFailInsert = 506,
 
 
 	InvalidRequestHttpBody = 1000,

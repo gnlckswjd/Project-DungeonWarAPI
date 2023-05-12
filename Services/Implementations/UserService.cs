@@ -182,13 +182,12 @@ public class UserService : IUserService
 			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
 
 			var columns = new[] { "GameUserId", "ItemCode", "EnhancementCount", "ItemCount", "Attack", "Defense" };
+			var data = new List<object[]>();
 
 			var items = new List<OwnedItem>();
 			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.SmallSword));
 			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.OrdinaryHat));
 
-
-			var data = new List<object[]>();
 			foreach (var item in items)
 			{
 				data.Add(new object[]

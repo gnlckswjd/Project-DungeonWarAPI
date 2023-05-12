@@ -30,7 +30,7 @@ public class StageListController : ControllerBase
 		var response = new StageListResponse();
 		var gameUserId = authUserData.GameUserId;
 
-		var (errorCode, maxClearedStage )= await _dungeonStageService.LoadStageList(gameUserId);
+		var (errorCode, maxClearedStage )= await _dungeonStageService.LoadStageListAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

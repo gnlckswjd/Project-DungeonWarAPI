@@ -33,7 +33,7 @@ public class StageStartController : ControllerBase
 		var response = new StageStartResponse();
 		var gameUserId = authUserData.GameUserId;
 
-		var errorCode = await _dungeonStageService.CheckStageAccessibility(gameUserId, request.SelectedStageLevel);
+		var errorCode = await _dungeonStageService.CheckStageAccessibilityAsync(gameUserId, request.SelectedStageLevel);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -42,6 +42,11 @@ public class StageStartController : ControllerBase
 
 		var itemList = _masterDataManager.GetStageItems(request.SelectedStageLevel);
 		var npcList = _masterDataManager.GetStageNpcs(request.SelectedStageLevel);
+		if (!itemList.Any() || !npcList.Any())
+		{
+			response.Error = ErrorCode.WrongStageLevel;
+			return response;
+		}
 
 		errorCode = await _memoryDatabase.InitializeStageDataAsync(MemoryDatabaseKeyGenerator.MakeStageKey(request.Email),
 			itemList, npcList, request.SelectedStageLevel);

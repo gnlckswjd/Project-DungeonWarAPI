@@ -7,7 +7,6 @@ using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
-using DungeonWarAPI.Utilities;
 using Microsoft.Extensions.Options;
 using ZLogger;
 
@@ -29,7 +28,7 @@ public class RedisDatabase : IMemoryDatabase
 	{
 		_logger.ZLogDebugWithPayload(new { Email = email }, "RegisterUser Start");
 
-		var key = MemoryDatabaseKeyUtility.MakeUIDKey(email);
+		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(email);
 		var authInfo = new AuthUserData
 		{
 			Email = email,
@@ -43,17 +42,17 @@ public class RedisDatabase : IMemoryDatabase
 			var redis = new RedisString<AuthUserData>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(authInfo) == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoginFailRegisterToRedis, Email = email },
-					"RegisterUser Fail");
-				return ErrorCode.LoginFailRegisterToRedis;
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RegisterUserFailSet, Email = email },
+					"RegisterUserFailSet");
+				return ErrorCode.RegisterUserFailSet;
 			}
 		}
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.LoginFailRegisterToRedisException, Email = email },
-				"RegisterUser Exception");
-			return ErrorCode.LoginFailRegisterToRedisException;
+				new { ErrorCode = ErrorCode.RegisterUserFailException, Email = email },
+				"RegisterUserFailException");
+			return ErrorCode.RegisterUserFailException;
 		}
 
 
@@ -90,7 +89,7 @@ public class RedisDatabase : IMemoryDatabase
 
 	public async Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(String email)
 	{
-		var key = MemoryDatabaseKeyUtility.MakeUIDKey(email);
+		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(email);
 		_logger.ZLogDebugWithPayload(new { Email = email, Key = key }, "LoadAuthUserData Start");
 		try
 		{
@@ -183,16 +182,16 @@ public class RedisDatabase : IMemoryDatabase
 				}
 			}
 
-			var itemKeys = items.Select(item => MemoryDatabaseKeyUtility.MakeStageItemKey(item.ItemCode));
+			var itemKeys = items.Select(item => MemoryDatabaseKeyGenerator.MakeStageItemKey(item.ItemCode));
 
-			var npcKeys = npcs.Select(npc => MemoryDatabaseKeyUtility.MakeStageNpcKey(npc.NpcCode));
+			var npcKeys = npcs.Select(npc => MemoryDatabaseKeyGenerator.MakeStageNpcKey(npc.NpcCode));
 
 			var list = itemKeys.Concat(npcKeys)
 				.Select(key => new KeyValuePair<String, Int32>(key, 0))
 				.ToList();
 
 			list.Add(
-				new KeyValuePair<String, Int32>(MemoryDatabaseKeyUtility.MakeStageLevelKey(stageLevel), stageLevel));
+				new KeyValuePair<String, Int32>(MemoryDatabaseKeyGenerator.MakeStageLevelKey(), stageLevel));
 			await redis.SetAsync(list);
 
 			return ErrorCode.None;
@@ -207,7 +206,7 @@ public class RedisDatabase : IMemoryDatabase
 
 	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode)
 	{
-		var field = MemoryDatabaseKeyUtility.MakeStageItemKey(itemCode);
+		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -244,7 +243,7 @@ public class RedisDatabase : IMemoryDatabase
 
 	public async Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode)
 	{
-		var field = MemoryDatabaseKeyUtility.MakeStageNpcKey(npcCode);
+		var field = MemoryDatabaseKeyGenerator.MakeStageNpcKey(npcCode);
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -280,12 +279,40 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
+	public async Task<(ErrorCode,Dictionary<String,Int32>)> LoadStageDataAsync(String key)
+	{
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+			var dictionary = await redis.GetAllAsync();
+
+			if (!dictionary.Any())
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadStageDataFailGet, Key = key },
+					"LoadStageDataFailGet");
+				return (ErrorCode.LoadStageDataFailGet, new Dictionary<string, int>());
+			}
+
+			return (ErrorCode.None, dictionary);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.LoadStageDataFailException, Key = key },
+				"LoadStageDataFailException");
+			return (ErrorCode.LoadStageDataFailException, new Dictionary<string, int>());
+		}
+
+	}
+
 
 	public async Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { authUserData.GameUserId, PageNumber = pageNumber },
 			"StoreUserMailPage Start");
-		var key = MemoryDatabaseKeyUtility.MakeMailPageKey(authUserData.Email);
+		var key = MemoryDatabaseKeyGenerator.MakeMailPageKey(authUserData.Email);
 		try
 		{
 			var redis = new RedisString<Int32>(_redisConnection, key, TimeSpan.FromHours(2));

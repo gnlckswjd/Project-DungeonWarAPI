@@ -74,6 +74,31 @@ public class MasterDataManager
 	    return StageNpcList.Where(npc => npc.StageLevel == stageLevel).ToList();
 	}
 
+    public (Boolean, Int32) CheckClearAndGetExp(Int32 stageLevel, List<(Int32, Int32)> killedNpcCodeAndCount)
+    {
+	    var stageNpcs = GetStageNpcs(stageLevel);
+	    Int32 totalEarnedExp = 0;
+
+	    if (!stageNpcs.Any())
+	    {
+		    return (false,0);
+	    }
+
+	    foreach (var stageNpc in stageNpcs)
+	    {
+		    var killedNpc = killedNpcCodeAndCount.FirstOrDefault(npcCodeAndCount => npcCodeAndCount.Item1 == stageNpc.NpcCode);
+
+		    if (killedNpc.Item2 < stageNpc.NpcCount)
+		    {
+			    return (false, 0);
+		    }
+
+			totalEarnedExp += stageNpc.Exp * stageNpc.NpcCount;
+	    }
+
+	    return (true, totalEarnedExp);
+    }
+
 
 	private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
     {
