@@ -199,7 +199,7 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
+			_logger.ZLogErrorWithPayload(e,new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
 				"InitializeStageDataFailException");
 			return ErrorCode.InitializeStageDataFailException;
 		}
@@ -235,7 +235,7 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new { ErrorCode = ErrorCode.IncrementItemFailException, Key = key, Field = field },
 				"IncrementItemFailException");
 			return ErrorCode.IncrementItemFailException;
@@ -274,7 +274,7 @@ public class RedisDatabase : IMemoryDatabase
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.IncrementNpcKillCountFailException, Key = key, Field = field },
+				new { e, ErrorCode = ErrorCode.IncrementNpcKillCountFailException, Key = key, Field = field },
 				"IncrementNpcKillCountFailException");
 			return ErrorCode.IncrementNpcKillCountFailException;
 		}

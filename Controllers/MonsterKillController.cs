@@ -10,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class ItemAcquisitionController : ControllerBase
+public class MonsterKillController : Controller
 {
 	private readonly IDungeonStageService _dungeonStageService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly IMemoryDatabase _memoryDatabase;
-	private readonly ILogger<ItemAcquisitionController> _logger;
+	private readonly ILogger<MonsterKillController> _logger;
 
-	public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase,
+	public MonsterKillController(ILogger<MonsterKillController> logger, IMemoryDatabase memoryDatabase,
 		MasterDataManager masterDataManager,
 		IDungeonStageService dungeonStageService)
 	{
@@ -28,24 +28,22 @@ public class ItemAcquisitionController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
+	public async Task<MonsterKillResponse> Post(MonsterKillRequest request)
 	{
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
-		var response = new ItemAcquisitionResponse();
+		var response = new MonsterKillResponse();
 		var gameUserId = authUserData.GameUserId;
 
 		var key = MemoryDatabaseKeyUtility.MakeStageKey(request.Email);
 
-		var errorCode= await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode);
+		var errorCode = await _memoryDatabase.IncrementNpcKillCountAsync(key, request.NpcCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		
 		response.Error = ErrorCode.None;
 		return response;
 	}
-
 }
