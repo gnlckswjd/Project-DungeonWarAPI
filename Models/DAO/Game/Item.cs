@@ -2,15 +2,15 @@
 
 public class Item
 {
-    public int ItemCode { get; set; }
-    public string ItemName { get; set; }
-    public int AttributeCode { get; set; }
-    public int Sell { get; set; }
-    public int Buy { get; set; }
-    public short UseLevel { get; set; }
-    public short Attack { get; set; }
-    public short Defence { get; set; }
-    public short Magic { get; set; }
-    public short EnhanceMaxCount { get; set; }
-    public bool Stackability { get; set; }
+    public Int32 ItemCode { get; set; }
+    public String ItemName { get; set; }
+    public Int32 AttributeCode { get; set; }
+    public Int32 Sell { get; set; }
+    public Int32 Buy { get; set; }
+    public Int16 UseLevel { get; set; }
+    public Int16 Attack { get; set; }
+    public Int16 Defence { get; set; }
+    public Int16 Magic { get; set; }
+    public Int16 EnhanceMaxCount { get; set; }
+    public Boolean Stackability { get; set; }
 }

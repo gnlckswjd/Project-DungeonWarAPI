@@ -2,6 +2,6 @@
 
 public class StageItem
 {
-    public short StageLevel { get; set; }
-    public int ItemCode { get; set; }
+    public Int16 StageLevel { get; set; }
+    public Int32 ItemCode { get; set; }
 }

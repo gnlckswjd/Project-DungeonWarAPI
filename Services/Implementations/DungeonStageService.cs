@@ -28,7 +28,7 @@ public class DungeonStageService : IDungeonStageService
 		_configurationOptions = configurationOptions;
 		_logger = logger;
 		_masterData = masterData;
-		_ownedItemFactory=ownedItemFactory;
+		_ownedItemFactory = ownedItemFactory;
 
 		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
 		_databaseConnection.Open();
@@ -94,7 +94,7 @@ public class DungeonStageService : IDungeonStageService
 		return ErrorCode.None;
 	}
 
-	public async Task<ErrorCode> ReceiveRewardItemAsync(Int32 gameUserId, List<(Int32,Int32)> itemCodeList)
+	public async Task<ErrorCode> ReceiveRewardItemAsync(Int32 gameUserId, List<(Int32, Int32)> itemCodeList)
 	{
 		List<Func<Task>> rollbackActions = new List<Func<Task>>();
 		try
@@ -138,6 +138,85 @@ public class DungeonStageService : IDungeonStageService
 				new { ErrorCode = ErrorCode.ReceiveRewardItemFailException, GameUserId = gameUserId }
 				, "ReceiveRewardItemFailException");
 			return ErrorCode.ReceiveRewardItemFailException;
+		}
+	}
+
+	public async Task<(ErrorCode, Int32 existingLevel, Int32 existingExp)> UpdateExpAsync(Int32 gameUserId, Int32 exp)
+	{
+		_logger.ZLogDebugWithPayload(new { }, "");
+
+		try
+		{
+			var userData = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.FirstOrDefaultAsync<UserData>();
+
+			if (userData == null)
+			{
+				_logger.ZLogErrorWithPayload(new { ErroCode = ErrorCode.UpdateExpFailSelect, GameUserId = gameUserId },
+					"UpdateExpFailSelect");
+
+				return (ErrorCode.UpdateExpFailSelect, 0, 0);
+			}
+
+			Int32 levelUpCount = (userData.Exp + exp) / 1000;
+			Int32 remainingExp = (userData.Exp + exp) % 1000;
+
+			var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.UpdateAsync(new { UserLevel = userData.UserLevel + levelUpCount, Exp = remainingExp });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(new { ErroCode = ErrorCode.UpdateExpFailUpdate, GameUserId = gameUserId },
+					"UpdateExpFailUpdate");
+
+				return (ErrorCode.UpdateExpFailUpdate, 0, 0);
+			}
+
+			return (ErrorCode.None, userData.UserLevel, userData.Exp);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErroCode = ErrorCode.UpdateExpFailException, GameUserId = gameUserId },
+				"UpdateExpFailException");
+
+			return (ErrorCode.UpdateExpFailException, 0, 0);
+		}
+	}
+
+	public async Task<ErrorCode> RollbackUpdateExpAsync(Int32 gameUserId, Int32 level, Int32 exp)
+	{
+		_logger.ZLogDebugWithPayload(new { }, "");
+
+		try
+		{
+			var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+				.UpdateAsync(new { UserLevel = level, Exp = exp });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						Errorcode = ErrorCode.RollbackUpdateFailUpdate, GameUserId = gameUserId, Level = level,
+						Exp = exp
+					}, "RollbackUpdateFailUpdate");
+				return ErrorCode.RollbackUpdateFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				new
+				{
+					Errorcode = ErrorCode.RollbackUpdateFailException,
+					GameUserId = gameUserId,
+					Level = level,
+					Exp = exp
+				}, "RollbackUpdateFailException");
+			return ErrorCode.RollbackUpdateFailException;
 		}
 	}
 

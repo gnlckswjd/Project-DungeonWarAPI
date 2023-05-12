@@ -2,6 +2,6 @@
 
 public class Versions
 {
-    public string AppVersion;
-    public string MasterDataVersion;
+    public String AppVersion;
+    public String MasterDataVersion;
 }

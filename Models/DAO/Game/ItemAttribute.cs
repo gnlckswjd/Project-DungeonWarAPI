@@ -2,6 +2,6 @@
 
 public class ItemAttribute
 {
-    public int AttributeCode;
-    public string AttributeName;
+    public Int32 AttributeCode;
+    public String AttributeName;
 }

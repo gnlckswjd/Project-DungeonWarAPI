@@ -2,8 +2,8 @@
 
 public class StageNpc
 {
-    public short StageLevel;
-    public int NpcCode;
-    public short NpcCount;
-    public int Exp;
+    public Int16 StageLevel;
+    public Int32 NpcCode;
+    public Int16 NpcCount;
+    public Int32 Exp;
 }

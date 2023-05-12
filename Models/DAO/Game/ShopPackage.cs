@@ -2,6 +2,6 @@
 
 public class ShopPackage
 {
-    public int PackageId;
-    public int Price;
+    public Int32 PackageId;
+    public Int32 Price;
 }

@@ -2,7 +2,7 @@
 
 public class AttendanceReward
 {
-    public short AttendanceCount { get; set; }
-    public int ItemCode { get; set; }
-    public int ItemCount { get; set; }
+    public Int16 AttendanceCount { get; set; }
+    public Int32 ItemCode { get; set; }
+    public Int32 ItemCount { get; set; }
 }

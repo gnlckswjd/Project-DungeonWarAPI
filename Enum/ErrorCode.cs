@@ -181,6 +181,11 @@ public enum ErrorCode : int
 	CheckStageAccessibilityFailExceedStageLevel=502,
 	ReceiveRewardItemFailException = 505,
 	ReceiveRewardItemFailInsert = 506,
+    UpdateExpFailException=510,
+    UpdateExpFailSelect=511,
+    UpdateExpFailUpdate=512,
+    RollbackUpdateFailException=513,
+    RollbackUpdateFailUpdate=514,
 
 
 	InvalidRequestHttpBody = 1000,

@@ -2,13 +2,13 @@
 
 public class Mail
 {
-    public const int MailCountInPage = 20;
-    public long MailId { get; set; }
+    public const Int32 MailCountInPage = 20;
+    public Int64 MailId { get; set; }
     public Int32 GameUserId { get; set; }
-    public string Title { get; set; }
-    public string Contents { get; set; }
-    public bool IsRead { get; set; }
-    public bool IsReceived { get; set; }
+    public String Title { get; set; }
+    public String Contents { get; set; }
+    public Boolean IsRead { get; set; }
+    public Boolean IsReceived { get; set; }
     public DateTime ExpirationDate { get; set; }
 
 }
