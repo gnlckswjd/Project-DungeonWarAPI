@@ -76,8 +76,15 @@ public enum ErrorCode : int
 	IncrementNpcKillCountFailNoExist = 242,
 	LoadStageDataFailException = 243,
 	LoadStageDataFailGet = 244,
+	LoadStageLevelFailException=245,
+	LoadStageLevelFailGet=246,
+
+	LoadNpcKillCountFailException = 247,
+	LoadNpcKillCountFailGet= 248,
+
 	WrongStageLevel = 250,
-	StageDataDeleteFail=251,
+	WrongNpcCode = 251,
+	StageDataDeleteFail=252,
 
 
 	LoadMailListFailException = 260,

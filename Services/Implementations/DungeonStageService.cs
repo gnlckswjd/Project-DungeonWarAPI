@@ -65,7 +65,7 @@ public class DungeonStageService : IDungeonStageService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
 				"LoadUserStageFailException");
 			return (ErrorCode.LoadUserStageFailException, 0);
 		}

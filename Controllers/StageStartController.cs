@@ -40,8 +40,8 @@ public class StageStartController : ControllerBase
 			return response;
 		}
 
-		var itemList = _masterDataManager.GetStageItems(request.SelectedStageLevel);
-		var npcList = _masterDataManager.GetStageNpcs(request.SelectedStageLevel);
+		var itemList = _masterDataManager.GetStageItemList(request.SelectedStageLevel);
+		var npcList = _masterDataManager.GetStageNpcList(request.SelectedStageLevel);
 		if (!itemList.Any() || !npcList.Any())
 		{
 			response.Error = ErrorCode.WrongStageLevel;

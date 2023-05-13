@@ -169,6 +169,7 @@ public class RedisDatabase : IMemoryDatabase
 	public async Task<ErrorCode> InitializeStageDataAsync(String key, List<StageItem> items, List<StageNpc> npcs,
 		Int32 stageLevel)
 	{
+		_logger.ZLogDebugWithPayload(new { Key = key }, "InitializeStageData Start");
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -200,14 +201,46 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
 				"InitializeStageDataFailException");
 			return ErrorCode.InitializeStageDataFailException;
 		}
 	}
 
+	public async Task<(ErrorCode, Int32 stageLevel)> LoadStageLevelAsync(String key)
+	{
+		_logger.ZLogDebugWithPayload(new { Key = key }, "LoadStageLevel Start");
+		var field = MemoryDatabaseKeyGenerator.MakeStageLevelKey();
+
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+			var stageLevel = await redis.GetAsync(field);
+			if (!stageLevel.HasValue)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadStageLevelFailGet, Key = key, Field = field },
+					"LoadStageLevelFailGet");
+				return (ErrorCode.LoadStageLevelFailGet, 0);
+			}
+
+			return (ErrorCode.None, stageLevel.Value);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.LoadStageLevelFailException, Key = key, Field = field },
+				"LoadStageLevelFailException");
+			return (ErrorCode.LoadStageLevelFailException, 0);
+		}
+	}
+
 	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount)
 	{
+		_logger.ZLogDebugWithPayload(new { Key = key, ItemCode = itemCode, ItemCount = ItemCount },
+			"IncrementItemCount Start");
+
 		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 		try
 		{
@@ -248,21 +281,43 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode)
+	public async Task<(ErrorCode, Int32 npcKillCount)> LoadNpcKillCountAsync(String key, Int32 npcCode)
 	{
+		_logger.ZLogDebugWithPayload(new { Key = key, NpcCode = npcCode }, "LoadNpcKillCount Start");
 		var field = MemoryDatabaseKeyGenerator.MakeStageNpcKey(npcCode);
+
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
 
+			var value = await redis.GetAsync(field);
 
-			if (await redis.ExistsAsync(field) == false)
+			if (!value.HasValue)
 			{
 				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.IncrementNpcKillCountFailNoExist, Key = key, Field = field },
-					"IncrementNpcKillCountFailNoExist");
-				return ErrorCode.IncrementNpcKillCountFailNoExist;
+					new { Errorcode = ErrorCode.LoadNpcKillCountFailGet, Key = key, Field = field },
+					"LoadNpcKillCountFailGet");
+				return (ErrorCode.LoadNpcKillCountFailGet, 0);
 			}
+
+			return (ErrorCode.None,value.Value);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { Errorcode = ErrorCode.LoadNpcKillCountFailException, Key = key, Field = field },
+				"LoadNpcKillCountFailException");
+			return (ErrorCode.LoadNpcKillCountFailException, 0);
+		}
+	}
+
+	public async Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode)
+	{
+		_logger.ZLogDebugWithPayload(new { Key = key, NpcCode = npcCode }, "IncrementNpcKillCount Start");
+		var field = MemoryDatabaseKeyGenerator.MakeStageNpcKey(npcCode);
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
 
 			var value = await redis.IncrementAsync(field, 1);
 
@@ -286,7 +341,7 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<(ErrorCode,Dictionary<String,Int32>)> LoadStageDataAsync(String key)
+	public async Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key)
 	{
 		try
 		{
@@ -311,7 +366,6 @@ public class RedisDatabase : IMemoryDatabase
 				"LoadStageDataFailException");
 			return (ErrorCode.LoadStageDataFailException, new Dictionary<string, int>());
 		}
-
 	}
 
 
@@ -352,19 +406,21 @@ public class RedisDatabase : IMemoryDatabase
 			var errorCode = await DeleteStageDataAsync(redis, key);
 			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailDelete, Key = key }, "DeleteStageDataFailDelete");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailDelete, Key = key },
+					"DeleteStageDataFailDelete");
 				return ErrorCode.DeleteStageDataFailDelete;
 			}
+
 			return errorCode;
 		}
 		catch (Exception e)
 		{
-			
-			_logger.ZLogErrorWithPayload(new{ ErrorCode= ErrorCode.DeleteStageDataFailException, Key = key}, "DeleteStageDataFailException");
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailException, Key = key },
+				"DeleteStageDataFailException");
 			return ErrorCode.DeleteStageDataFailException;
 		}
-		
 	}
+
 	private async Task<ErrorCode> DeleteStageDataAsync(RedisDictionary<String, Int32> redis, String key)
 	{
 		if (await redis.DeleteAsync() == false)

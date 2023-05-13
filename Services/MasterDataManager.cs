@@ -58,25 +58,30 @@ public class MasterDataManager
 	    return ItemList[ItemCode - 1];
     }
 
-    public Int32 GetAttributeCode(Int32 ItemCode)
+    public Int32 GetAttributeCode(Int32 itemCode)
     {
-        return ItemList[ItemCode-1].AttributeCode;
+        return ItemList[itemCode-1].AttributeCode;
 
 	}
 
-    public List<StageItem> GetStageItems(Int32 stageLevel)
+    public StageNpc? GetNpcByStageAndCode(Int32 stageLevel, Int32 npcCode)
+    {
+	    return StageNpcList.FirstOrDefault(npc => npc.StageLevel == stageLevel && npc.NpcCode == npcCode);
+    }
+
+    public List<StageItem> GetStageItemList(Int32 stageLevel)
     {
 		return StageItemList.Where(item => item.StageLevel == stageLevel).ToList();
 	}
 
-    public List<StageNpc> GetStageNpcs(Int32 stageLevel)
+    public List<StageNpc> GetStageNpcList(Int32 stageLevel)
     {
 	    return StageNpcList.Where(npc => npc.StageLevel == stageLevel).ToList();
 	}
 
     public (Boolean, Int32) CheckClearAndGetExp(Int32 stageLevel, List<(Int32, Int32)> killedNpcCodeAndCount)
     {
-	    var stageNpcs = GetStageNpcs(stageLevel);
+	    var stageNpcs = GetStageNpcList(stageLevel);
 	    Int32 totalEarnedExp = 0;
 
 	    if (!stageNpcs.Any())
