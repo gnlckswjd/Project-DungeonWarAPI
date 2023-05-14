@@ -85,6 +85,7 @@ public enum ErrorCode : int
 	WrongStageLevel = 250,
 	WrongNpcCode = 251,
 	StageDataDeleteFail=252,
+	ExceedKillCount=253,
 
 
 	LoadMailListFailException = 260,

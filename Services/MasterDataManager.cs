@@ -69,7 +69,12 @@ public class MasterDataManager
 	    return StageNpcList.FirstOrDefault(npc => npc.StageLevel == stageLevel && npc.NpcCode == npcCode);
     }
 
-    public List<StageItem> GetStageItemList(Int32 stageLevel)
+    public StageItem? GetItemByStageAndCode(Int32 stageLevel, Int32 npcCode)
+    {
+	    return StageItemList.FirstOrDefault(npc => npc.StageLevel == stageLevel && npc.ItemCode == npcCode);
+    }
+
+	public List<StageItem> GetStageItemList(Int32 stageLevel)
     {
 		return StageItemList.Where(item => item.StageLevel == stageLevel).ToList();
 	}

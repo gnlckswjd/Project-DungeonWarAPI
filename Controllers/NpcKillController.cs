@@ -35,17 +35,12 @@ public class NpcKillController : Controller
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		// HMGET 에서 존재하지 않는 필드로 Get 요청을 하면 Nil
-		
 		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
-
-		//Todo : stageLevel을 레디스에서 읽어온 뒤 존재하는 코드인지 확인하고 개수가 넘는지 확인하는 로직 추가
-		
 
 		var stageNpc =  _masterDataManager.GetNpcByStageAndCode(stageLevel, request.NpcCode);
 		if (stageNpc == null)
@@ -54,15 +49,18 @@ public class NpcKillController : Controller
 			return response;
 		}
 
-		//Todo : redis에서 개수 읽어오기
 		(errorCode, var npcKillCount) = await _memoryDatabase.LoadNpcKillCountAsync(key, request.NpcCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
-		//ToDo : Killcount 비교하고 리턴
 
+		if (npcKillCount >= stageNpc.NpcCount)
+		{
+			response.Error = ErrorCode.ExceedKillCount;
+			return response;
+		}
 
 		errorCode = await _memoryDatabase.IncrementNpcKillCountAsync(key, request.NpcCode);
 		if (errorCode != ErrorCode.None)
