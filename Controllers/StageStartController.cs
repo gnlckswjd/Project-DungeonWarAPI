@@ -1,5 +1,5 @@
-﻿using DungeonWarAPI.Services.Interfaces;
-using DungeonWarAPI.Services;
+﻿using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;

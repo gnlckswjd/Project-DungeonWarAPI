@@ -1,15 +1,16 @@
-﻿using DungeonWarAPI.Enum;
+﻿using System.Data;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.ModelConfiguration;
+using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
-using System.Data;
-using DungeonWarAPI.Models.Database.Game;
-using DungeonWarAPI.Services.Interfaces;
 using ZLogger;
 
-namespace DungeonWarAPI.Services.Implementations;
+namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class DungeonStageService : IDungeonStageService
 {

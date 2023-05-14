@@ -1,15 +1,15 @@
 ﻿using System.Data;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using ZLogger;
 
-namespace DungeonWarAPI.Services.Implementations;
+namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class AccountService : IAccountService
 {

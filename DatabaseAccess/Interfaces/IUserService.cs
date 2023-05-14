@@ -1,7 +1,7 @@
 ﻿using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.Database.Game;
 
-namespace DungeonWarAPI.Services.Interfaces;
+namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 
 public interface IUserService
 {

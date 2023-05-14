@@ -1,8 +1,9 @@
-﻿using DungeonWarAPI.Enum;
+﻿using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
-using DungeonWarAPI.Services;
-using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 

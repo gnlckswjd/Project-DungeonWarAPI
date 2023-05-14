@@ -1,9 +1,8 @@
 ﻿using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 
-namespace DungeonWarAPI.Services.Interfaces;
+namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 
 public interface IMemoryDatabase
 {

@@ -1,17 +1,14 @@
 ﻿using CloudStructures;
 using CloudStructures.Structures;
-using Dapper;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
-using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
-using System.Reflection.Emit;
 using ZLogger;
 
-namespace DungeonWarAPI.Services.Implementations;
+namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class RedisDatabase : IMemoryDatabase
 {

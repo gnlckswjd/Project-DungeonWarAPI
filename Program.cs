@@ -1,10 +1,16 @@
 using System.Text.Json;
-using DungeonWarAPI;
+using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Implementations;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Middleware;
 using DungeonWarAPI.ModelConfiguration;
-using DungeonWarAPI.Services;
-using DungeonWarAPI.Services.Implementations;
-using DungeonWarAPI.Services.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MySqlConnector;
+using SqlKata.Compilers;
+using SqlKata.Execution;
+using StackExchange.Redis;
 using ZLogger;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +45,14 @@ void DependencyInjection()
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 	builder.Services.AddSingleton<MasterDataManager>();
 	builder.Services.AddSingleton<OwnedItemFactory>();
+	builder.Services.AddScoped<QueryFactory>(provider =>
+	{
+		var config = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
+		var connection = new MySqlConnection(config.Value.GameDatabase);
+		connection.Open();
+		var queryFactory = new QueryFactory(connection, new MySqlCompiler());
+		return queryFactory;
+	});
 }
 
 void SetLogger()

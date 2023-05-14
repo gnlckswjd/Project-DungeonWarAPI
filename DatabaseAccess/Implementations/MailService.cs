@@ -1,44 +1,32 @@
-﻿using DungeonWarAPI.ModelConfiguration;
-using DungeonWarAPI.Services.Interfaces;
+﻿using System.Data;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
+using DungeonWarAPI.ModelConfiguration;
+using DungeonWarAPI.Models.Database.Game;
+using DungeonWarAPI.Models.DTO.Payloads;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
-using System.Data;
-using DungeonWarAPI.Models.Database.Game;
 using ZLogger;
-using DungeonWarAPI.Models.DTO.Payloads;
-using DungeonWarAPI.Enum;
 
-namespace DungeonWarAPI.Services.Implementations;
+namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class MailService : IMailService
 {
-	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<MailService> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
 
-	private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public MailService(ILogger<MailService> logger, IOptions<DatabaseConfiguration> configurationOptions,
+	public MailService(ILogger<MailService> logger, QueryFactory queryFactory,
 		OwnedItemFactory ownedItemFactory)
 	{
-		_configurationOptions = configurationOptions;
 		_logger = logger;
 		_ownedItemFactory = ownedItemFactory;
 
-		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
-		_databaseConnection.Open();
-
-		var compiler = new MySqlCompiler();
-		_queryFactory = new QueryFactory(_databaseConnection, compiler);
-	}
-
-	public void Dispose()
-	{
-		_databaseConnection.Dispose();
-		//_queryFactory.Dispose();
+		_queryFactory = queryFactory;
 	}
 
 	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
@@ -149,14 +137,14 @@ public class MailService : IMailService
 				.Where("MailId", "=", mailId)
 				.FirstOrDefaultAsync<Mail>();
 
-			 var errorCode=ValidateUserAndFlagIsReceive(gameUserId, mail.GameUserId, mailId, mail.IsReceived);
+			var errorCode = ValidateUserAndFlagIsReceive(gameUserId, mail.GameUserId, mailId, mail.IsReceived);
 
-			 if (errorCode != ErrorCode.None)
-			 {
-				 return errorCode;
-			 }
+			if (errorCode != ErrorCode.None)
+			{
+				return errorCode;
+			}
 
-			 var count = await _queryFactory.Query("mail")
+			var count = await _queryFactory.Query("mail")
 				.Where("MailId", "=", mailId)
 				.UpdateAsync(new { IsReceived = true });
 
@@ -322,6 +310,117 @@ public class MailService : IMailService
 		}
 	}
 
+	public async Task<(ErrorCode, Int64 mailId)> InsertMailAsync(Int32 gameUserId, Mail mail)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "InsertMail Start");
+		Int64 mailId = 0;
+
+		try
+		{
+			mailId = await _queryFactory.Query("mail")
+				.InsertGetIdAsync<Int64>(mail);
+
+			if (mailId < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.InsertMailFailInsert,
+						GameUserId = gameUserId,
+						MailId = mailId
+					},
+					"InsertMailFailInsert");
+				return (ErrorCode.InsertMailFailInsert, 0);
+			}
+
+			return (ErrorCode.None, mailId);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e, new
+				{
+					ErrorCode = ErrorCode.InsertMailFailException,
+					GameUserId = gameUserId,
+					MailId = mailId
+				},
+				"InsertMailFailException");
+			return (ErrorCode.InsertMailFailException, 0);
+		}
+	}
+
+	public async Task<ErrorCode> RollbackInsertMailAsync(Int64 mailId)
+	{
+		_logger.ZLogDebugWithPayload(new { MailId = mailId }, "RollbackInsertMail Start");
+		if (mailId == 0)
+		{
+			_logger.ZLogErrorWithPayload(
+				new { ErrorCode = ErrorCode.RollbackInsertMailFailWrongMailId, MailId = mailId },
+				"RollbackInsertMail Start");
+			return ErrorCode.RollbackInsertMailFailWrongMailId;
+		}
+
+		try
+		{
+			var count = await _queryFactory.Query("mail").Where("MailId", "=", mailId).DeleteAsync();
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackInsertMailFailDelete, MailId = mailId },
+					"RollbackInsertMailFailDelete");
+				return ErrorCode.RollbackInsertMailFailDelete;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.RollbackInsertMailFailException, MailId = mailId },
+				"RollbackInsertMailFailException");
+			return ErrorCode.RollbackInsertMailFailException;
+		}
+	}
+
+	public async Task<ErrorCode> InsertMailItemAsync(Int64 mailId, Int32 itemCode, Int32 itemCount)
+	{
+		_logger.ZLogDebugWithPayload(new { MailId = mailId, ItemCode = itemCode }, "");
+
+		try
+		{
+			var count = await _queryFactory.Query("mail_item").InsertAsync(new
+			{
+				MailId = mailId,
+				ItemCode = itemCode,
+				ItemCount = itemCount,
+			});
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						Errorcode = ErrorCode.InsertMailItemFailInsert,
+						MailId = mailId,
+						ItemCode = itemCode,
+						itemCount
+					}, "InsertMailItemFailInsert");
+				return ErrorCode.InsertMailItemFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new
+				{
+					Errorcode = ErrorCode.InsertMailItemFailException, MailId = mailId, ItemCode = itemCode, itemCount
+				}, "InsertMailItemFailException");
+			return ErrorCode.InsertMailItemFailException;
+		}
+	}
+
 	private async Task<(ErrorCode, String)> SelectMailAsync(Int32 gameUserId, Int64 mailId)
 	{
 		var mail = await _queryFactory.Query("mail")
@@ -433,7 +532,7 @@ public class MailService : IMailService
 		{
 			var rollbackCount = await _queryFactory.Query("owned_item")
 				.Where("GameUserId", "=", gameUserId)
-				.Where("ItemCode","=",(Int32)ItemCode.Potion)
+				.Where("ItemCode", "=", (Int32)ItemCode.Potion)
 				.DecrementAsync("ItemCount", itemCount);
 
 			if (rollbackCount != 1)
@@ -494,7 +593,8 @@ public class MailService : IMailService
 		}
 	}
 
-	private ErrorCode ValidateUserAndFlagIsReceive(Int32 gameUserId, Int32 mailOwnerId ,Int64 mailId,Boolean isReceived)
+	private ErrorCode ValidateUserAndFlagIsReceive(Int32 gameUserId, Int32 mailOwnerId, Int64 mailId,
+		Boolean isReceived)
 	{
 		if (mailOwnerId != gameUserId)
 		{

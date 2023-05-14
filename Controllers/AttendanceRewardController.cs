@@ -1,8 +1,9 @@
-﻿using DungeonWarAPI.Enum;
+﻿using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
-using DungeonWarAPI.Services;
-using DungeonWarAPI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -12,13 +13,15 @@ namespace DungeonWarAPI.Controllers;
 public class AttendanceRewardController : ControllerBase
 {
 	private readonly IAttendanceRewardService _attendanceRewardService;
+	private readonly IMailService _mailService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<AttendanceRewardController> _logger;
 
 	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataManager masterDataManager,
-		IAttendanceRewardService attendanceRewardService)
+		IAttendanceRewardService attendanceRewardService, IMailService mailService)
 	{
 		_attendanceRewardService = attendanceRewardService;
+		_mailService = mailService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -41,10 +44,19 @@ public class AttendanceRewardController : ControllerBase
 
 		var reward = _masterDataManager.GetAttendanceReward(attendanceCount);
 
-		errorCode = await _attendanceRewardService.CreateAttendanceRewardMailAsync(gameUserId, reward);
+		var mail = MailGenerator.CreateAttendanceRewardMail(gameUserId, reward);
 
+		(errorCode, var mailId )= await _mailService.InsertMailAsync(gameUserId, mail);
 		if (errorCode != ErrorCode.None)
 		{
+			response.Error = errorCode;
+			return response;
+		}
+
+		errorCode = await _mailService.InsertMailItemAsync(mailId, reward.ItemCode, reward.ItemCount);
+		if (errorCode != ErrorCode.None)
+		{
+			await _mailService.RollbackInsertMailAsync(mailId);
 			await _attendanceRewardService.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
 			response.Error=errorCode;
 			return response;

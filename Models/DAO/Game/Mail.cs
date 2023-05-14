@@ -9,6 +9,8 @@ public class Mail
     public String Contents { get; set; }
     public Boolean IsRead { get; set; }
     public Boolean IsReceived { get; set; }
+    public Boolean IsInApp { get; set; }
+    public Boolean IsRemoved { get; set; }
     public DateTime ExpirationDate { get; set; }
 
 }

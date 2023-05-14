@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Enum;
 
-namespace DungeonWarAPI.Services.Interfaces;
+namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 
 public interface IDungeonStageService
 {

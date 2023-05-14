@@ -1,44 +1,51 @@
-﻿using DungeonWarAPI.Enum;
+﻿using System.Data;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.Database.Game;
-using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
-using SqlKata;
 using SqlKata.Compilers;
 using SqlKata.Execution;
-using System.Data;
 using ZLogger;
 
-namespace DungeonWarAPI.Services.Implementations;
+namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class UserService : IUserService
 {
-	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
+	//private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<UserService> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
 
-	private readonly IDbConnection _databaseConnection;
+	//private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
-	public UserService(ILogger<UserService> logger, IOptions<DatabaseConfiguration> configurationOptions,
-		OwnedItemFactory ownedItemFactory)
+	public UserService(ILogger<UserService> logger, QueryFactory queryFactory ,OwnedItemFactory ownedItemFactory)
 	{
-		_configurationOptions = configurationOptions;
-		_logger = logger;
-		_ownedItemFactory = ownedItemFactory;
-
-		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
-		_databaseConnection.Open();
-
-		var compiler = new MySqlCompiler();
-		_queryFactory = new QueryFactory(_databaseConnection, compiler);
+		_logger=logger;
+		_queryFactory=queryFactory;
+		_ownedItemFactory=ownedItemFactory;
 	}
+
+	//	public UserService(ILogger<UserService> logger, IOptions<DatabaseConfiguration> configurationOptions,
+	//	OwnedItemFactory ownedItemFactory)
+	//{
+	//	_configurationOptions = configurationOptions;
+	//	_logger = logger;
+	//	_ownedItemFactory = ownedItemFactory;
+
+	//	_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
+	//	_databaseConnection.Open();
+
+	//	var compiler = new MySqlCompiler();
+	//	_queryFactory = new QueryFactory(_databaseConnection, compiler);
+	//}
 
 
 	public void Dispose()
 	{
-		_databaseConnection.Dispose();
+		//_databaseConnection.Dispose();
 		//_queryFactory.Dispose();
 	}
 

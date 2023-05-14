@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Enum;
 
-namespace DungeonWarAPI;
+namespace DungeonWarAPI.GameLogic;
 
 public static class ItemEnhancer
 {

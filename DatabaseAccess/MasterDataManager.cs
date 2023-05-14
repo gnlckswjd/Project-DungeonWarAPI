@@ -1,15 +1,10 @@
-﻿using DungeonWarAPI.Enum;
+﻿using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
-using DungeonWarAPI.Services.Interfaces;
-using Microsoft.Extensions.Options;
-using MySqlConnector;
-using SqlKata.Compilers;
-using SqlKata.Execution;
-using StackExchange.Redis;
 using ZLogger;
 
-namespace DungeonWarAPI.Services;
+namespace DungeonWarAPI.DatabaseAccess;
 
 public class MasterDataManager
 {

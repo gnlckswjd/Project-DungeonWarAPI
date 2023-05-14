@@ -137,12 +137,17 @@ public enum ErrorCode : int
 	UpdateLoginDateFailUpdate = 322,
 	UpdateLoginDateFailAlreadyReceived = 323,
 
-	CreateAttendanceMailFailException = 330,
-	CreateAttendanceMailFailInsertMail = 331,
-	CreateAttendanceMailFailInsertItem = 332,
+	InsertMailFailException = 330,
+	InsertMailFailInsert = 331,
+	RollbackInsertMailFailException=332,
+	RollbackInsertMailFailDelete=333,
+	RollbackInsertMailFailWrongMailId=334,
+	
+	InsertMailItemFailException=335,
+	InsertMailItemFailInsert=336,
 
-	RollbackCreateMailFailException = 335,
-	RollbackCreateMailFailDelete = 336,
+	RollbackCreateMailFailException = 338,
+	RollbackCreateMailFailDelete = 339,
 
 	RollbackLoginDateFailException = 340,
 	RollbackLoginDateFailUpdate = 341,

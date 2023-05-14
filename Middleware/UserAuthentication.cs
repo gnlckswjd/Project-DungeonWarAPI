@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using System.Text.Json;
+using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
-using DungeonWarAPI.Services;
-using DungeonWarAPI.Services.Interfaces;
 
 
 namespace DungeonWarAPI.Middleware;
