@@ -11,11 +11,13 @@ namespace DungeonWarAPI.Controllers;
 public class ReceiveMailItemController : ControllerBase
 {
 	private readonly IMailService _mailService;
+	private readonly IItemService _itemService;
 	private readonly ILogger<ReceiveMailItemController> _logger;
 
-	public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IMailService mailService)
+	public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IMailService mailService, IItemService itemService)
 	{
 		_mailService = mailService;
+		_itemService = itemService;
 		_logger = logger;
 	}
 
@@ -24,21 +26,28 @@ public class ReceiveMailItemController : ControllerBase
 	{
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
 		var response = new ReceiveMailItemResponse();
-		var ownerId = authUserData.GameUserId;
+		var gameUserId = authUserData.GameUserId;
 
-
-		var errorCode = await _mailService.MarkMailAsReceiveAsync(ownerId, request.MailId);
+		var errorCode = await _mailService.MarkMailAsReceiveAsync(gameUserId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		errorCode = await _mailService.ReceiveItemAsync(ownerId, request.MailId);
+		(errorCode, var items) = await _mailService.LoadMailItemsAsync(gameUserId, request.MailId);
 		if (errorCode != ErrorCode.None)
 		{
+			await _mailService.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
 			response.Error = errorCode;
-			await _mailService.RollbackMarkMailItemAsReceiveAsync(ownerId, request.MailId);
+			return response;
+		}
+
+		errorCode = await _itemService.InsertItemsAsync(gameUserId, items);
+		if (errorCode != ErrorCode.None)
+		{
+			await _mailService.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
+			response.Error=errorCode;
 			return response;
 		}
 

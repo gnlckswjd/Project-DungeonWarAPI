@@ -10,7 +10,6 @@ public interface IMailService
     public Task<(ErrorCode, String content)> ReadMailAsync(Int32 gameUserId, Int64 mailId);
     public Task<ErrorCode> MarkMailAsReceiveAsync(Int32 gameUserId, Int64 mailId);
     public Task<ErrorCode> RollbackMarkMailItemAsReceiveAsync(Int32 gameUserId, Int64 mailId);
-    public Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId);
     public Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId);
     public Task<(ErrorCode, Int64 mailId)> InsertMailAsync(Int32 gameUserId, Mail mail);
     public Task<ErrorCode> RollbackInsertMailAsync(Int64 mailId);

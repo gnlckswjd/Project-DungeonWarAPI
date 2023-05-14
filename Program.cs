@@ -36,6 +36,7 @@ void DependencyInjection()
 	builder.Services.AddTransient<IAccountService, AccountService>();
 	builder.Services.AddTransient<IUserService,UserService>();
 	builder.Services.AddTransient<IMailService,MailService>();
+	builder.Services.AddTransient<IItemService, ItemService>();
 	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
 	builder.Services.AddTransient<IAttendanceRewardService,AttendanceRewardService>();
 	builder.Services.AddTransient<IEnhancementService,EnhancementService>();

@@ -65,7 +65,6 @@ public class MailService : IMailService
 			}
 
 			return (ErrorCode.None, mails.ToList());
-			
 		}
 		catch (Exception e)
 		{
@@ -81,7 +80,7 @@ public class MailService : IMailService
 		}
 	}
 
-	public async Task<(ErrorCode, string content)> ReadMailAsync(int gameUserId, long mailId)
+	public async Task<(ErrorCode, String content)> ReadMailAsync(Int32 gameUserId, Int64 mailId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "MarkMailAsRead Start");
 
@@ -97,7 +96,7 @@ public class MailService : IMailService
 				.UpdateAsync(new { IsRead = true });
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new { }, "");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.ReadMailFailUpdate, GameUserId = gameUserId, MailId = mailId }, "ReadMailFailUpdate");
 				return (ErrorCode.ReadMailFailUpdate, "");
 			}
 
@@ -192,74 +191,7 @@ public class MailService : IMailService
 			return ErrorCode.RollbackMarkMailItemAsReceiveFailException;
 		}
 	}
-
-	public async Task<ErrorCode> ReceiveItemAsync(Int32 gameUserId, Int64 mailId)
-	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
-			"ReceiveItemAsync Start");
-
-		var (errorCode, items) = await LoadMailItemsAsync(gameUserId, mailId);
-		if (errorCode != ErrorCode.None)
-		{
-			return errorCode;
-		}
-
-		if (!items.Any())
-		{
-			_logger.ZLogErrorWithPayload(new
-				{
-					ErrorCode = ErrorCode.ReceiveItemFailMailHaveNoItem,
-					GameUserId = gameUserId,
-					MailId = mailId
-				}
-				, "ReceiveItemFailMailHaveNoItem");
-			return ErrorCode.ReceiveItemFailMailHaveNoItem;
-		}
-
-
-		List<Func<Task>> rollbackActions = new List<Func<Task>>();
-
-		try
-		{
-			foreach (var item in items)
-			{
-				if (item.ItemCode == 1)
-				{
-					errorCode = await IncreaseGoldAsync(gameUserId, item.ItemCount, rollbackActions);
-				}
-				else if (item.ItemCode == 6)
-				{
-					errorCode = await IncreasePotionAsync(gameUserId, item.ItemCount, rollbackActions);
-				}
-				else
-				{
-					errorCode = await InsertOwnedItemAsync(gameUserId, item.ItemCode, item.ItemCount,
-						item.EnhancementCount,
-						rollbackActions);
-				}
-
-				if (errorCode != ErrorCode.None)
-				{
-					await RollbackReceiveItemAsync(rollbackActions);
-					_logger.ZLogErrorWithPayload(new
-							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId, MailId = mailId }
-						, "ReceiveItemFailInsert");
-					return ErrorCode.ReceiveItemFailInsert;
-				}
-			}
-
-
-			return ErrorCode.None;
-		}
-		catch (Exception e)
-		{
-			await RollbackReceiveItemAsync(rollbackActions);
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId, MailId = mailId }
-				, "ReceiveItemFailException");
-			return ErrorCode.ReceiveItemFailException;
-		}
-	}
+	
 
 	public async Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId)
 	{
@@ -458,123 +390,7 @@ public class MailService : IMailService
 		}
 	}
 
-	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
-	{
-		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
-			.IncrementAsync("Gold", itemCount);
 
-		if (count != 1)
-		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncreaseGoldFailUpdate, GameUserId = gameUserId },
-				"IncreaseGoldFailUpdate");
-			return ErrorCode.IncreaseGoldFailUpdate;
-		}
-
-		rollbackActions.Add(async () =>
-		{
-			var rollbackCount = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
-				.DecrementAsync("Gold", itemCount);
-			if (rollbackCount != 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackIncreaseGoldFail,
-						GameUserId = gameUserId,
-						ItemCount = itemCount
-					}, "RollbackIncreaseGoldFail");
-			}
-		});
-		return ErrorCode.None;
-	}
-
-
-	private async Task<ErrorCode> IncreasePotionAsync(Int32 gameUserId, Int32 itemCount,
-		List<Func<Task>> rollbackActions)
-	{
-		ErrorCode errorCode = ErrorCode.None;
-		var count = await _queryFactory.Query("owned_item").Where("GameUserId", "=", gameUserId)
-			.Where("ItemCode", "=", (Int32)ItemCode.Potion)
-			.IncrementAsync("ItemCount", itemCount);
-		if (count == 0)
-		{
-			errorCode = await InsertOwnedItemAsync(gameUserId, 6, itemCount,
-				0, rollbackActions);
-		}
-
-		if (errorCode != ErrorCode.None)
-		{
-			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.IncreasePotionFailUpdateOrInsert, GameUserId = gameUserId },
-				"IncreasePotionFailUpdateOrInsert");
-			return ErrorCode.IncreasePotionFailUpdateOrInsert;
-		}
-
-		// count == 0 일 때 아이템 생성에 관한 롤백 등록은 InsertOwnedItemAsync에서 진행
-		rollbackActions.Add(async () =>
-		{
-			var rollbackCount = await _queryFactory.Query("owned_item")
-				.Where("GameUserId", "=", gameUserId)
-				.Where("ItemCode", "=", (Int32)ItemCode.Potion)
-				.DecrementAsync("ItemCount", itemCount);
-
-			if (rollbackCount != 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackIncreasePotionFail,
-						GameUserId = gameUserId,
-						ItemCount = itemCount
-					}, "RollbackIncreasePotionFail");
-			}
-		});
-
-		return ErrorCode.None;
-	}
-
-	private async Task<ErrorCode> InsertOwnedItemAsync(Int32 gameUserId, Int32 itemCode, Int32 itemCount,
-		Int32 enhancementCount, List<Func<Task>> rollbackActions)
-	{
-		var itemId = await _queryFactory.Query("owned_item")
-			.InsertGetIdAsync<int>(
-				_ownedItemFactory.CreateOwnedItem(gameUserId, itemCode, enhancementCount, itemCount));
-
-		if (itemId == 0)
-		{
-			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.InsertOwnedItemFailInsert, GameUserId = gameUserId },
-				"InsertOwnedItemFailInsert");
-			return ErrorCode.InsertOwnedItemFailInsert;
-		}
-
-		rollbackActions.Add(async () =>
-		{
-			var rollbackCount = await _queryFactory.Query("user_data").Where("ItemId", "=", itemId)
-				.DeleteAsync();
-
-			if (rollbackCount != 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackInsertOwnedItemFail,
-						GameUserId = gameUserId,
-						ItemId = itemId
-					}, "RollbackInsertOwnedItemFail");
-			}
-		});
-
-		return ErrorCode.None;
-	}
-
-	private async Task RollbackReceiveItemAsync(List<Func<Task>> rollbackActions)
-	{
-		foreach (var action in rollbackActions)
-		{
-			await action();
-		}
-	}
 
 	private ErrorCode ValidateUserAndFlagIsReceive(Int32 gameUserId, Int32 mailOwnerId, Int64 mailId,
 		Boolean isReceived)
