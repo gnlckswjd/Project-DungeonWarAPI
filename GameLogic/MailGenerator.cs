@@ -18,6 +18,7 @@ public static class MailGenerator
 			IsReceived = false,
 			IsInApp = false,
 			IsRemoved = false,
+			ExpirationDate = DateTime.Today.Date
 		};
 
 	}

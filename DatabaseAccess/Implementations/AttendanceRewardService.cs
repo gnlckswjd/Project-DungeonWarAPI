@@ -19,7 +19,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 	private readonly QueryFactory _queryFactory;
 
 	public AttendanceRewardService(ILogger<AttendanceRewardService> logger,
-		QueryFactory queryFactory, MasterDataManager masterData)
+		QueryFactory queryFactory)
 	{
 		_logger = logger;
 		_queryFactory = queryFactory;
@@ -58,8 +58,7 @@ public class AttendanceRewardService : IAttendanceRewardService
 		}
 	}
 
-	public async Task<(ErrorCode, DateTime lastLoginDate, Int16 attendanceCount)> UpdateLoginDateAsync(
-		Int32 gameUserId)
+	public async Task<(ErrorCode, DateTime lastLoginDate, Int16 attendanceCount)> UpdateLoginDateAsync(Int32 gameUserId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "UpdateLoginAndGetAttendance");
 
@@ -82,7 +81,6 @@ public class AttendanceRewardService : IAttendanceRewardService
 			{
 				return (errorCode, userAttendance.LastLoginDate, attendanceCount);
 			}
-
 
 			var count = await _queryFactory.Query("user_attendance")
 				.Where("GameUserId", "=", gameUserId)
@@ -122,14 +120,12 @@ public class AttendanceRewardService : IAttendanceRewardService
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackLoginDateFailUpdate,
-						LastLoginDate = lastLoginDate,
-						AttendnceCount = attendanceCount
-					},
-					"RollbackLoginDateFailUpdate");
+				_logger.ZLogErrorWithPayload(new
+				{
+					ErrorCode = ErrorCode.RollbackLoginDateFailUpdate,
+					LastLoginDate = lastLoginDate,
+					AttendnceCount = attendanceCount
+				}, "RollbackLoginDateFailUpdate");
 				return ErrorCode.RollbackLoginDateFailUpdate;
 			}
 
@@ -138,14 +134,14 @@ public class AttendanceRewardService : IAttendanceRewardService
 		catch (Exception e)
 		{
 			_logger.ZLogErrorWithPayload(
-				e,
-				new
+				e, new
 				{
 					ErrorCode = ErrorCode.RollbackLoginDateFailException,
 					LastLoginDate = lastLoginDate,
 					AttendnceCount = attendanceCount
 				},
 				"RollbackLoginDateFailException");
+
 			return ErrorCode.RollbackLoginDateFailException;
 		}
 	}

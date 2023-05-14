@@ -14,11 +14,8 @@ namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class UserService : IUserService
 {
-	//private readonly IOptions<DatabaseConfiguration> _configurationOptions;
 	private readonly ILogger<UserService> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
-
-	//private readonly IDbConnection _databaseConnection;
 	private readonly QueryFactory _queryFactory;
 
 	public UserService(ILogger<UserService> logger, QueryFactory queryFactory ,OwnedItemFactory ownedItemFactory)
@@ -28,26 +25,7 @@ public class UserService : IUserService
 		_ownedItemFactory=ownedItemFactory;
 	}
 
-	//	public UserService(ILogger<UserService> logger, IOptions<DatabaseConfiguration> configurationOptions,
-	//	OwnedItemFactory ownedItemFactory)
-	//{
-	//	_configurationOptions = configurationOptions;
-	//	_logger = logger;
-	//	_ownedItemFactory = ownedItemFactory;
 
-	//	_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
-	//	_databaseConnection.Open();
-
-	//	var compiler = new MySqlCompiler();
-	//	_queryFactory = new QueryFactory(_databaseConnection, compiler);
-	//}
-
-
-	public void Dispose()
-	{
-		//_databaseConnection.Dispose();
-		//_queryFactory.Dispose();
-	}
 
 	public async Task<(ErrorCode, Int32)> CreateUserAsync(Int32 playerId)
 	{

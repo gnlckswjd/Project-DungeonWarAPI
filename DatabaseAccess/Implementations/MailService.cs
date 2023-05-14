@@ -29,7 +29,7 @@ public class MailService : IMailService
 		_queryFactory = queryFactory;
 	}
 
-	public async Task<(ErrorCode, List<MailWithItems>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
+	public async Task<(ErrorCode, List<Mail>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, PageNumber = pageNumber }, "LoadUserMails Start");
 
@@ -51,8 +51,6 @@ public class MailService : IMailService
 				.Limit(Mail.MailCountInPage).Offset((pageNumber - 1) * Mail.MailCountInPage)
 				.GetAsync<Mail>();
 
-			var mailsWithItems = new List<MailWithItems>();
-
 			if (!mails.Any())
 			{
 				_logger.ZLogInformationWithPayload(
@@ -63,26 +61,11 @@ public class MailService : IMailService
 						PageNumber = pageNumber
 					},
 					"LoadMailListEmptyMail");
-				return (ErrorCode.None, mailsWithItems);
+				return (ErrorCode.None, new List<Mail>());
 			}
 
-			foreach (var mail in mails)
-			{
-				var (errorCode, items) = await GetMailItemsAsync(gameUserId, mail.MailId);
-
-				if (errorCode != ErrorCode.None)
-				{
-					return (errorCode, new List<MailWithItems>());
-				}
-
-				var a = new List<MailWithItems>();
-				Console.WriteLine(a.Count());
-
-				mailsWithItems.Add(new MailWithItems(mail, items));
-			}
-
-
-			return (ErrorCode.None, mailsWithItems.ToList());
+			return (ErrorCode.None, mails.ToList());
+			
 		}
 		catch (Exception e)
 		{
@@ -94,7 +77,7 @@ public class MailService : IMailService
 					PageNumber = pageNumber
 				},
 				"LoadMailListFailException");
-			return (ErrorCode.LoadMailListFailException, new List<MailWithItems>());
+			return (ErrorCode.LoadMailListFailException, new List<Mail>());
 		}
 	}
 
@@ -215,7 +198,7 @@ public class MailService : IMailService
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId },
 			"ReceiveItemAsync Start");
 
-		var (errorCode, items) = await GetMailItemsAsync(gameUserId, mailId);
+		var (errorCode, items) = await LoadMailItemsAsync(gameUserId, mailId);
 		if (errorCode != ErrorCode.None)
 		{
 			return errorCode;
@@ -446,7 +429,7 @@ public class MailService : IMailService
 	}
 
 
-	private async Task<(ErrorCode errorCode, List<MailItem> items)> GetMailItemsAsync(Int32 gameUserId, Int64 mailId)
+	public async Task<(ErrorCode errorCode, List<MailItem> items)> LoadMailItemsAsync(Int32 gameUserId, Int64 mailId)
 	{
 		try
 		{
@@ -471,7 +454,7 @@ public class MailService : IMailService
 					MailId = mailId
 				}
 				, "GetMailItemsFailException");
-			return (ErrorCode.GetMailItemsFailException, null);
+			return (ErrorCode.GetMailItemsFailException, new List<MailItem>());
 		}
 	}
 
