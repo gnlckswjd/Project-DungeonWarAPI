@@ -13,16 +13,18 @@ namespace DungeonWarAPI.Controllers;
 public class StageEndController : ControllerBase
 {
 	private readonly IDungeonStageService _dungeonStageService;
+	private readonly IItemService _itemService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<StageEndController> _logger;
 
 	public StageEndController(ILogger<StageEndController> logger, IMemoryDatabase memoryDatabase,
 		MasterDataManager masterDataManager,
-		IDungeonStageService dungeonStageService)
+		IDungeonStageService dungeonStageService, IItemService itemService)
 	{
 		_memoryDatabase = memoryDatabase;
 		_dungeonStageService = dungeonStageService;
+		_itemService = itemService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -33,7 +35,6 @@ public class StageEndController : ControllerBase
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
 		var response = new StageEndResponse();
 		var gameUserId = authUserData.GameUserId;
-
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
 		var (errorCode, dictionary) = await _memoryDatabase.LoadStageDataAsync(key);
@@ -55,35 +56,9 @@ public class StageEndController : ControllerBase
 			return response;
 		}
 
-		(errorCode, Boolean isIncrement) = await _dungeonStageService.IncreaseMaxClearedStageAsync(gameUserId, stageLevel);
+		errorCode = await ProcessStageCompletionAsync(gameUserId, stageLevel, earnedExp, itemCodeAndCount);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Error = errorCode;
-			return response;
-		}
-
-		(errorCode, Int32 existingLevel, Int32 existingExp) = await _dungeonStageService.UpdateExpAsync(gameUserId, earnedExp);
-		if (errorCode != ErrorCode.None)
-		{
-			if (isIncrement)
-			{
-				await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId);
-			}
-
-			response.Error = errorCode;
-			return response;
-		}
-
-		errorCode = await _dungeonStageService.ReceiveRewardItemAsync(gameUserId, itemCodeAndCount);
-		if (errorCode != ErrorCode.None)
-		{
-			await _dungeonStageService.RollbackUpdateExpAsync(gameUserId, existingLevel, existingExp);
-
-			if (isIncrement)
-			{
-				await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId);
-			}
-
 			response.Error = errorCode;
 			return response;
 		}
@@ -92,5 +67,33 @@ public class StageEndController : ControllerBase
 		response.IsCleared = isCleared;
 		response.Error = ErrorCode.None;
 		return response;
+	}
+
+	private async Task<ErrorCode> ProcessStageCompletionAsync(Int32 gameUserId, Int32 stageLevel, Int32 earnedExp, List<(Int32, Int32)> itemCodeAndCount)
+	{
+		var(errorCode, isIncrement) = await _dungeonStageService.IncreaseMaxClearedStageAsync(gameUserId, stageLevel);
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
+
+		(errorCode, Int32 existingLevel, Int32 existingExp) = await _dungeonStageService.UpdateExpAsync(gameUserId, earnedExp);
+		if (errorCode != ErrorCode.None)
+		{
+			await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
+
+			return errorCode;
+		}
+
+		errorCode = await _itemService.InsertItemsAsync(gameUserId, itemCodeAndCount);
+		if (errorCode != ErrorCode.None)
+		{
+			await _dungeonStageService.RollbackUpdateExpAsync(gameUserId, existingLevel, existingExp);
+			await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
+
+			return errorCode;
+		}
+
+		return ErrorCode.None;
 	}
 }

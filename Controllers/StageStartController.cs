@@ -57,7 +57,7 @@ public class StageStartController : ControllerBase
 		}
 
 		response.ItemList = itemList;
-		response.NpcList= npcList;
+		response.NpcList= npcList.ToList();
 		response.Error = ErrorCode.None;
 		return response;
 	}

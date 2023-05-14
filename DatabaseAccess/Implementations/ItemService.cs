@@ -75,7 +75,53 @@ public class ItemService : IItemService
 		}
 	}
 
+	public async Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<(Int32, Int32)> itemCodeList)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "ReceiveRewardItem Start");
+		List<Func<Task>> rollbackActions = new List<Func<Task>>();
+		try
+		{
+			foreach (var (itemCode, itemCount) in itemCodeList)
+			{
+				ErrorCode errorCode;
 
+				if (itemCode == (int)ItemCode.Gold)
+				{
+					errorCode = await IncreaseGoldAsync(gameUserId, itemCount, rollbackActions);
+				}
+				else if (itemCode == (int)ItemCode.Potion)
+				{
+					errorCode = await IncreasePotionAsync(gameUserId, itemCount, rollbackActions);
+				}
+				else
+				{
+					errorCode = await InsertOwnedItemAsync(gameUserId, itemCode, itemCount,
+						0,
+						rollbackActions);
+				}
+
+				if (errorCode != ErrorCode.None)
+				{
+					await RollbackReceiveItemAsync(rollbackActions);
+					_logger.ZLogErrorWithPayload(new
+							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId }
+						, "ReceiveItemFailInsert");
+					return ErrorCode.ReceiveItemFailInsert;
+				}
+			}
+
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			await RollbackReceiveItemAsync(rollbackActions);
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId }
+				, "ReceiveItemFailException");
+			return ErrorCode.ReceiveItemFailException;
+		}
+	}
 	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
 	{
 		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
