@@ -8,6 +8,7 @@ using DungeonWarAPI.Models.DAO.Game;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Services.Interfaces;
 using Microsoft.Extensions.Options;
+using System.Reflection.Emit;
 using ZLogger;
 
 namespace DungeonWarAPI.Services.Implementations;
@@ -233,6 +234,36 @@ public class RedisDatabase : IMemoryDatabase
 				new { ErrorCode = ErrorCode.LoadStageLevelFailException, Key = key, Field = field },
 				"LoadStageLevelFailException");
 			return (ErrorCode.LoadStageLevelFailException, 0);
+		}
+	}
+
+	public async Task<(ErrorCode, Int32 itemAcquisitionCount)> LoadItemAcquisitionCountAsync(String key, Int32 itemCode)
+	{
+		_logger.ZLogDebugWithPayload(new { Key = key, NpcCode = itemCode }, "LoadItemAcquisitionCount Start");
+		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
+
+		try
+		{
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+
+			var value = await redis.GetAsync(field);
+
+			if (!value.HasValue)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailGet, Key = key, Field = field },
+					"LoadItemAcquisitionCountFailGet");
+				return (ErrorCode.LoadItemAcquisitionCountFailGet, 0);
+			}
+
+			return (ErrorCode.None, value.Value);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailException, Key = key, Field = field },
+				"LoadItemAcquisitionCountFailException");
+			return (ErrorCode.LoadItemAcquisitionCountFailException, 0);
 		}
 	}
 

@@ -81,11 +81,14 @@ public enum ErrorCode : int
 
 	LoadNpcKillCountFailException = 247,
 	LoadNpcKillCountFailGet= 248,
+	LoadItemAcquisitionCountFailException = 249,
+	LoadItemAcquisitionCountFailGet=250,
+	WrongStageLevel = 251,
+	WrongNpcCode = 252,
+	StageDataDeleteFail=253,
+	ExceedKillCount=254,
+	ExceedItemCount=255,
 
-	WrongStageLevel = 250,
-	WrongNpcCode = 251,
-	StageDataDeleteFail=252,
-	ExceedKillCount=253,
 
 
 	LoadMailListFailException = 260,

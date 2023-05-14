@@ -64,14 +64,14 @@ public class MasterDataManager
 
 	}
 
-    public StageNpc? GetNpcByStageAndCode(Int32 stageLevel, Int32 npcCode)
+    public StageNpc? GetStageNpcByStageAndCode(Int32 stageLevel, Int32 npcCode)
     {
 	    return StageNpcList.FirstOrDefault(npc => npc.StageLevel == stageLevel && npc.NpcCode == npcCode);
     }
 
-    public StageItem? GetItemByStageAndCode(Int32 stageLevel, Int32 npcCode)
+    public StageItem? GetStageItemByStageAndCode(Int32 stageLevel, Int32 itemCode)
     {
-	    return StageItemList.FirstOrDefault(npc => npc.StageLevel == stageLevel && npc.ItemCode == npcCode);
+	    return StageItemList.FirstOrDefault(item => item.StageLevel == stageLevel && item.ItemCode == itemCode);
     }
 
 	public List<StageItem> GetStageItemList(Int32 stageLevel)

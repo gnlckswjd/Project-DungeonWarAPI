@@ -35,7 +35,6 @@ public class ItemAcquisitionController : ControllerBase
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		//Todo : stageLevel을 레디스에서 읽어온 뒤 존재하는 코드인지 확인하고 개수가 넘는지 확인하는 로직 추가
 		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
 		if (errorCode != ErrorCode.None)
 		{
@@ -43,16 +42,33 @@ public class ItemAcquisitionController : ControllerBase
 			return response;
 		}
 
+		var stageItem = _masterDataManager.GetStageItemByStageAndCode(stageLevel, request.ItemCode);
+		if (stageItem == null)
+		{
+			response.Error = ErrorCode.WrongItemCode;
+			return response;
+		}
 
-
-		errorCode= await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode, request.ItemCount);
+		(errorCode, var itemAcquisitionCount) = await _memoryDatabase.LoadItemAcquisitionCountAsync(key, request.ItemCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		
+		if (itemAcquisitionCount >= stageItem.ItemCount)
+		{
+			response.Error = ErrorCode.ExceedItemCount;
+			return response;
+		}
+
+		errorCode = await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode, request.ItemCount);
+		if (errorCode != ErrorCode.None)
+		{
+			response.Error = errorCode;
+			return response;
+		}
+
 		response.Error = ErrorCode.None;
 		return response;
 	}

@@ -42,7 +42,7 @@ public class NpcKillController : Controller
 			return response;
 		}
 
-		var stageNpc =  _masterDataManager.GetNpcByStageAndCode(stageLevel, request.NpcCode);
+		var stageNpc =  _masterDataManager.GetStageNpcByStageAndCode(stageLevel, request.NpcCode);
 		if (stageNpc == null)
 		{
 			response.Error = ErrorCode.WrongNpcCode;

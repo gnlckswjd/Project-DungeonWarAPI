@@ -17,6 +17,8 @@ public interface IMemoryDatabase
     Task<ErrorCode> InitializeStageDataAsync( String key, List<StageItem> items, List<StageNpc> npcs, Int32 stageLevel);
 
     Task<(ErrorCode, Int32 stageLevel)> LoadStageLevelAsync(String key);
+
+    Task<(ErrorCode, Int32 itemAcquisitionCount)> LoadItemAcquisitionCountAsync(String key,Int32 itemCode);
     Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount);
 
     Task<(ErrorCode, Int32 npcKillCount)> LoadNpcKillCountAsync(String key,Int32 npcCode);
