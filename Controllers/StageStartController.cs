@@ -2,8 +2,10 @@
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -32,9 +34,10 @@ public class StageStartController : ControllerBase
 		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
 		var response = new StageStartResponse();
 		var gameUserId = authUserData.GameUserId;
+		var selectedStageLevel = request.SelectedStageLevel;
 
-		var errorCode = await _dungeonStageService.CheckStageAccessibilityAsync(gameUserId, request.SelectedStageLevel);
-		if (errorCode != ErrorCode.None)
+		var errorCode = await CheckStageAccessibility(gameUserId, selectedStageLevel);
+		if (errorCode != 0)
 		{
 			response.Error = errorCode;
 			return response;
@@ -48,8 +51,10 @@ public class StageStartController : ControllerBase
 			return response;
 		}
 
-		errorCode = await _memoryDatabase.InitializeStageDataAsync(MemoryDatabaseKeyGenerator.MakeStageKey(request.Email),
-			itemList, npcList, request.SelectedStageLevel);
+		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
+		var stageKeyValueList = StageInitializer.CreateInitialKeyValue(itemList, npcList, selectedStageLevel);
+
+		errorCode = await _memoryDatabase.StoreStageDataAsync(key,stageKeyValueList);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -60,5 +65,22 @@ public class StageStartController : ControllerBase
 		response.NpcList= npcList.ToList();
 		response.Error = ErrorCode.None;
 		return response;
+	}
+
+	private async Task<ErrorCode> CheckStageAccessibility(Int32 gameUserId, Int32 selectedStageLevel)
+	{
+		var (errorCode, maxClearedStage) = await _dungeonStageService.LoadStageListAsync(gameUserId);
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
+
+		errorCode = StageInitializer.CheckAccessibility(maxClearedStage, selectedStageLevel);
+		if (errorCode != ErrorCode.None)
+		{
+			return errorCode;
+		}
+
+		return errorCode;
 	}
 }

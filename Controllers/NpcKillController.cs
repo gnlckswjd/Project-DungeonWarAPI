@@ -35,28 +35,9 @@ public class NpcKillController : Controller
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Error = errorCode;
-			return response;
-		}
+		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode);
 
-		var stageNpc =  _masterDataManager.GetStageNpcByStageAndCode(stageLevel, request.NpcCode);
-		if (stageNpc == null)
-		{
-			response.Error = ErrorCode.WrongNpcCode;
-			return response;
-		}
-
-		(errorCode, var npcKillCount) = await _memoryDatabase.LoadNpcKillCountAsync(key, request.NpcCode);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Error = errorCode;
-			return response;
-		}
-
-		if (npcKillCount >= stageNpc.NpcCount)
+		if (npcKillCount >= maxNpcCount)
 		{
 			response.Error = ErrorCode.ExceedKillCount;
 			return response;
@@ -71,5 +52,28 @@ public class NpcKillController : Controller
 
 		response.Error = ErrorCode.None;
 		return response;
+	}
+
+	private async Task<(ErrorCode, Int32 killCount, Int32 maxNpcCount)> LoadKillAndMaxNpcCountAsync(String key, Int32 npcCode)
+	{
+		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, 0,0);
+		}
+
+		var stageNpc = _masterDataManager.GetStageNpcByStageAndCode(stageLevel, npcCode);
+		if (stageNpc == null)
+		{
+			return (ErrorCode.WrongNpcCode, 0, 0);
+		}
+
+		(errorCode, var npcKillCount) = await _memoryDatabase.LoadNpcKillCountAsync(key, npcCode);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, 0, 0);
+		}
+
+		return (ErrorCode.None, npcKillCount, stageNpc.NpcCount);
 	}
 }

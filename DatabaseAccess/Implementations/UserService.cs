@@ -115,7 +115,7 @@ public class UserService : DatabaseAccessBase,IUserService
 		try
 		{
 			var count = await _queryFactory.Query("user_stage")
-				.InsertAsync(new { GameUserId = gameUserId, ClearedStage = 0 });
+				.InsertAsync(new { GameUserId = gameUserId, MaxClearedStage = 0 });
 			if (count != 1)
 			{
 				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.CreateUserStageFailInsert },
@@ -156,54 +156,7 @@ public class UserService : DatabaseAccessBase,IUserService
 			return ErrorCode.RollbackCreateUserStageFailException;
 		}
 	}
-
-	public async Task<ErrorCode> CreateUserItemAsync(Int32 gameUserId)
-	{
-		try
-		{
-			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
-
-			var columns = new[] { "GameUserId", "ItemCode", "EnhancementCount", "ItemCount", "Attack", "Defense" };
-			var data = new List<object[]>();
-
-			var items = new List<OwnedItem>();
-			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.SmallSword));
-			items.Add(_ownedItemFactory.CreateOwnedItem(gameUserId, (int)ItemCode.OrdinaryHat));
-
-			foreach (var item in items)
-			{
-				data.Add(new object[]
-				{
-					item.GameUserId,
-					item.ItemCode,
-					item.EnhancementCount,
-					item.ItemCount,
-					item.Attack,
-					item.Defense
-				});
-			}
-
-			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
-
-
-			if (count < 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.CreateUserItemFailInsert, GameUserId = gameUserId },
-					"CreateUserItemFailInsert");
-				return ErrorCode.CreateUserItemFailInsert;
-			}
-
-			return ErrorCode.None;
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.CreateUserItemFailException, GameUserId = gameUserId },
-				"CreateUserItemFailException");
-			return ErrorCode.CreateUserItemFailException;
-		}
-	}
+	
 
 	public async Task<ErrorCode> RollbackCreateUserAsync(Int32 gameUserId)
 	{

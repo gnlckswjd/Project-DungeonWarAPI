@@ -48,28 +48,6 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		}
 	}
 
-	public async Task<ErrorCode> CheckStageAccessibilityAsync(Int32 gameUserId, Int32 selectedStageLevel)
-	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, SelectedStageLevel = selectedStageLevel },
-			"CheckStageAccessibility Start");
-
-		var (errorCode, maxClearedStage) = await LoadStageListAsync(gameUserId);
-
-		if (errorCode != ErrorCode.None)
-		{
-			return errorCode;
-		}
-
-		if (maxClearedStage + 1 < selectedStageLevel)
-		{
-			_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, SelectedStageLevel = selectedStageLevel },
-				"CheckStageAccessibilityFailExceedStageLevel");
-
-			return ErrorCode.CheckStageAccessibilityFailExceedStageLevel;
-		}
-
-		return ErrorCode.None;
-	}
 
 	public async Task<(ErrorCode, Int32 existingLevel, Int32 existingExp)> UpdateExpAsync(Int32 gameUserId, Int32 exp)
 	{
@@ -139,7 +117,7 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
+			_logger.ZLogErrorWithPayload(e,
 				new
 				{
 					Errorcode = ErrorCode.RollbackUpdateFailException,

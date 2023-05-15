@@ -249,6 +249,50 @@ public class ItemService : DatabaseAccessBase, IItemService
 		}
 	}
 
+	public async Task<ErrorCode> InsertNonStackableItemsAsync(int gameUserId, List<OwnedItem> items)
+	{
+		try
+		{
+			_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "CreateUserItem Start");
+
+			var columns = new[] { "GameUserId", "ItemCode", "EnhancementCount", "ItemCount", "Attack", "Defense" };
+			var data = new List<object[]>();
+
+			foreach (var item in items)
+			{
+				data.Add(new object[]
+				{
+					item.GameUserId,
+					item.ItemCode,
+					item.EnhancementCount,
+					item.ItemCount,
+					item.Attack,
+					item.Defense
+				});
+			}
+
+			var count = await _queryFactory.Query("owned_item").InsertAsync(columns, data);
+
+
+			if (count < 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.InsertNonStackableItemsFailInsert, GameUserId = gameUserId },
+					"InsertNonStackableItemsFailInsert");
+				return ErrorCode.InsertNonStackableItemsFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.InsertNonStackableItemsException, GameUserId = gameUserId },
+				"InsertNonStackableItemsException");
+			return ErrorCode.InsertNonStackableItemsException;
+		}
+	}
+
 	private async Task<ErrorCode> IncreasePotionAsync(Int32 gameUserId, Int32 itemCount,
 		List<Func<Task>> rollbackActions)
 	{

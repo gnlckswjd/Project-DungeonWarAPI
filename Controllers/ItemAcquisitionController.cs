@@ -3,6 +3,7 @@ using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DungeonWarAPI.Controllers;
@@ -33,36 +34,31 @@ public class ItemAcquisitionController : ControllerBase
 		var response = new ItemAcquisitionResponse();
 		var gameUserId = authUserData.GameUserId;
 
+		var itemCode = request.ItemCode;
+
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
+		var (errorCode, itemAcquisitionCount, maxItemCount) = await LoadAcquisitionAndMaxItemCountAsync(key, itemCode);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		var stageItem = _masterDataManager.GetStageItemByStageAndCode(stageLevel, request.ItemCode);
-		if (stageItem == null)
+		Int32 requestAcquisitionCount= request.ItemCount;
+
+		if (itemCode != (Int32)ItemCode.Gold && itemCode != (Int32)ItemCode.Potion)
 		{
-			response.Error = ErrorCode.WrongItemCode;
-			return response;
+			requestAcquisitionCount = 1;
 		}
 
-		(errorCode, var itemAcquisitionCount) = await _memoryDatabase.LoadItemAcquisitionCountAsync(key, request.ItemCode);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Error = errorCode;
-			return response;
-		}
-
-		if (itemAcquisitionCount >= stageItem.ItemCount)
+		if (itemAcquisitionCount + requestAcquisitionCount > maxItemCount)
 		{
 			response.Error = ErrorCode.ExceedItemCount;
 			return response;
 		}
 
-		errorCode = await _memoryDatabase.IncrementItemCountAsync(key, request.ItemCode, request.ItemCount);
+		errorCode = await _memoryDatabase.IncrementItemCountAsync(key, itemCode, requestAcquisitionCount);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -73,4 +69,26 @@ public class ItemAcquisitionController : ControllerBase
 		return response;
 	}
 
+	private async Task<(ErrorCode, Int32 itemAcquisitionCount, Int32 maxItemSpawnCount)> LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode)
+	{
+		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, 0, 0);
+		}
+
+		var stageItem = _masterDataManager.GetStageItemByStageAndCode(stageLevel, itemCode);
+		if (stageItem == null)
+		{
+			return (ErrorCode.WrongItemCode, 0, 0);
+		}
+
+		(errorCode, var itemAcquisitionCount) = await _memoryDatabase.LoadItemAcquisitionCountAsync(key, itemCode);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, 0, 0);
+		}
+
+		return (ErrorCode.None, itemAcquisitionCount, stageItem.ItemCount);
+	}
 }

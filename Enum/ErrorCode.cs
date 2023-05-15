@@ -40,8 +40,8 @@ public enum ErrorCode : int
 	RollbackCreateUserAttendanceFailDelete = 136,
 
 
-	CreateUserItemFailException = 140,
-	CreateUserItemFailInsert = 141,
+	InsertNonStackableItemsException = 140,
+	InsertNonStackableItemsFailInsert = 141,
 	RollbackCreateUserDataFailException = 146,
 	RollbackCreateUserDataFailDelete = 147,
 
@@ -66,8 +66,8 @@ public enum ErrorCode : int
 	LoadNotificationsFailException = 232,
 	LoadNotificationsZeroNotification = 233,
 
-	InitializeStageDataFailException = 235,
-	InitializeStageDataFailDelete = 236,
+	StoreStageDataException = 235,
+	StoreStageDataFailDelete = 236,
 	IncrementItemFailException = 237,
 	IncrementItemFailIncrease = 238,
 	IncrementItemFailNoExist = 239,

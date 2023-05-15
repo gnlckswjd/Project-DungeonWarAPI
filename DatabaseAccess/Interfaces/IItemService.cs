@@ -10,4 +10,5 @@ public interface IItemService
 	public Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<MailItem> items);
 	public Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<(Int32, Int32)> itemCodeList);
 	public Task<ErrorCode> RollbackDestroyItemAsync(Int64 itemId);
+	public Task<ErrorCode> InsertNonStackableItemsAsync(Int32 gameUserId, List<OwnedItem> items);
 }

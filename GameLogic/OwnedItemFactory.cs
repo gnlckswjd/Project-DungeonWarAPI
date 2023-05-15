@@ -14,7 +14,7 @@ public class OwnedItemFactory
         _masterDataManager = masterDataManager;
     }
 
-    public OwnedItem CreateOwnedItem(int gameUserId, int itemCode, int enhancementCount = 0, int itemCount = 1)
+    public OwnedItem CreateOwnedItem(Int32 gameUserId, Int32 itemCode, Int32 enhancementCount = 0, Int32 itemCount = 1)
     {
         var item = _masterDataManager.GetItem(itemCode);
 
@@ -32,5 +32,13 @@ public class OwnedItemFactory
             Attack = item.Attack,
             Defense = item.Defence
         };
+    }
+
+    public List<OwnedItem> CreateDefaultItems(Int32 gameUserId)
+    {
+	    var items = new List<OwnedItem>();
+	    items.Add(CreateOwnedItem(gameUserId, (Int32)ItemCode.SmallSword));
+	    items.Add(CreateOwnedItem(gameUserId, (Int32)ItemCode.OrdinaryHat));
+	    return items;
     }
 }

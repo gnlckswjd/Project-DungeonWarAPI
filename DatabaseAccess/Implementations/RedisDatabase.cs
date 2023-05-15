@@ -164,10 +164,9 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> InitializeStageDataAsync(String key, List<StageItem> items, List<StageNpc> npcs,
-		Int32 stageLevel)
+	public async Task<ErrorCode> StoreStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList)
 	{
-		_logger.ZLogDebugWithPayload(new { Key = key }, "InitializeStageData Start");
+		_logger.ZLogDebugWithPayload(new { Key = key }, "StoreStageData Start");
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -177,31 +176,21 @@ public class RedisDatabase : IMemoryDatabase
 				var errorCode = await DeleteStageDataAsync(redis, key);
 				if (errorCode != ErrorCode.None)
 				{
-					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InitializeStageDataFailDelete, Key = key },
-						"InitializeStageDataFailDelete");
-					return ErrorCode.InitializeStageDataFailDelete;
+					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.StoreStageDataFailDelete, Key = key },
+						"StoreStageDataFailDelete");
+					return ErrorCode.StoreStageDataFailDelete;
 				}
 			}
 
-			var itemKeys = items.Select(item => MemoryDatabaseKeyGenerator.MakeStageItemKey(item.ItemCode));
-
-			var npcKeys = npcs.Select(npc => MemoryDatabaseKeyGenerator.MakeStageNpcKey(npc.NpcCode));
-
-			var list = itemKeys.Concat(npcKeys)
-				.Select(key => new KeyValuePair<String, Int32>(key, 0))
-				.ToList();
-
-			list.Add(
-				new KeyValuePair<String, Int32>(MemoryDatabaseKeyGenerator.MakeStageLevelKey(), stageLevel));
-			await redis.SetAsync(list);
+			await redis.SetAsync(stageKeyValueList);
 
 			return ErrorCode.None;
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InitializeStageDataFailException, Key = key },
-				"InitializeStageDataFailException");
-			return ErrorCode.InitializeStageDataFailException;
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.StoreStageDataException, Key = key },
+				"StoreStageDataException");
+			return ErrorCode.StoreStageDataException;
 		}
 	}
 
