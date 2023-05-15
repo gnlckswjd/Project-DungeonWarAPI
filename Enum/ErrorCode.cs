@@ -114,8 +114,8 @@ public enum ErrorCode : int
 	MarkMailAsReceiveFailAlreadyReceived = 293,
 	MarkMailAsReceiveFailWrongGameUserId = 294,
 
-	ReceiveItemFailException = 300,
-	ReceiveItemFailInsert = 301,
+	InsertItemFailException = 300,
+	InsertItemFailInsert = 301,
 	ReceiveItemFailMailHaveNoItem = 302,
 	GetMailItemsFailException = 303,
 	IncreaseGoldFailUpdate = 304,

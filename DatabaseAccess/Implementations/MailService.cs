@@ -13,20 +13,13 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class MailService : IMailService
+public class MailService : DatabaseAccessBase,IMailService
 {
-	private readonly ILogger<MailService> _logger;
-	private readonly OwnedItemFactory _ownedItemFactory;
 
-	private readonly QueryFactory _queryFactory;
-
-	public MailService(ILogger<MailService> logger, QueryFactory queryFactory,
-		OwnedItemFactory ownedItemFactory)
+	public MailService(ILogger<MailService> logger, QueryFactory queryFactory) 
+		: base(logger,queryFactory)
 	{
-		_logger = logger;
-		_ownedItemFactory = ownedItemFactory;
-
-		_queryFactory = queryFactory;
+		
 	}
 
 	public async Task<(ErrorCode, List<Mail>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
@@ -38,7 +31,7 @@ public class MailService : IMailService
 			_logger.ZLogErrorWithPayload(
 				new { ErrorCode = ErrorCode.LoadMailListWrongPage, GameUserId = gameUserId, PageNumber = pageNumber },
 				"LoadMailListWrongPage");
-			return (ErrorCode.LoadMailListWrongPage, null);
+			return (ErrorCode.LoadMailListWrongPage, new List<Mail>());
 		}
 
 		try

@@ -11,36 +11,14 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class InAppPurchaseService : IInAppPurchaseService
+public class InAppPurchaseService : DatabaseAccessBase, IInAppPurchaseService
 {
-	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-	private readonly ILogger<InAppPurchaseService> _logger;
-	private readonly MasterDataManager _masterData;
-
-	private readonly IDbConnection _databaseConnection;
-	private readonly QueryFactory _queryFactory;
-
-	public InAppPurchaseService(ILogger<InAppPurchaseService> logger,
-		IOptions<DatabaseConfiguration> configurationOptions,
-		MasterDataManager masterData)
+	public InAppPurchaseService(ILogger<InAppPurchaseService> logger, QueryFactory queryFactory)
+		:base(logger,queryFactory)
 	{
-		_configurationOptions = configurationOptions;
-		_logger = logger;
-		_masterData = masterData;
-
-		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
-		_databaseConnection.Open();
-
-		var compiler = new MySqlCompiler();
-		_queryFactory = new QueryFactory(_databaseConnection, compiler);
+		
 	}
 
-
-	public void Dispose()
-	{
-		_databaseConnection.Dispose();
-		//_queryFactory.Dispose();
-	}
 
 	public async Task<(ErrorCode, Int32)> StoreReceiptAsync(Int32 gameUserId, String receiptSerialCode, Int32 packageId)
 	{

@@ -13,16 +13,12 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class AttendanceRewardService : IAttendanceRewardService
+public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardService
 {
-	private readonly ILogger<AttendanceRewardService> _logger;
-	private readonly QueryFactory _queryFactory;
-
-	public AttendanceRewardService(ILogger<AttendanceRewardService> logger,
-		QueryFactory queryFactory)
+	public AttendanceRewardService(ILogger<AttendanceRewardService> logger, QueryFactory queryFactory) 
+		:base(logger,queryFactory)
 	{
-		_logger = logger;
-		_queryFactory = queryFactory;
+		
 	}
 
 

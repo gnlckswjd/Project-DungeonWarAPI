@@ -12,16 +12,13 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class UserService : IUserService
+public class UserService : DatabaseAccessBase,IUserService
 {
-	private readonly ILogger<UserService> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
-	private readonly QueryFactory _queryFactory;
 
-	public UserService(ILogger<UserService> logger, QueryFactory queryFactory ,OwnedItemFactory ownedItemFactory)
+	public UserService(ILogger<UserService> logger, QueryFactory queryFactory ,OwnedItemFactory ownedItemFactory) 
+		:base(logger, queryFactory)
 	{
-		_logger=logger;
-		_queryFactory=queryFactory;
 		_ownedItemFactory=ownedItemFactory;
 	}
 

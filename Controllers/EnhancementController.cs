@@ -14,13 +14,15 @@ namespace DungeonWarAPI.Controllers;
 public class EnhancementController : ControllerBase
 {
 	private readonly IEnhancementService _enhancementService;
+	private readonly IItemService _itemService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly ILogger<EnhancementController> _logger;
 
 	public EnhancementController(ILogger<EnhancementController> logger, MasterDataManager masterDataManager,
-		IEnhancementService enhancementService)
+		IEnhancementService enhancementService, IItemService itemService)
 	{
 		_enhancementService = enhancementService;
+		_itemService = itemService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -34,7 +36,7 @@ public class EnhancementController : ControllerBase
 		var gameUserId = authUserData.GameUserId;
 		var itemId = request.ItemId;
 
-		var (errorCode, item) = await _enhancementService.LoadItemAsync(gameUserId, itemId);
+		var (errorCode, item) = await _itemService.LoadItemAsync(gameUserId, itemId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -61,7 +63,6 @@ public class EnhancementController : ControllerBase
 			return response;
 		}
 
-		
 
 		Boolean isSuccess = ItemEnhancer.TryEnhancement();
 
@@ -88,7 +89,7 @@ public class EnhancementController : ControllerBase
 		}
 		else
 		{
-			errorCode = await _enhancementService.DestroyItemAsync(gameUserId, itemId);
+			errorCode = await _itemService.DestroyItemAsync(gameUserId, itemId);
 			if (errorCode != ErrorCode.None)
 			{
 				await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
@@ -108,7 +109,7 @@ public class EnhancementController : ControllerBase
 			}
 			else
 			{
-				await _enhancementService.RollbackDestroyItemAsync(itemId);
+				await _itemService.RollbackDestroyItemAsync(itemId);
 			}
 
 			await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);

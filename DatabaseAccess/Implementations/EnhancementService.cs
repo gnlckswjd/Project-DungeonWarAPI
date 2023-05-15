@@ -11,32 +11,14 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class EnhancementService : IEnhancementService
+public class EnhancementService : DatabaseAccessBase, IEnhancementService
 {
-	private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-	private readonly ILogger<EnhancementService> _logger;
-
-	private readonly IDbConnection _databaseConnection;
-	private readonly QueryFactory _queryFactory;
-
-	public EnhancementService(ILogger<EnhancementService> logger, IOptions<DatabaseConfiguration> configurationOptions)
+	public EnhancementService(ILogger<EnhancementService> logger,QueryFactory queryFactory)
+		:base(logger, queryFactory)
 	{
-		_configurationOptions = configurationOptions;
-		_logger = logger;
-
-		_databaseConnection = new MySqlConnection(configurationOptions.Value.GameDatabase);
-		_databaseConnection.Open();
-
-		var compiler = new MySqlCompiler();
-		_queryFactory = new QueryFactory(_databaseConnection, compiler);
+		
 	}
 
-
-	public void Dispose()
-	{
-		_databaseConnection.Dispose();
-		//_queryFactory.Dispose();
-	}
 
 	public async Task<ErrorCode> ValidateEnoughGoldAsync(Int32 gameUserId, Int64 cost)
 	{
@@ -71,43 +53,7 @@ public class EnhancementService : IEnhancementService
 		}
 	}
 
-	public async Task<(ErrorCode, OwnedItem)> LoadItemAsync(Int32 gameUserId, Int64 itemId)
-	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "LoadItem Start");
-		try
-		{
-			var item = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.FirstOrDefaultAsync<OwnedItem>();
 
-			if (item == null)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadItemFailSelect, GameUserId = gameUserId, ItemId = itemId },
-					"LoadItemFailSelect");
-				return (ErrorCode.LoadItemFailSelect, new OwnedItem());
-			}
-
-
-			if (item.GameUserId != gameUserId)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadItemFailWrongGameUser, GameUserId = gameUserId, ItemId = itemId },
-					"LoadItemFailWrongGameUser");
-				return (ErrorCode.LoadItemFailWrongGameUser, new OwnedItem());
-			}
-
-
-			return (ErrorCode.None, item);
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
-				"LoadItemFailException");
-			return (ErrorCode.LoadItemFailException, new OwnedItem());
-		}
-	}
 
 	public async Task<ErrorCode> UpdateGoldAsync(Int32 gameUserId, Int32 gold)
 	{
@@ -136,7 +82,7 @@ public class EnhancementService : IEnhancementService
 		}
 	}
 
-	public async Task<ErrorCode> UpdateEnhancementResultAsync(int gameUserId, long itemId, int enhancementCount,
+	public async Task<ErrorCode> UpdateEnhancementResultAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount,
 		int attributeCode, int attack, int defense)
 	{
 		_logger.ZLogDebugWithPayload(
@@ -177,36 +123,6 @@ public class EnhancementService : IEnhancementService
 		}
 	}
 
-	public async Task<ErrorCode> DestroyItemAsync(Int32 gameUserId, Int64 itemId)
-	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "DestroyItem Start");
-
-		try
-		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.UpdateAsync(new { IsDestroyed = true });
-
-			if (count != 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.DestroyItemFailUpdate, GameUserId = gameUserId, ItemId = itemId },
-					"DestroyItemFailUpdate");
-
-				return ErrorCode.DestroyItemFailUpdate;
-			}
-
-			return ErrorCode.None;
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
-				"DestroyItemFailException");
-
-			return ErrorCode.DestroyItemFailException;
-		}
-	}
 
 	public async Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount,
 		Boolean isSuccess)
@@ -316,36 +232,7 @@ public class EnhancementService : IEnhancementService
 		}
 	}
 
-	public async Task<ErrorCode> RollbackDestroyItemAsync(Int64 itemId)
-	{
-		_logger.ZLogDebugWithPayload(new { ItemId = itemId }, "RollbackDestroyItem Start");
 
-		try
-		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
-				.UpdateAsync(new { IsDestroyed = false });
-
-			if (count != 1)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.RollbackDestroyItemFailUpdate, ItemId = itemId },
-					"RollbackDestroyItemFailUpdate");
-
-				return ErrorCode.RollbackDestroyItemFailUpdate;
-			}
-
-			return ErrorCode.None;
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId },
-				"RollbackDestroyItemFailException");
-
-			return ErrorCode.RollbackDestroyItemFailException;
-		}
-	}
 
 	private ErrorCode ValidateItemForEnhancement(Int32 gameUserId, OwnedItem item)
 	{

@@ -12,29 +12,13 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class DungeonStageService : IDungeonStageService
+public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 {
 
-	private readonly ILogger<DungeonStageService> _logger;
-
-
-	private readonly IDbConnection _databaseConnection;
-	private readonly QueryFactory _queryFactory;
-
-	public DungeonStageService(ILogger<DungeonStageService> logger,
-		QueryFactory queryFactory)
+	public DungeonStageService(ILogger<DungeonStageService> logger, QueryFactory queryFactory) 
+		: base(logger, queryFactory)
 	{
 
-		_logger = logger;
-
-		_queryFactory = queryFactory;
-	}
-
-
-	public void Dispose()
-	{
-		_databaseConnection.Dispose();
-		//_queryFactory.Dispose();
 	}
 
 	public async Task<(ErrorCode, Int32)> LoadStageListAsync(Int32 gameUserId)

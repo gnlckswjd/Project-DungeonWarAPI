@@ -7,18 +7,86 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class ItemService : IItemService
+public class ItemService : DatabaseAccessBase, IItemService
 {
-	private readonly ILogger<ItemService> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
-	private readonly QueryFactory _queryFactory;
 
-	public ItemService(ILogger<ItemService> logger, QueryFactory queryFactory, OwnedItemFactory ownedItemFactory)
+
+	public ItemService(ILogger<ItemService> logger, QueryFactory queryFactory, OwnedItemFactory ownedItemFactory) 
+		:base(logger,queryFactory)
 	{
-		_logger = logger;
 		_ownedItemFactory = ownedItemFactory;
-		_queryFactory = queryFactory;
+
 	}
+	public async Task<(ErrorCode, OwnedItem)> LoadItemAsync(Int32 gameUserId, Int64 itemId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "LoadItem Start");
+		try
+		{
+			var item = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.FirstOrDefaultAsync<OwnedItem>();
+
+			if (item == null)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadItemFailSelect, GameUserId = gameUserId, ItemId = itemId },
+					"LoadItemFailSelect");
+				return (ErrorCode.LoadItemFailSelect, new OwnedItem());
+			}
+
+
+			if (item.GameUserId != gameUserId)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.LoadItemFailWrongGameUser, GameUserId = gameUserId, ItemId = itemId },
+					"LoadItemFailWrongGameUser");
+				return (ErrorCode.LoadItemFailWrongGameUser, new OwnedItem());
+			}
+
+
+			return (ErrorCode.None, item);
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				e,
+				new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
+				"LoadItemFailException");
+			return (ErrorCode.LoadItemFailException, new OwnedItem());
+		}
+	}
+
+	public async Task<ErrorCode> DestroyItemAsync(Int32 gameUserId, Int64 itemId)
+	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "DestroyItem Start");
+
+		try
+		{
+			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { IsDestroyed = true });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.DestroyItemFailUpdate, GameUserId = gameUserId, ItemId = itemId },
+					"DestroyItemFailUpdate");
+
+				return ErrorCode.DestroyItemFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				e,
+				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
+				"DestroyItemFailException");
+
+			return ErrorCode.DestroyItemFailException;
+		}
+	}
+
 
 	public async Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<MailItem> items)
 	{
@@ -27,21 +95,8 @@ public class ItemService : IItemService
 		{
 			foreach (var item in items)
 			{
-				ErrorCode errorCode;
+				ErrorCode errorCode= await AddItemBasedOnCodeAsync(gameUserId,item.ItemCode,item.ItemCount,rollbackActions);
 
-				if (item.ItemCode == 1)
-				{
-					errorCode = await IncreaseGoldAsync(gameUserId, item.ItemCount, rollbackActions);
-				}
-				else if (item.ItemCode == 6)
-				{
-					errorCode = await IncreasePotionAsync(gameUserId, item.ItemCount, rollbackActions);
-				}
-				else
-				{
-					errorCode = await InsertOwnedItemAsync(gameUserId, item.ItemCode, item.ItemCount,
-						item.EnhancementCount, rollbackActions);
-				}
 
 				if (errorCode != ErrorCode.None)
 				{
@@ -50,12 +105,12 @@ public class ItemService : IItemService
 					_logger.ZLogErrorWithPayload(
 						new
 						{
-							ErrorCode = ErrorCode.ReceiveItemFailInsert,
+							ErrorCode = ErrorCode.InsertItemFailInsert,
 							GameUserId = gameUserId
 						},
-						"ReceiveItemFailInsert");
+						"InsertItemFailInsert");
 
-					return ErrorCode.ReceiveItemFailInsert;
+					return ErrorCode.InsertItemFailInsert;
 				}
 			}
 
@@ -67,11 +122,11 @@ public class ItemService : IItemService
 			_logger.ZLogErrorWithPayload(e,
 				new
 				{
-					ErrorCode = ErrorCode.ReceiveItemFailException,
+					ErrorCode = ErrorCode.InsertItemFailException,
 					GameUserId = gameUserId
 				},
-				"ReceiveItemFailException");
-			return ErrorCode.ReceiveItemFailException;
+				"InsertItemFailException");
+			return ErrorCode.InsertItemFailException;
 		}
 	}
 
@@ -83,30 +138,21 @@ public class ItemService : IItemService
 		{
 			foreach (var (itemCode, itemCount) in itemCodeList)
 			{
-				ErrorCode errorCode;
-
-				if (itemCode == (int)ItemCode.Gold)
-				{
-					errorCode = await IncreaseGoldAsync(gameUserId, itemCount, rollbackActions);
-				}
-				else if (itemCode == (int)ItemCode.Potion)
-				{
-					errorCode = await IncreasePotionAsync(gameUserId, itemCount, rollbackActions);
-				}
-				else
-				{
-					errorCode = await InsertOwnedItemAsync(gameUserId, itemCode, itemCount,
-						0,
-						rollbackActions);
-				}
+				ErrorCode errorCode = await AddItemBasedOnCodeAsync(gameUserId,itemCode,itemCount,rollbackActions);
 
 				if (errorCode != ErrorCode.None)
 				{
 					await RollbackReceiveItemAsync(rollbackActions);
-					_logger.ZLogErrorWithPayload(new
-							{ ErrorCode = ErrorCode.ReceiveItemFailInsert, GameUserId = gameUserId }
-						, "ReceiveItemFailInsert");
-					return ErrorCode.ReceiveItemFailInsert;
+
+					_logger.ZLogErrorWithPayload(
+						new
+						{
+							ErrorCode = ErrorCode.InsertItemFailInsert,
+							GameUserId = gameUserId
+						},
+						"InsertItemFailInsert");
+
+					return ErrorCode.InsertItemFailInsert;
 				}
 			}
 
@@ -117,11 +163,32 @@ public class ItemService : IItemService
 		{
 			await RollbackReceiveItemAsync(rollbackActions);
 			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.ReceiveItemFailException, GameUserId = gameUserId }
-				, "ReceiveItemFailException");
-			return ErrorCode.ReceiveItemFailException;
+				new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId }
+				, "InsertItemFailException");
+			return ErrorCode.InsertItemFailException;
 		}
 	}
+
+	private async Task<ErrorCode> AddItemBasedOnCodeAsync(Int32 gameUserId, Int32 itemCode ,Int32 itemCount, List<Func<Task>> rollbackActions)
+	{
+		ErrorCode errorCode= ErrorCode.None;
+		if (itemCode == (int)ItemCode.Gold)
+		{
+			errorCode = await IncreaseGoldAsync(gameUserId, itemCount, rollbackActions);
+		}
+		else if (itemCode == (int)ItemCode.Potion)
+		{
+			errorCode = await IncreasePotionAsync(gameUserId, itemCount, rollbackActions);
+		}
+		else
+		{
+			errorCode = await InsertOwnedItemAsync(gameUserId, itemCode, itemCount,
+				0, rollbackActions);
+		}
+
+		return errorCode;
+	}
+
 	private async Task<ErrorCode> IncreaseGoldAsync(Int32 gameUserId, Int32 itemCount, List<Func<Task>> rollbackActions)
 	{
 		var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
@@ -151,7 +218,36 @@ public class ItemService : IItemService
 		});
 		return ErrorCode.None;
 	}
+	public async Task<ErrorCode> RollbackDestroyItemAsync(Int64 itemId)
+	{
+		_logger.ZLogDebugWithPayload(new { ItemId = itemId }, "RollbackDestroyItem Start");
 
+		try
+		{
+			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+				.UpdateAsync(new { IsDestroyed = false });
+
+			if (count != 1)
+			{
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.RollbackDestroyItemFailUpdate, ItemId = itemId },
+					"RollbackDestroyItemFailUpdate");
+
+				return ErrorCode.RollbackDestroyItemFailUpdate;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(
+				e,
+				new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId },
+				"RollbackDestroyItemFailException");
+
+			return ErrorCode.RollbackDestroyItemFailException;
+		}
+	}
 
 	private async Task<ErrorCode> IncreasePotionAsync(Int32 gameUserId, Int32 itemCount,
 		List<Func<Task>> rollbackActions)
