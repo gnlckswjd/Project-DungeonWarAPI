@@ -4,103 +4,58 @@ namespace DungeonWarAPI;
 
 public class MemoryDatabaseKeyGenerator
 {
-	private const string loginUID = "UID_";
-	private const string lockKey = "ULock_";
-	private const string mailPageKey = "UMailPage_";
-	private const string stageKey = "UStage_";
-	private const string stageLevelKey = "UStageLevel";
-	private const string stageItemKey = "UStageItem_";
-	private const string stageNpcKey = "UStageNpc_";
+	private const String loginKeyPrefix = "UID_";
+	private const String lockKeyPrefix = "ULock_";
+				  
+	private const String stageKeyPrefix = "UStage_";
+	private const String stageLevelKeyPrefix = "UStageLevel";
+	private const String stageItemKeyPrefix = "UStageItem_";
+	private const String stageNpcKeyPrefix = "UStageNpc_";
 
 
-	public static string MakeUIDKey(string id)
+	public static String MakeUIDKey(String id)
 	{
-		return loginUID + id;
+		return loginKeyPrefix + id;
 	}
 
-	public static string MakeUserLockKey(string id)
+	public static String MakeUserLockKey(String id)
 	{
-		return lockKey + id;
+		return lockKeyPrefix + id;
 	}
 
-	public static string MakeMailPageKey(string id)
+	public static String MakeStageKey(String id)
 	{
-		return mailPageKey + id;
+		return stageKeyPrefix + id;
 	}
 
-	public static string MakeStageKey(string id)
+	public static String MakeStageLevelKey()
 	{
-		return stageKey + id;
+		return stageLevelKeyPrefix;
 	}
 
-	public static string MakeStageLevelKey()
+	public static String MakeStageItemKey(Int32 id)
 	{
-		return stageLevelKey;
+		return stageItemKeyPrefix + id;
 	}
 
-	public static string MakeStageItemKey(int id)
+	public static String MakeStageNpcKey(Int32 id)
 	{
-		return stageItemKey + id;
+		return stageNpcKeyPrefix + id;
 	}
 
-	public static string MakeStageNpcKey(int id)
+	public static String GetStageItemKeyPrefix()
 	{
-		return stageNpcKey + id;
+		return stageItemKeyPrefix;
 	}
 
-	public static (Int32 stageLevel, List<(Int32, Int32)> itemList, List<(Int32, Int32)> npcList) ParseStageData(
-		Dictionary<String, Int32> data)
+	public static String GetStageNpcKeyPrefix()
 	{
-		Int32 stageLevel = 0;
-		List<(Int32, Int32)> itemList = new List<(Int32, Int32)>();
-		List<(Int32, Int32)> npcList = new List<(Int32, Int32)>();
-
-		foreach (var pair in data)
-		{
-			String key = pair.Key;
-			Int32 value = pair.Value;
-
-			if (key.StartsWith(stageItemKey))
-			{
-				ParseAndAddItem(key,value,itemList);
-			}
-			else if (key.StartsWith(stageNpcKey))
-			{
-				Int32 code = int.Parse(key.Substring(stageNpcKey.Length));
-				npcList.Add((code, value));
-			}
-			else if (key.StartsWith(stageLevelKey))
-			{
-				stageLevel = value;
-			}
-		}
-
-		return (stageLevel, itemList, npcList);
+		return stageNpcKeyPrefix;
 	}
 
-
-	private static void ParseAndAddItem(String key, Int32 value, List<(Int32, Int32)> itemList)
+	public static String GetStageLevelKeyPrefix()
 	{
-		Int32 code = int.Parse(key.Substring(stageItemKey.Length));
-
-		switch (code)
-		{
-			case (int)ItemCode.Gold:
-			case (int)ItemCode.Potion:
-			{
-				itemList.Add((code, value));
-				break;
-			}
-
-			default:
-			{
-				for (int i = 0; i < value; i++)
-				{
-					itemList.Add((code, 1));
-				}
-
-				break;
-			}
-		}
+		return stageNpcKeyPrefix;
 	}
+
 }

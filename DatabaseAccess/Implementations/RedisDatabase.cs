@@ -263,7 +263,6 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
 
-
 			if (await redis.ExistsAsync(field) == false)
 			{
 				_logger.ZLogErrorWithPayload(
@@ -371,7 +370,7 @@ public class RedisDatabase : IMemoryDatabase
 				_logger.ZLogErrorWithPayload(
 					new { ErrorCode = ErrorCode.LoadStageDataFailGet, Key = key },
 					"LoadStageDataFailGet");
-				return (ErrorCode.LoadStageDataFailGet, new Dictionary<string, int>());
+				return (ErrorCode.LoadStageDataFailGet, new Dictionary<String, Int32>());
 			}
 
 			return (ErrorCode.None, dictionary);
@@ -381,39 +380,10 @@ public class RedisDatabase : IMemoryDatabase
 			_logger.ZLogErrorWithPayload(e,
 				new { ErrorCode = ErrorCode.LoadStageDataFailException, Key = key },
 				"LoadStageDataFailException");
-			return (ErrorCode.LoadStageDataFailException, new Dictionary<string, int>());
+			return (ErrorCode.LoadStageDataFailException, new Dictionary<String, Int32>());
 		}
 	}
-
-
-	public async Task<ErrorCode> StoreUserMailPageAsync(AuthUserData authUserData, Int32 pageNumber)
-	{
-		_logger.ZLogDebugWithPayload(new { authUserData.GameUserId, PageNumber = pageNumber },
-			"StoreUserMailPage Start");
-		var key = MemoryDatabaseKeyGenerator.MakeMailPageKey(authUserData.Email);
-		try
-		{
-			var redis = new RedisString<Int32>(_redisConnection, key, TimeSpan.FromHours(2));
-
-			if (await redis.SetAsync(pageNumber) == false)
-			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.StoreUserMailPageFailSet, authUserData.GameUserId },
-					"StoreUserMailPageFailSet");
-				return ErrorCode.StoreUserMailPageFailSet;
-			}
-
-			return ErrorCode.None;
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.StoreUserMailPageFailException, authUserData.GameUserId },
-				"StoreUserMailPageFailException");
-			return ErrorCode.StoreUserMailPageFailException;
-		}
-	}
-
+	
 	public async Task<ErrorCode> DeleteStageDataAsync(String key)
 	{
 		try

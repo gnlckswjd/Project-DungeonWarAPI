@@ -1,6 +1,7 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +45,7 @@ public class StageEndController : ControllerBase
 			return response;
 		}
 
-		var (stageLevel, itemCodeAndCount, npcCodeAndCount) = MemoryDatabaseKeyGenerator.ParseStageData(dictionary);
+		var (stageLevel, itemCodeAndCount, npcCodeAndCount) = StageDataParser.ParseStageData(dictionary);
 
 		var (isCleared, earnedExp) = _masterDataManager.CheckClearAndGetExp(stageLevel, npcCodeAndCount);
 
