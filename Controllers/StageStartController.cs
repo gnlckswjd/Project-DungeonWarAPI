@@ -36,6 +36,7 @@ public class StageStartController : ControllerBase
 		var gameUserId = authUserData.GameUserId;
 		var selectedStageLevel = request.SelectedStageLevel;
 
+		//시작 중은 아닌지? 게임 플레이가 가능한지 검증
 		var errorCode = await CheckStageAccessibility(gameUserId, selectedStageLevel);
 		if (errorCode != 0)
 		{
@@ -54,6 +55,7 @@ public class StageStartController : ControllerBase
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 		var stageKeyValueList = StageInitializer.CreateInitialKeyValue(itemList, npcList, selectedStageLevel);
 
+		//던전 정보 어디까지 저장할까, 현재 개수와 최대개수도 넣으면 좋다. NPC와 아이템 별개로 할지
 		errorCode = await _memoryDatabase.StoreStageDataAsync(key,stageKeyValueList);
 		if (errorCode != ErrorCode.None)
 		{

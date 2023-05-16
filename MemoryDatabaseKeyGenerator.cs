@@ -55,7 +55,7 @@ public class MemoryDatabaseKeyGenerator
 
 	public static String GetStageLevelKeyPrefix()
 	{
-		return stageNpcKeyPrefix;
+		return stageLevelKeyPrefix;
 	}
 
 }

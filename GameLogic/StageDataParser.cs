@@ -41,6 +41,10 @@ public static class StageDataParser
 
 	private static void ParseAndAddItem(String key, Int32 value, List<(Int32, Int32)> itemList, String stageItemKeyPrefix)
 	{
+		if (value == 0)
+		{
+			return;
+		}
 		Int32 code = Int32.Parse(key.Substring(stageItemKeyPrefix.Length));
 
 		switch (code)

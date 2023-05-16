@@ -47,11 +47,12 @@ public class StageEndController : ControllerBase
 
 		var (stageLevel, itemCodeAndCount, npcCodeAndCount) = StageDataParser.ParseStageData(dictionary);
 
-		var (isCleared, earnedExp) = _masterDataManager.CheckClearAndGetExp(stageLevel, npcCodeAndCount);
+		var stageNpcList = _masterDataManager.GetStageNpcList(stageLevel);
+		var (isCleared, earnedExp) = StageClearEvaluator.CheckClearAndCalcExp(stageNpcList, npcCodeAndCount);
 
 		if (isCleared == false)
 		{
-			await _memoryDatabase.DeleteStageDataAsync(key);
+			//await _memoryDatabase.DeleteStageDataAsync(key);
 			response.IsCleared = isCleared;
 			response.Error = ErrorCode.None;
 			return response;
@@ -86,6 +87,7 @@ public class StageEndController : ControllerBase
 			return errorCode;
 		}
 
+		//우편함에 주는 것 고려 정책
 		errorCode = await _itemService.InsertItemsAsync(gameUserId, itemCodeAndCount);
 		if (errorCode != ErrorCode.None)
 		{

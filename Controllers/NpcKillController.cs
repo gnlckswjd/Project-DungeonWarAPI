@@ -36,6 +36,11 @@ public class NpcKillController : Controller
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
 		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode);
+		if (errorCode != ErrorCode.None)
+		{
+			response.Error=errorCode;
+			return response;
+		}
 
 		if (npcKillCount >= maxNpcCount)
 		{
