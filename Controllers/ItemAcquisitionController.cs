@@ -5,6 +5,7 @@ using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -30,7 +31,7 @@ public class ItemAcquisitionController : ControllerBase
 	[HttpPost]
 	public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new ItemAcquisitionResponse();
 		var gameUserId = authUserData.GameUserId;
 
@@ -38,14 +39,15 @@ public class ItemAcquisitionController : ControllerBase
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, itemAcquisitionCount, maxItemCount) = await LoadAcquisitionAndMaxItemCountAsync(key, itemCode);
+		var (errorCode, itemAcquisitionCount, maxItemCount) =
+			await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, authUserData.State);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		Int32 requestAcquisitionCount= request.ItemCount;
+		Int32 requestAcquisitionCount = request.ItemCount;
 
 		if (itemCode != (Int32)ItemCode.Gold && itemCode != (Int32)ItemCode.Potion)
 		{
@@ -69,8 +71,16 @@ public class ItemAcquisitionController : ControllerBase
 		return response;
 	}
 
-	private async Task<(ErrorCode, Int32 itemAcquisitionCount, Int32 maxItemSpawnCount)> LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode)
+	private async Task<(ErrorCode, Int32 itemAcquisitionCount, Int32 maxItemSpawnCount)>
+		LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode, Int32 gameUserId, UserStateCode state)
 	{
+		if (state != UserStateCode.InStage)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.WrongUserState, GameUserId = gameUserId },
+				"CheckStageAccessibility");
+			return (ErrorCode.WrongUserState, 0, 0);
+		}
+
 		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
 		if (errorCode != ErrorCode.None)
 		{

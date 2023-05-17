@@ -23,7 +23,7 @@ public class MailListController : ControllerBase
 	[HttpPost]
 	public async Task<MailListResponse> Post(MailListRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new MailListResponse();
 		var gameUserId = authUserData.GameUserId;
 

@@ -8,7 +8,7 @@ public interface IMemoryDatabase
 {
     Task<ErrorCode> RegisterUserAsync(String id, String authToken, UserData userData);
     Task<(ErrorCode, List<String>)> LoadNotificationsAsync();
-    Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(String email);
+    Task<(ErrorCode, UserAuthAndState)> LoadAuthUserDataAsync(String email);
     Task<ErrorCode> LockUserRequestAsync(String key, String authToken);
     Task<ErrorCode> UnLockUserRequestAsync(String key);
     Task<ErrorCode> StoreStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
@@ -19,4 +19,5 @@ public interface IMemoryDatabase
     Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode);
     Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key);
     Task<ErrorCode> DeleteStageDataAsync(String key);
+    public Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState, UserStateCode stateCode);
 }

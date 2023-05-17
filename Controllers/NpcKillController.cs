@@ -4,6 +4,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -29,13 +30,13 @@ public class NpcKillController : Controller
 	[HttpPost]
 	public async Task<NpcKillResponse> Post(NpcKillRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new NpcKillResponse();
 		var gameUserId = authUserData.GameUserId;
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode);
+		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode,gameUserId,authUserData.State);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error=errorCode;
@@ -59,8 +60,15 @@ public class NpcKillController : Controller
 		return response;
 	}
 
-	private async Task<(ErrorCode, Int32 killCount, Int32 maxNpcCount)> LoadKillAndMaxNpcCountAsync(String key, Int32 npcCode)
+	private async Task<(ErrorCode, Int32 killCount, Int32 maxNpcCount)> LoadKillAndMaxNpcCountAsync(String key, Int32 npcCode,Int32 gameUserId, UserStateCode state)
 	{
+		if (state != UserStateCode.InStage)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.WrongUserState, GameUserId = gameUserId },
+				"CheckStageAccessibility");
+			return (ErrorCode.WrongUserState, 0, 0);
+		}
+
 		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
 		if (errorCode != ErrorCode.None)
 		{

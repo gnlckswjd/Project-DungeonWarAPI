@@ -22,7 +22,7 @@ public class ReadMailController : ControllerBase
 	[HttpPost]
 	public async Task<ReadMailResponse> Post(ReadMailRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new ReadMailResponse();
 
 		var ownerId = authUserData.GameUserId;

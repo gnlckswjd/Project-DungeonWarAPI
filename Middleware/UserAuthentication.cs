@@ -125,7 +125,7 @@ public class UserAuthentication
 				return;
 			}
 
-			context.Items[nameof(AuthUserData)] = authUserData;
+			context.Items[nameof(UserAuthAndState)] = authUserData;
 		}
 
 		context.Request.Body.Position = 0;
@@ -202,9 +202,9 @@ public class UserAuthentication
 		return false;
 	}
 
-	async Task<bool> IsAuthTokenWrong(AuthUserData authUserData, String authToken, HttpContext context)
+	async Task<bool> IsAuthTokenWrong(UserAuthAndState userAuthAndState, String authToken, HttpContext context)
 	{
-		if (String.CompareOrdinal(authUserData.AuthToken, authToken) != 0)
+		if (String.CompareOrdinal(userAuthAndState.AuthToken, authToken) != 0)
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{

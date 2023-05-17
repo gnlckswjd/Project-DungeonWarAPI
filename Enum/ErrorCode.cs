@@ -60,6 +60,10 @@ public enum ErrorCode : int
 	LoadUserDataFailException = 226,
 	LoadUserDataFailSelect = 227,
 
+	UpdateUserStateFailException=228,
+	UpdateUserStateFailSet=228,
+
+
 	LoadUserItemsFailException = 230,
 	LoadUserItemsFailSelect = 231,
 
@@ -175,6 +179,7 @@ public enum ErrorCode : int
 
 	CanNotEnhancement = 375,
 	WrongItemCode = 376,
+	WrongUserState = 377,
 
 	UpdateGoldFailException = 380,
 	UpdateGoldFailIncrease = 381,

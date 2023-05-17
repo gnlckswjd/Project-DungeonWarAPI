@@ -26,7 +26,7 @@ public class InAppController : ControllerBase
 	[HttpPost]
 	public async Task<InAppResponse> Post(InAppRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new InAppResponse();
 
 		var gameUserId = authUserData.GameUserId;

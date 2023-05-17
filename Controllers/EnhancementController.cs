@@ -30,7 +30,7 @@ public class EnhancementController : ControllerBase
 	[HttpPost]
 	public async Task<EnhancementResponse> Post(EnhancementRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new EnhancementResponse();
 
 		var gameUserId = authUserData.GameUserId;

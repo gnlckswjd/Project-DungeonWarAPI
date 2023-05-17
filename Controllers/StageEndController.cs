@@ -4,8 +4,10 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -33,12 +35,13 @@ public class StageEndController : ControllerBase
 	[HttpPost]
 	public async Task<StageEndResponse> Post(StageEndRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new StageEndResponse();
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
+		var state = userAuthAndState.State;
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, dictionary) = await _memoryDatabase.LoadStageDataAsync(key);
+		var (errorCode, dictionary) = await LoadStageDataIfUserInStageAsync(key,gameUserId,state);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -58,9 +61,18 @@ public class StageEndController : ControllerBase
 			return response;
 		}
 
+		var userKey = MemoryDatabaseKeyGenerator.MakeUIDKey(request.Email);
+		errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.Lobby);
+		if (errorCode != ErrorCode.None)
+		{
+			response.Error = errorCode;
+			return response;
+		}
+
 		errorCode = await ProcessStageCompletionAsync(gameUserId, stageLevel, earnedExp, itemCodeAndCount);
 		if (errorCode != ErrorCode.None)
 		{
+			await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.InStage);
 			response.Error = errorCode;
 			return response;
 		}
@@ -69,6 +81,24 @@ public class StageEndController : ControllerBase
 		response.IsCleared = isCleared;
 		response.Error = ErrorCode.None;
 		return response;
+	}
+
+	private async Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataIfUserInStageAsync(String key, Int32 gameUserId, UserStateCode state)
+	{
+		if (state != UserStateCode.InStage)
+		{
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.WrongUserState, GameUserId = gameUserId },
+				"CheckStageAccessibility");
+			return (ErrorCode.WrongUserState, new Dictionary<String, Int32>());
+		}
+
+		var (errorCode, dictionary) = await _memoryDatabase.LoadStageDataAsync(key);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, new Dictionary<String, Int32>());
+		}
+
+		return (ErrorCode.None,dictionary);
 	}
 
 	private async Task<ErrorCode> ProcessStageCompletionAsync(Int32 gameUserId, Int32 stageLevel, Int32 earnedExp, List<(Int32, Int32)> itemCodeAndCount)
@@ -99,4 +129,5 @@ public class StageEndController : ControllerBase
 
 		return ErrorCode.None;
 	}
+
 }

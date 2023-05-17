@@ -21,7 +21,7 @@ public class DeleteMailController : Controller
 	[HttpPost]
 	public async Task<DeleteMailResponse> Post(DeleteMailRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthUserData)] as AuthUserData;
+		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new DeleteMailResponse();
 
 		var ownerId = authUserData.GameUserId;

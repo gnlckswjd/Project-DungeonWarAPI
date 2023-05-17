@@ -27,17 +27,18 @@ public class RedisDatabase : IMemoryDatabase
 		_logger.ZLogDebugWithPayload(new { Email = email }, "RegisterUser Start");
 
 		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(email);
-		var authInfo = new AuthUserData
+		var authInfo = new UserAuthAndState
 		{
 			Email = email,
 			AuthToken = authToken,
 			GameUserId = uesrData.GameUserId,
 			PlayerId = uesrData.PlayerId,
+			State = UserStateCode.Lobby
 		};
 
 		try
 		{
-			var redis = new RedisString<AuthUserData>(_redisConnection, key, TimeSpan.FromMinutes(60));
+			var redis = new RedisString<UserAuthAndState>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(authInfo) == false)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RegisterUserFailSet, Email = email },
@@ -85,19 +86,19 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<(ErrorCode, AuthUserData)> LoadAuthUserDataAsync(String email)
+	public async Task<(ErrorCode, UserAuthAndState)> LoadAuthUserDataAsync(String email)
 	{
 		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(email);
 		_logger.ZLogDebugWithPayload(new { Email = email, Key = key }, "LoadAuthUserData Start");
 		try
 		{
-			var redis = new RedisString<AuthUserData>(_redisConnection, key, null);
+			var redis = new RedisString<UserAuthAndState>(_redisConnection, key, null);
 			var userData = await redis.GetAsync();
 			if (!userData.HasValue)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadAuthUserDataFailEmpty, Key = key },
 					"LoadAuthUserDataFailEmpty");
-				return (ErrorCode.LoadAuthUserDataFailEmpty, new AuthUserData());
+				return (ErrorCode.LoadAuthUserDataFailEmpty, new UserAuthAndState());
 			}
 
 			return (ErrorCode.None, userData.Value);
@@ -106,7 +107,7 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadAuthUserDataFailException, Key = key },
 				"LoadAuthUserDataFailException");
-			return (ErrorCode.LoadAuthUserDataFailException, new AuthUserData());
+			return (ErrorCode.LoadAuthUserDataFailException, new UserAuthAndState());
 		}
 	}
 
@@ -146,7 +147,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisString<AuthUserData>(_redisConnection, key, null);
+			var redis = new RedisString<UserAuthAndState>(_redisConnection, key, null);
 			if (await redis.DeleteAsync() == false)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UnLockUserRequestFailDelete, Key = key },
@@ -406,6 +407,33 @@ public class RedisDatabase : IMemoryDatabase
 				"DeleteStageDataFailException");
 			return ErrorCode.DeleteStageDataFailException;
 		}
+	}
+
+	public async Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState, UserStateCode stateCode)
+	{
+		_logger.ZLogDebugWithPayload(new{Key=key},"UpdateUserState Start");
+		try
+		{
+			userAuthAndState.State=stateCode;
+
+			var redis = new RedisString<UserAuthAndState>(_redisConnection, key, TimeSpan.FromMinutes(60));
+			if (await redis.SetAsync(userAuthAndState) == false)
+			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key},
+					"UpdateUserStateFailSet");
+				return ErrorCode.UpdateUserStateFailSet;
+			}
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new { ErrorCode = ErrorCode.UpdateUserStateFailException, Key = key },
+				"UpdateUserStateFailException");
+			return ErrorCode.UpdateUserStateFailException;
+		}
+
+
+		return ErrorCode.None;
 	}
 
 	private async Task<ErrorCode> DeleteStageDataAsync(RedisDictionary<String, Int32> redis, String key)
