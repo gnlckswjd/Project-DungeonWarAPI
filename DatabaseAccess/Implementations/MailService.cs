@@ -13,13 +13,11 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class MailService : DatabaseAccessBase,IMailService
+public class MailService : DatabaseAccessBase, IMailService
 {
-
-	public MailService(ILogger<MailService> logger, QueryFactory queryFactory) 
-		: base(logger,queryFactory)
+	public MailService(ILogger<MailService> logger, QueryFactory queryFactory)
+		: base(logger, queryFactory)
 	{
-		
 	}
 
 	public async Task<(ErrorCode, List<Mail>)> LoadMailListAsync(Int32 gameUserId, Int32 pageNumber)
@@ -89,7 +87,9 @@ public class MailService : DatabaseAccessBase,IMailService
 				.UpdateAsync(new { IsRead = true });
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.ReadMailFailUpdate, GameUserId = gameUserId, MailId = mailId }, "ReadMailFailUpdate");
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.ReadMailFailUpdate, GameUserId = gameUserId, MailId = mailId },
+					"ReadMailFailUpdate");
 				return (ErrorCode.ReadMailFailUpdate, "");
 			}
 
@@ -184,7 +184,7 @@ public class MailService : DatabaseAccessBase,IMailService
 			return ErrorCode.RollbackMarkMailItemAsReceiveFailException;
 		}
 	}
-	
+
 
 	public async Task<ErrorCode> DeleteMailAsync(Int32 gameUserId, Int64 mailId)
 	{
@@ -382,7 +382,6 @@ public class MailService : DatabaseAccessBase,IMailService
 			return (ErrorCode.GetMailItemsFailException, new List<MailItem>());
 		}
 	}
-
 
 
 	private ErrorCode ValidateUserAndFlagIsReceive(Int32 gameUserId, Int32 mailOwnerId, Int64 mailId,

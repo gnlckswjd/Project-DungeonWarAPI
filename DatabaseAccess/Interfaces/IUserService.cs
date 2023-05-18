@@ -7,10 +7,13 @@ public interface IUserService
 {
     public Task<(ErrorCode, Int32)> CreateUserAsync(Int32 accountId);
     public Task<ErrorCode> CreateUserAttendanceAsync(Int32 gameUserId);
-    public Task<ErrorCode> RollbackCreateUserAttendanceAsync(Int32 gameUserId);
     public Task<ErrorCode> CreateUserStageAsync(Int32 gameUserId);
-    public Task<ErrorCode> RollbackCreateUserStageAsync(Int32 gameUserId);
-    public Task<ErrorCode> RollbackCreateUserAsync(Int32 gameId);
+
     public Task<(ErrorCode, UserData)> LoadUserDataAsync(Int32 playerId);
     public Task<(ErrorCode, List<OwnedItem>)> LoadUserItemsAsync(Int32 gameUserId);
+
+	public Task<ErrorCode> RollbackCreateUserAttendanceAsync(Int32 gameUserId);
+	public Task<ErrorCode> RollbackCreateUserStageAsync(Int32 gameUserId);
+    public Task<ErrorCode> RollbackCreateUserAsync(Int32 gameId);
+
 }
