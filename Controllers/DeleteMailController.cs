@@ -21,10 +21,10 @@ public class DeleteMailController : Controller
 	[HttpPost]
 	public async Task<DeleteMailResponse> Post(DeleteMailRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new DeleteMailResponse();
 
-		var ownerId = authUserData.GameUserId;
+		var ownerId = userAuthAndState.GameUserId;
 
 		var errorCode = await _mailService.DeleteMailAsync(ownerId, request.MailId);
 

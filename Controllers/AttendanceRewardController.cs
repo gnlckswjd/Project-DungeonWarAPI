@@ -29,10 +29,10 @@ public class AttendanceRewardController : ControllerBase
 	[HttpPost]
 	public async Task<AttendanceRewardResponse> Post(AttendanceRewardRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new AttendanceRewardResponse();
 
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 
 		var (errorCode, lastLoginDate, attendanceCount) = await _attendanceRewardService.UpdateLoginDateAsync(gameUserId);
 

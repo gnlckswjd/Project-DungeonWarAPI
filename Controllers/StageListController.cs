@@ -26,9 +26,9 @@ public class StageListController : ControllerBase
 	[HttpPost]
 	public async Task<StageListResponse> Post(StageListRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new StageListResponse();
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 
 		var (errorCode, maxClearedStage )= await _dungeonStageService.LoadStageListAsync(gameUserId);
 		if (errorCode != ErrorCode.None)

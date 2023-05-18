@@ -22,10 +22,10 @@ public class ReadMailController : ControllerBase
 	[HttpPost]
 	public async Task<ReadMailResponse> Post(ReadMailRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new ReadMailResponse();
 
-		var ownerId = authUserData.GameUserId;
+		var ownerId = userAuthAndState.GameUserId;
 
 		var (errorCode, content )= await _mailService.ReadMailAsync(ownerId, request.MailId);
 

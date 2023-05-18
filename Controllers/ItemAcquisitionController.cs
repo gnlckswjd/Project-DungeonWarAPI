@@ -1,6 +1,7 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
@@ -31,36 +32,31 @@ public class ItemAcquisitionController : ControllerBase
 	[HttpPost]
 	public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new ItemAcquisitionResponse();
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 
 		var itemCode = request.ItemCode;
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, itemAcquisitionCount, maxItemCount) =
-			await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, authUserData.State);
+		var (errorCode, currentItemCount, maxItemCount) =
+			await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, userAuthAndState.State);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		Int32 requestAcquisitionCount = request.ItemCount;
-
-		if (itemCode != (Int32)ItemCode.Gold && itemCode != (Int32)ItemCode.Potion)
+		(errorCode, var itemCount) =
+			StageRequestVerifier.VerifyItemCount(itemCode, currentItemCount, request.ItemCount, maxItemCount);
+		if (errorCode != ErrorCode.None)
 		{
-			requestAcquisitionCount = 1;
-		}
-
-		if (itemAcquisitionCount + requestAcquisitionCount > maxItemCount)
-		{
-			response.Error = ErrorCode.ExceedItemCount;
+			response.Error = errorCode;
 			return response;
 		}
-
-		errorCode = await _memoryDatabase.IncrementItemCountAsync(key, itemCode, requestAcquisitionCount);
+		
+		errorCode = await _memoryDatabase.IncrementItemCountAsync(key, itemCode, itemCount);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -71,8 +67,7 @@ public class ItemAcquisitionController : ControllerBase
 		return response;
 	}
 
-	private async Task<(ErrorCode, Int32 itemAcquisitionCount, Int32 maxItemSpawnCount)>
-		LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode, Int32 gameUserId, UserStateCode state)
+	private async Task<(ErrorCode, Int32 currentItemCount, Int32 maxItemSpawnCount)> LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode, Int32 gameUserId, UserStateCode state)
 	{
 		if (state != UserStateCode.InStage)
 		{
@@ -93,12 +88,12 @@ public class ItemAcquisitionController : ControllerBase
 			return (ErrorCode.WrongItemCode, 0, 0);
 		}
 
-		(errorCode, var itemAcquisitionCount) = await _memoryDatabase.LoadItemAcquisitionCountAsync(key, itemCode);
+		(errorCode, var currentItemCount) = await _memoryDatabase.LoadItemAcquisitionCountAsync(key, itemCode);
 		if (errorCode != ErrorCode.None)
 		{
 			return (errorCode, 0, 0);
 		}
 
-		return (ErrorCode.None, itemAcquisitionCount, stageItem.ItemCount);
+		return (ErrorCode.None, currentItemCount, stageItem.ItemCount);
 	}
 }

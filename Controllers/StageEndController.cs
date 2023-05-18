@@ -51,7 +51,7 @@ public class StageEndController : ControllerBase
 		var (stageLevel, itemCodeAndCount, npcCodeAndCount) = StageDataParser.ParseStageData(dictionary);
 
 		var stageNpcList = _masterDataManager.GetStageNpcList(stageLevel);
-		var (isCleared, earnedExp) = StageClearEvaluator.CheckClearAndCalcExp(stageNpcList, npcCodeAndCount);
+		var (isCleared, earnedExp) = StageRequestVerifier.VerifyClearAndCalcExp(stageNpcList, npcCodeAndCount);
 
 		if (isCleared == false)
 		{

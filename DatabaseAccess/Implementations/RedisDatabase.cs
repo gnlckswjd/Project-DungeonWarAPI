@@ -272,11 +272,6 @@ public class RedisDatabase : IMemoryDatabase
 				return ErrorCode.IncrementItemFailNoExist;
 			}
 
-			if (itemCode != (Int32)ItemCode.Gold && itemCode != (Int32)ItemCode.Potion)
-			{
-				ItemCount = 1;
-			}
-
 			var value = await redis.IncrementAsync(field, ItemCount);
 
 			if (value == 0)

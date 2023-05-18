@@ -30,10 +30,10 @@ public class EnhancementController : ControllerBase
 	[HttpPost]
 	public async Task<EnhancementResponse> Post(EnhancementRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new EnhancementResponse();
 
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 		var itemId = request.ItemId;
 
 		var (errorCode, item) = await _itemService.LoadItemAsync(gameUserId, itemId);

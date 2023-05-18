@@ -23,9 +23,9 @@ public class MailListController : ControllerBase
 	[HttpPost]
 	public async Task<MailListResponse> Post(MailListRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new MailListResponse();
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 
 		var (errorCode, mails) = await _mailService.LoadMailListAsync(gameUserId, request.PageNumber);
 		if (errorCode != ErrorCode.None)

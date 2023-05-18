@@ -24,9 +24,9 @@ public class ReceiveMailItemController : ControllerBase
 	[HttpPost]
 	public async Task<ReceiveMailItemResponse> Post(ReceiveMailItemRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
 		var response = new ReceiveMailItemResponse();
-		var gameUserId = authUserData.GameUserId;
+		var gameUserId = userAuthAndState.GameUserId;
 
 		var errorCode = await _mailService.MarkMailAsReceiveAsync(gameUserId, request.MailId);
 		if (errorCode != ErrorCode.None)
