@@ -46,11 +46,13 @@ void DependencyInjection()
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
 	builder.Services.AddSingleton<MasterDataManager>();
 	builder.Services.AddSingleton<OwnedItemFactory>();
+	builder.Services.AddSingleton<ChatRoomAllocator>();
 	builder.Services.AddScoped<QueryFactory>(provider =>
 	{
 		var config = provider.GetRequiredService<IOptions<DatabaseConfiguration>>();
 		var connection = new MySqlConnection(config.Value.GameDatabase);
 		connection.Open();
+
 		var queryFactory = new QueryFactory(connection, new MySqlCompiler());
 		return queryFactory;
 	});
@@ -67,7 +69,7 @@ void SetLogger()
 		Directory.CreateDirectory(fileDirection);
 	}
 
-	logging.AddZLoggerFile($"{fileDirection}/MailLog.log");
+	logging.AddZLoggerFile($"{fileDirection}/MainLog.log");
 
 	logging.AddZLoggerRollingFile(
 		fileNameSelector: (dt, x) => $"{fileDirection}/{dt.ToLocalTime():yyyy-MM-dd}_{x:000}.log",

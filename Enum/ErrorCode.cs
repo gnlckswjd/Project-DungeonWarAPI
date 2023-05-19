@@ -70,8 +70,8 @@ public enum ErrorCode : int
 	LoadNotificationsFailException = 232,
 	LoadNotificationsZeroNotification = 233,
 
-	StoreStageDataException = 235,
-	StoreStageDataFailDelete = 236,
+	InsertStageDataException = 235,
+	InsertStageDataFailDelete = 236,
 	IncrementItemFailException = 237,
 	IncrementItemFailIncrease = 238,
 	IncrementItemFailNoExist = 239,
@@ -213,6 +213,12 @@ public enum ErrorCode : int
 	UpdateMaxClearedStageFailIncrement = 516,
 	RollbackUpdateMaxClearedStageFailException = 515,
 	RollbackUpdateMaxClearedStageFailDecrement = 516,
+
+	InsertChatMessageFailException = 600,
+	InsertChatMessageFailInsert=601,
+
+	LoadLatestChatMessageFailException = 602,
+	LoadLatestChatMessageFailGet= 603,
 
 
 	InvalidRequestHttpBody = 1000,

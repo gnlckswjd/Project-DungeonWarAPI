@@ -1,9 +1,9 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using DungeonWarAPI.Models.DAO.Account;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Enum;
+using DungeonWarAPI.Models.DAO.Redis;
 
 namespace DungeonWarAPI.Controllers;
 

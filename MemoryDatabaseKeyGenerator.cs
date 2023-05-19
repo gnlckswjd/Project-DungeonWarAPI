@@ -8,9 +8,11 @@ public class MemoryDatabaseKeyGenerator
 	private const String lockKeyPrefix = "ULock_";
 				  
 	private const String stageKeyPrefix = "UStage_";
-	private const String stageLevelKeyPrefix = "UStageLevel";
-	private const String stageItemKeyPrefix = "UStageItem_";
-	private const String stageNpcKeyPrefix = "UStageNpc_";
+	private const String stageLevelKeyPrefix = "StageLevel";
+	private const String stageItemKeyPrefix = "StageItem_";
+	private const String stageNpcKeyPrefix = "StageNpc_";
+
+	private const String channelKeyPrefix = "Channel_";
 
 
 	public static String MakeUIDKey(String id)
@@ -41,6 +43,11 @@ public class MemoryDatabaseKeyGenerator
 	public static String MakeStageNpcKey(Int32 id)
 	{
 		return stageNpcKeyPrefix + id;
+	}
+
+	public static String MakeChannelKey(Int32 id)
+	{
+		return channelKeyPrefix+id;
 	}
 
 	public static String GetStageItemKeyPrefix()

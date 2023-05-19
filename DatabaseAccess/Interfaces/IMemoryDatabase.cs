@@ -1,5 +1,5 @@
 ﻿using DungeonWarAPI.Enum;
-using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.DatabaseAccess.Interfaces;
@@ -16,11 +16,17 @@ public interface IMemoryDatabase
     Task<(ErrorCode, Int32 itemAcquisitionCount)> LoadItemAcquisitionCountAsync(String key,Int32 itemCode);
     Task<(ErrorCode, Int32 npcKillCount)> LoadNpcKillCountAsync(String key, Int32 npcCode);
     Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key);
+    Task<(ErrorCode, ChatMessageReceived )> LoadLatestChatMessageAsync(String key, String MessageId);
 
-    Task<ErrorCode> StoreStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
+	Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
+	Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSended chatMessageSended);
+
 	Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount);
 	Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode);
 	Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState, UserStateCode stateCode);
 	Task<ErrorCode> DeleteStageDataAsync(String key);
-    
+
+
+
+	
 }

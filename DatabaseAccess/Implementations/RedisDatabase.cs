@@ -1,25 +1,32 @@
-﻿using CloudStructures;
+﻿using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
+using CloudStructures;
 using CloudStructures.Structures;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
+using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.ModelConfiguration;
-using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.Database.Game;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class RedisDatabase : IMemoryDatabase
 {
-	public RedisConnection _redisConnection;
+	private RedisConnection _redisConnection;
 	private ILogger<RedisDatabase> _logger;
+	private ChatRoomAllocator _chatRoomAllocator;
 
-	public RedisDatabase(IOptions<DatabaseConfiguration> configuration, ILogger<RedisDatabase> logger)
+	public RedisDatabase(IOptions<DatabaseConfiguration> configuration, ILogger<RedisDatabase> logger,
+		ChatRoomAllocator chatRoomAllocator)
 	{
 		var config = new RedisConfig("default", configuration.Value.Redis);
 		_redisConnection = new RedisConnection(config);
 		_logger = logger;
+		_chatRoomAllocator = chatRoomAllocator;
 	}
 
 	public async Task<ErrorCode> RegisterUserAsync(String email, String authToken, UserData uesrData)
@@ -33,7 +40,8 @@ public class RedisDatabase : IMemoryDatabase
 			AuthToken = authToken,
 			GameUserId = uesrData.GameUserId,
 			PlayerId = uesrData.PlayerId,
-			State = UserStateCode.Lobby
+			State = UserStateCode.Lobby,
+			ChannelNumber = (Int32)_chatRoomAllocator.AllocateRoomNumber()
 		};
 
 		try
@@ -165,7 +173,7 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> StoreStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList)
+	public async Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "StoreStageData Start");
 		try
@@ -177,9 +185,9 @@ public class RedisDatabase : IMemoryDatabase
 				var errorCode = await DeleteStageDataAsync(redis, key);
 				if (errorCode != ErrorCode.None)
 				{
-					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.StoreStageDataFailDelete, Key = key },
-						"StoreStageDataFailDelete");
-					return ErrorCode.StoreStageDataFailDelete;
+					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InsertStageDataFailDelete, Key = key },
+						"InsertStageDataFailDelete");
+					return ErrorCode.InsertStageDataFailDelete;
 				}
 			}
 
@@ -189,9 +197,9 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.StoreStageDataException, Key = key },
-				"StoreStageDataException");
-			return ErrorCode.StoreStageDataException;
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertStageDataException, Key = key },
+				"InsertStageDataException");
+			return ErrorCode.InsertStageDataException;
 		}
 	}
 
@@ -312,7 +320,7 @@ public class RedisDatabase : IMemoryDatabase
 				return (ErrorCode.LoadNpcKillCountFailGet, 0);
 			}
 
-			return (ErrorCode.None,value.Value);
+			return (ErrorCode.None, value.Value);
 		}
 		catch (Exception e)
 		{
@@ -379,7 +387,7 @@ public class RedisDatabase : IMemoryDatabase
 			return (ErrorCode.LoadStageDataFailException, new Dictionary<String, Int32>());
 		}
 	}
-	
+
 	public async Task<ErrorCode> DeleteStageDataAsync(String key)
 	{
 		try
@@ -404,17 +412,18 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState, UserStateCode stateCode)
+	public async Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState,
+		UserStateCode stateCode)
 	{
-		_logger.ZLogDebugWithPayload(new{Key=key},"UpdateUserState Start");
+		_logger.ZLogDebugWithPayload(new { Key = key }, "UpdateUserState Start");
 		try
 		{
-			userAuthAndState.State=stateCode;
+			userAuthAndState.State = stateCode;
 
 			var redis = new RedisString<UserAuthAndState>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(userAuthAndState) == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key},
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key },
 					"UpdateUserStateFailSet");
 				return ErrorCode.UpdateUserStateFailSet;
 			}
@@ -429,6 +438,91 @@ public class RedisDatabase : IMemoryDatabase
 
 
 		return ErrorCode.None;
+	}
+
+	public async Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSended chatMessageSended)
+	{
+		_logger.ZLogDebugWithPayload(new { Key = key, Email = chatMessageSended.Email }, "InsertChatMessage Start");
+
+		try
+		{
+			var db = _redisConnection.GetConnection().GetDatabase();
+
+			var result = await db.StreamAddAsync(key, "", JsonSerializer.Serialize(chatMessageSended), maxLength: 50);
+
+			if (result.HasValue == false)
+			{
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.InsertChatMessageFailInsert, Key = key, Email = chatMessageSended.Email
+					},
+					"InsertChatMessageFailInsert");
+				return ErrorCode.InsertChatMessageFailInsert;
+			}
+
+			return ErrorCode.None;
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e,
+				new
+				{
+					ErrorCode = ErrorCode.InsertChatMessageFailException, Key = key, Email = chatMessageSended.Email
+				},
+				"InsertChatMessageFailException");
+			return ErrorCode.InsertChatMessageFailException;
+		}
+	}
+
+	public async Task<(ErrorCode, ChatMessageReceived)> LoadLatestChatMessageAsync(String key, String MessageId)
+	{
+		_logger.ZLogDebugWithPayload(new { Key = key }, "LoadLatestChatMessageController Start");
+
+		try
+		{
+			StreamEntry[]? chatStreamEntries;
+			var db = _redisConnection.GetConnection().GetDatabase();
+			if (MessageId == "")
+			{
+				chatStreamEntries = await db.StreamRangeAsync(key, "-", "+", count: 1, messageOrder: Order.Descending);
+			}
+			else
+			{
+				chatStreamEntries = await db.StreamRangeAsync(key, MessageId, "+", count: 1, messageOrder: Order.Ascending);
+			}
+			
+		
+			db.StreamRead(key, 0, 1);
+			if (chatStreamEntries.Length != 1)
+			{
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadLatestChatMessageFailGet, Key = key },
+					"LoadLatestChatMessageFailGet");
+				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
+			}
+
+			var latestChatEntry = chatStreamEntries.FirstOrDefault();
+			if (latestChatEntry.IsNull)
+			{
+				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
+			}
+
+			ChatMessageSended chatMessage = JsonSerializer.Deserialize<ChatMessageSended>(latestChatEntry.Values.First().Value);
+			if (chatMessage == null)
+			{
+				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
+			}
+
+			return (ErrorCode.None,
+				new ChatMessageReceived
+					{ MessageId = latestChatEntry.Id, Email = chatMessage.Email, Message = chatMessage.Message });
+		}
+		catch (Exception e)
+		{
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadLatestChatMessageFailException, Key = key },
+				"LoadLatestChatMessageFailException");
+			return (ErrorCode.LoadLatestChatMessageFailException, new ChatMessageReceived());
+		}
 	}
 
 	private async Task<ErrorCode> DeleteStageDataAsync(RedisDictionary<String, Int32> redis, String key)

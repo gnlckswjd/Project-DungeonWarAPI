@@ -1,6 +1,6 @@
 ﻿using DungeonWarAPI.Enum;
 
-namespace DungeonWarAPI.Models.DTO.RequestResponse;
+namespace DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 
 public class DeleteMailRequest
 {

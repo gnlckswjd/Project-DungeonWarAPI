@@ -3,7 +3,7 @@ using System.Text.Json;
 using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
-using DungeonWarAPI.Models.DAO.Account;
+using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 
 

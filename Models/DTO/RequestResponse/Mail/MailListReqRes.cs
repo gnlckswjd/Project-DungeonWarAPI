@@ -2,7 +2,7 @@
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.Payloads;
 
-namespace DungeonWarAPI.Models.DTO.RequestResponse;
+namespace DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 
 public class MailListRequest
 {

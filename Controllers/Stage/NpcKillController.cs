@@ -1,28 +1,24 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
-using DungeonWarAPI.Models.DAO.Account;
-using DungeonWarAPI.Models.DTO.RequestResponse;
+using DungeonWarAPI.Models.DAO.Redis;
+using DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 using Microsoft.AspNetCore.Mvc;
 using ZLogger;
 
-namespace DungeonWarAPI.Controllers;
+namespace DungeonWarAPI.Controllers.Stage;
 
 [Route("[controller]")]
 [ApiController]
 public class NpcKillController : Controller
 {
-	private readonly IDungeonStageService _dungeonStageService;
 	private readonly MasterDataManager _masterDataManager;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<NpcKillController> _logger;
 
-	public NpcKillController(ILogger<NpcKillController> logger, IMemoryDatabase memoryDatabase,
-		MasterDataManager masterDataManager,
-		IDungeonStageService dungeonStageService)
+	public NpcKillController(ILogger<NpcKillController> logger, IMemoryDatabase memoryDatabase, MasterDataManager masterDataManager)
 	{
 		_memoryDatabase = memoryDatabase;
-		_dungeonStageService = dungeonStageService;
 		_masterDataManager = masterDataManager;
 		_logger = logger;
 	}
@@ -36,10 +32,11 @@ public class NpcKillController : Controller
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode,gameUserId,userAuthAndState.State);
+		var (errorCode, npcKillCount, maxNpcCount) =
+			await LoadKillAndMaxNpcCountAsync(key, request.NpcCode, gameUserId, userAuthAndState.State);
 		if (errorCode != ErrorCode.None)
 		{
-			response.Error=errorCode;
+			response.Error = errorCode;
 			return response;
 		}
 
@@ -60,7 +57,8 @@ public class NpcKillController : Controller
 		return response;
 	}
 
-	private async Task<(ErrorCode, Int32 killCount, Int32 maxNpcCount)> LoadKillAndMaxNpcCountAsync(String key, Int32 npcCode,Int32 gameUserId, UserStateCode state)
+	private async Task<(ErrorCode, int killCount, int maxNpcCount)> LoadKillAndMaxNpcCountAsync(string key, int npcCode,
+		int gameUserId, UserStateCode state)
 	{
 		if (state != UserStateCode.InStage)
 		{
@@ -72,7 +70,7 @@ public class NpcKillController : Controller
 		var (errorCode, stageLevel) = await _memoryDatabase.LoadStageLevelAsync(key);
 		if (errorCode != ErrorCode.None)
 		{
-			return (errorCode, 0,0);
+			return (errorCode, 0, 0);
 		}
 
 		var stageNpc = _masterDataManager.GetStageNpcByStageAndCode(stageLevel, npcCode);
