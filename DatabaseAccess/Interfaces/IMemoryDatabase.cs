@@ -19,11 +19,13 @@ public interface IMemoryDatabase
     Task<(ErrorCode, ChatMessageReceived )> LoadLatestChatMessageAsync(String key, String MessageId);
 
 	Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
-	Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSended chatMessageSended);
+	Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSent chatMessageSent);
 
 	Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount);
 	Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode);
 	Task<ErrorCode> UpdateUserStateAsync(String key, UserAuthAndState userAuthAndState, UserStateCode stateCode);
+	Task<ErrorCode> UpdateChatChannelAsync(String key, UserAuthAndState userAuthAndState, Int32 channelNumber);
+
 	Task<ErrorCode> DeleteStageDataAsync(String key);
 
 

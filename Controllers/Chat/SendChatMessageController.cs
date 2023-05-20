@@ -32,9 +32,9 @@ public class SendChatMessageController : ControllerBase
 		var response = new SendChatResponse();
 		
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(userAuthAndState.ChannelNumber);
-		ChatMessageSended chatMessageSended = new ChatMessageSended { Email = userAuthAndState.Email ,Message = request.Message };
+		ChatMessageSent chatMessageSent = new ChatMessageSent { Email = userAuthAndState.Email ,Message = request.Message };
 
-		var errorCode = await _memoryDatabase.InsertChatMessageAsync(key, chatMessageSended);
+		var errorCode = await _memoryDatabase.InsertChatMessageAsync(key, chatMessageSent);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

@@ -219,7 +219,12 @@ public enum ErrorCode : int
 
 	LoadLatestChatMessageFailException = 602,
 	LoadLatestChatMessageFailGet= 603,
+	UpdateChatChannelChatChannelFailException=604,
+	UpdateChatChannelChatChannelFailUpdate=605,
+	
 
+	UpdateUserAuthAndStateFailException=610,
+	UpdateUserAuthAndStateFailSet=611,
 
 	InvalidRequestHttpBody = 1000,
 	WrongAppVersion = 1001,
