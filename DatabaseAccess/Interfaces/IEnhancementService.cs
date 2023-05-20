@@ -5,7 +5,7 @@ namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 
 public interface IEnhancementService
 {
-    public Task<ErrorCode> ValidateEnoughGoldAsync(Int32 gameUserId, Int64 cost);
+    public Task<ErrorCode> VerifyEnoughGoldAsync(Int32 gameUserId, Int64 cost);
     public Task<ErrorCode> UpdateGoldAsync(Int32 gameUserId, Int32 gold);
 	public Task<ErrorCode> UpdateEnhancementResultAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount, Int32 attributeCode, Int32 attack, Int32 defense);
     public Task<ErrorCode> InsertEnhancementHistoryAsync(Int32 gameUserId, Int64 itemId, Int32 enhancementCount, Boolean isSuccess);

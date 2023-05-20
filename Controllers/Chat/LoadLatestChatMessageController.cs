@@ -27,7 +27,7 @@ public class LoadLatestChatMessageController : ControllerBase
 	[HttpPost]
 	public async Task<LoadLatestChatMessageResponse> Post(LoadLatestChatMessageRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new LoadLatestChatMessageResponse();
 
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(userAuthAndState.ChannelNumber);

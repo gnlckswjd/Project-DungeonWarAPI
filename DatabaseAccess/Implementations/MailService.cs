@@ -374,12 +374,12 @@ public class MailService : DatabaseAccessBase, IMailService
 			_logger.ZLogErrorWithPayload(e,
 				new
 				{
-					ErrorCode = ErrorCode.GetMailItemsFailException,
+					ErrorCode = ErrorCode.LoadMailItemsFailException,
 					GameUserId = gameUserId,
 					MailId = mailId
 				}
-				, "GetMailItemsFailException");
-			return (ErrorCode.GetMailItemsFailException, new List<MailItem>());
+				, "LoadMailItemsFailException");
+			return (ErrorCode.LoadMailItemsFailException, new List<MailItem>());
 		}
 	}
 

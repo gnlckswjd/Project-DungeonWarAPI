@@ -23,7 +23,7 @@ public class MailListController : ControllerBase
     [HttpPost]
     public async Task<MailListResponse> Post(MailListRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new MailListResponse();
         var gameUserId = userAuthAndState.GameUserId;
 
@@ -49,7 +49,7 @@ public class MailListController : ControllerBase
             mailsWithItems.Add(new MailWithItems(mail, items));
         }
 
-        response.MailsWithItems = mailsWithItems;
+        response.MailWithItemsList = mailsWithItems;
         return response;
     }
 }

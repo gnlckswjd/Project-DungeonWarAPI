@@ -32,7 +32,7 @@ public class ItemAcquisitionController : ControllerBase
     [HttpPost]
     public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new ItemAcquisitionResponse();
         var gameUserId = userAuthAndState.GameUserId;
 

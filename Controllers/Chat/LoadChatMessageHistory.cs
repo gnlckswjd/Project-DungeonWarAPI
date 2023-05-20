@@ -26,7 +26,7 @@ public class LoadChatMessageHistory : Controller
 	//[HttpPost]
 	//public async Task<Response> Post(Request request)
 	//{
-	//	var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+	//	var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 	//	var response = new NpcKillResponse();
 	//	var gameUserId = userAuthAndState.GameUserId;
 

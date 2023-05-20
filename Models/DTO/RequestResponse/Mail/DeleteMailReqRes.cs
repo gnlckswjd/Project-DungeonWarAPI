@@ -4,7 +4,7 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 
 public class DeleteMailRequest
 {
-    public int MailId { get; set; }
+    public Int32 MailId { get; set; }
 }
 
 

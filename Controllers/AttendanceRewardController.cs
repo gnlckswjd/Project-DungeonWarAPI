@@ -29,7 +29,7 @@ public class AttendanceRewardController : ControllerBase
 	[HttpPost]
 	public async Task<AttendanceRewardResponse> Post(AttendanceRewardRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new AttendanceRewardResponse();
 
 		var gameUserId = userAuthAndState.GameUserId;

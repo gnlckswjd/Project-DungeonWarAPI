@@ -125,7 +125,7 @@ public class UserAuthentication
 				return;
 			}
 
-			context.Items[nameof(UserAuthAndState)] = authUserData;
+			context.Items[nameof(AuthenticatedUserState)] = authUserData;
 		}
 
 		context.Request.Body.Position = 0;
@@ -191,7 +191,7 @@ public class UserAuthentication
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				Error = ErrorCode.WrongAppVersion
+				Error = ErrorCode.WrongMasterDataVersion
 			});
 			var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 			await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);
@@ -202,9 +202,9 @@ public class UserAuthentication
 		return false;
 	}
 
-	async Task<bool> IsAuthTokenWrong(UserAuthAndState userAuthAndState, String authToken, HttpContext context)
+	async Task<bool> IsAuthTokenWrong(AuthenticatedUserState authenticatedUserState, String authToken, HttpContext context)
 	{
-		if (String.CompareOrdinal(userAuthAndState.AuthToken, authToken) != 0)
+		if (String.CompareOrdinal(authenticatedUserState.AuthToken, authToken) != 0)
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{

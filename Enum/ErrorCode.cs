@@ -4,235 +4,251 @@ public enum ErrorCode : int
 {
 	None = 0,
 
-	LoadAttendanceRewardFailException = 10,
-	LoadAttendanceRewardsFailSelect = 11,
-	LoadItemsFailException = 20,
-	LoadItemsFailSelect = 21,
-	LoadItemAttributeFailException = 30,
-	LoadItemAttributeFailSelect = 31,
-	LoadPackageItemFailException = 40,
-	LoadPackageItemFailSelect = 41,
-	LoadShopPackagesFailException = 50,
-	LoadShopPackagesFailSelect = 51,
-	LoadStageItemsFailException = 60,
-	LoadStageItemsFailSelect = 61,
-	LoadStageNpcsFailException = 70,
-	LoadStageNpcsFailSelect = 71,
+	//Load
+	LoadAttendanceRewardsFailException = 100,
+	LoadAttendanceRewardsFailSelect = 101,
 
-	CreateAccountFailException = 110,
-	CreateAccountFailDuplicate = 111,
-	CreateAccountFailInsert = 112,
-	CreateUserStageFailException = 115,
-	CreateUserStageFailInsert = 116,
-	RollbackCreateUserStageFailException = 117,
-	RollbackCreateUserStageFailDelete = 118,
+	LoadItemsFailException = 102,
+	LoadItemsFailSelect = 103,
+
+	LoadItemAttributeFailException = 104,
+	LoadItemAttributeFailSelect = 105,
+
+	LoadPackageItemFailException = 106,
+	LoadPackageItemFailSelect = 107,
+
+	LoadStageItemsFailException = 108,
+	LoadStageItemsFailSelect = 109,
+
+	LoadStageNpcsFailException = 110,
+	LoadStageNpcsFailSelect = 111,
+
+	LoadStageDataFailException = 120,
+	LoadStageDataFailGet = 121,
+
+	LoadStageLevelFailException = 122,
+	LoadStageLevelFailGet = 123,
+
+	LoadNpcKillCountFailException = 124,
+	LoadNpcKillCountFailGet = 125,
+
+	LoadItemAcquisitionCountFailException = 126,
+	LoadItemAcquisitionCountFailGet = 127,
+
+	LoadUserDataFailException = 130,
+	LoadUserDataFailSelect = 131,
+
+	LoadUserItemsFailException = 132,
+
+	LoadNotificationsFailException = 133,
+	LoadNotificationsZeroNotification = 134,
+
+	LoadUserStageFailException = 135,
+	LoadUserStageFailSelect = 136,
+
+	LoadMailListFailException = 140,
+	LoadMailListEmptyMail = 141,
+	LoadMailListWrongPage = 142,
+
+	LoadMailItemsFailException = 143,
+
+	LoadAttendanceCountFailException = 150,
+	LoadAttendanceCountFailSelect = 151,
+
+	LoadItemFailException = 160,
+	LoadItemFailSelect = 161,
+	LoadItemFailWrongGameUser = 162,
+	LoadItemFailDestroyed = 163,
+
+	LoadLatestChatMessageFailException = 170,
+	LoadLatestChatMessageFailGet = 171,
+
+	LoadAuthUserDataFailException = 180,
+	LoadAuthUserDataFailEmpty = 181,
+
+	//Insert
+	CreateAccountFailException = 200,
+	CreateAccountFailDuplicate = 201,
+	CreateAccountFailInsert = 202,
+
+	CreateUserStageFailException = 203,
+	CreateUserStageFailInsert = 204,
+
+	CreateUserFailException = 205,
+	CreateUserFailDuplicate = 206,
+	CreateUserFailInsert = 207,
+
+	CreateUserAttendanceFailException = 208,
+	CreateUserAttendanceFailInsert = 209,
+
+	CreateInAppMailFailException = 210,
+	CreateInAppMailFailInsertMail = 211,
+	CreateInAppMailFailInsertItem = 212,
+
+	InsertNonStackableItemsException = 220,
+	InsertNonStackableItemsFailInsert = 221,
+
+	InsertItemFailException = 222,
+	InsertItemFailInsert = 223,
+
+	InsertOwnedItemFailInsert = 224,
+
+	InsertMailFailException = 230,
+	InsertMailFailInsert = 231,
+
+	InsertMailItemFailException = 232,
+	InsertMailItemFailInsert = 233,
+
+	InsertEnhancementHistoryFailException = 240,
+	InsertEnhancementHistoryFailInsert = 241,
+
+	InsertChatMessageFailException = 250,
+	InsertChatMessageFailInsert = 251,
+
+	InsertReceiptFailException = 260,
+	InsertReceiptFailDuplicatedReceipt = 261,
+	InsertReceiptFailInsert = 262,
+
+	InsertStageDataException = 270,
+	InsertStageDataFailDelete = 271,
+
+	LoginFailException = 280,
+	LoginFailWrongPassword = 281,
+	LoginFailUserNotExist = 282,
+
+	RegisterUserFailSet = 283,
+	RegisterUserFailException = 284,
+
+	//업데이트
+	UpdateUserStateFailException = 300,
+	UpdateUserStateFailSet = 301,
+
+	UpdateLoginDateFailException = 302,
+	UpdateLoginDateFailUserNotFound = 303,
+	UpdateLoginDateFailUpdate = 304,
+	UpdateLoginDateFailAlreadyReceived = 305,
+
+	UpdateGoldFailException = 306,
+	UpdateGoldFailIncrease = 307,
+
+	UpdateExpFailException = 308,
+	UpdateExpFailSelect = 309,
+	UpdateExpFailUpdate = 310,
+
+	UpdateMaxClearedStageFailException = 311,
+	UpdateMaxClearedStageFailIncrement = 312,
+
+	UpdateChatChannelChatChannelFailException = 313,
+	UpdateChatChannelChatChannelFailUpdate = 314,
+
+	UpdateAuthenticatedUserStateFailException = 315,
+	UpdateAuthenticatedUserStateFailSet = 316,
+
+	UpdateEnhancementCountFailException = 320,
+	UpdateEnhancementCountFailUpdate = 321,
+
+	IncrementItemFailException = 330,
+	IncrementItemFailIncrease = 331,
+	IncrementItemFailNoExist = 332,
+
+	IncrementNpcKillCountFailException = 340,
+	IncrementNpcKillCountFailIncrease = 341,
+	IncrementNpcKillCountFailNoExist = 342,
+
+	IncreaseGoldFailUpdate = 350,
+	IncreasePotionFailUpdateOrInsert = 351,
+
+	MarkMailAsReceiveException = 360,
+	MarkMailAsReceiveFailUpdate = 361,
+	MarkMailAsReceiveFailAlreadyReceived = 362,
+	MarkMailAsReceiveFailWrongGameUserId = 363,
+
+	ReadMailFailSelect = 370,
+	ReadMailFailExceptions = 371,
+	ReadMailFailWrongUser = 372,
+	ReadMailFailUpdate = 373,
+
+	DestroyItemFailException = 380,
+	DestroyItemFailUpdate = 381,
+
+	//삭제
+	DeleteStageDataFail = 400,
+	DeleteStageDataFailException = 401,
+	DeleteStageDataFailDelete = 402,
+
+	DeleteMailFailException = 410,
+	DeleteMailFailDelete = 411,
+
+	//롤백
+	RollbackCreateAccountFailException = 500,
+	RollbackCreateAccountFailDelete = 501,
+
+	RollbackCreateUserStageFailException = 502,
+	RollbackCreateUserStageFailDelete = 503,
+
+	RollbackCreateUserAttendanceFailException = 504,
+	RollbackCreateUserAttendanceFailDelete = 505,
+
+	RollbackCreateUserDataFailException = 506,
+	RollbackCreateUserDataFailDelete = 507,
+
+	RollbackLoginDateFailException = 508,
+	RollbackLoginDateFailUpdate = 509,
+
+	RollbackMarkMailItemAsReceiveFailException = 510,
+	RollbackMarkMailItemAsReceiveFailUpdate = 511,
+
+	RollbackInsertMailFailException = 512,
+	RollbackInsertMailFailDelete = 513,
+	RollbackInsertMailFailWrongMailId = 514,
+
+	RollbackCreateMailFailException = 515,
+	RollbackCreateMailFailDelete = 516,
+
+	RollbackIncreaseGoldFail = 520,
+	RollbackIncreasePotionFail = 521,
+	RollbackInsertOwnedItemFail = 522,
+
+	RollbackStoreReceiptFailException = 530,
+	RollbackStoreReceiptFailWrongId = 531,
+	RollbackStoreReceiptFailDelete = 532,
+
+	RollbackUpdateEnhancementCountFailException = 540,
+	RollbackUpdateEnhancementCountFailUpdate = 541,
+
+	RollbackDestroyItemFailException = 550,
+	RollbackDestroyItemFailUpdate = 551,
 
 
-	CreateUserFailException = 120,
-	CreateUserFailDuplicate = 121,
-	CreateUserFailInsert = 122,
-	RollbackAccountFailException = 126,
-	RollbackAccountFailDelete = 127,
-	CreateUserAttendanceFailException = 130,
-	CreateUserAttendanceFailInsert = 131,
+	RollbackUpdateExpFailException = 560,
+	RollbackUpdateExpFailUpdate = 561,
 
-	RollbackCreateUserAttendanceFailException = 135,
-	RollbackCreateUserAttendanceFailDelete = 136,
+	RollbackUpdateMaxClearedStageFailException = 570,
+	RollbackUpdateMaxClearedStageFailDecrement = 571,
 
 
-	InsertNonStackableItemsException = 140,
-	InsertNonStackableItemsFailInsert = 141,
-	RollbackCreateUserDataFailException = 146,
-	RollbackCreateUserDataFailDelete = 147,
+	//포함되지 않는 코드
+	CanNotEnhancement = 600,
 
-	RollbackMarkMailItemAsReceiveFailException = 150,
-	RollbackMarkMailItemAsReceiveFailUpdate = 151,
+	WrongItemCode = 601,
+	WrongUserState = 602,
+	WrongStageLevel = 603,
+	WrongNpcCode = 604,
 
-	AddNewItemAndGetIdFailException = 200,
+	ExceedKillCount = 605,
+	ExceedItemCount = 606,
 
-	LoginFailException = 220,
-	LoginFailNotUser = 221,
-	LoginFailWrongPassword = 222,
-	LoginFailUserNotExist = 223,
-	RegisterUserFailSet = 224,
-	RegisterUserFailException = 225,
-
-	LoadUserDataFailException = 226,
-	LoadUserDataFailSelect = 227,
-
-	UpdateUserStateFailException=228,
-	UpdateUserStateFailSet=228,
+	VerifyStageAccessibilityFailExceedStageLevel = 610,
+	VerifyEnoughGoldFailException = 611,
+	VerifyEnoughGoldFailSelect = 612,
+	VerifyEnoughGoldFailNotEnoughGold = 613,
 
 
-	LoadUserItemsFailException = 230,
-	LoadUserItemsFailSelect = 231,
-
-	LoadNotificationsFailException = 232,
-	LoadNotificationsZeroNotification = 233,
-
-	InsertStageDataException = 235,
-	InsertStageDataFailDelete = 236,
-	IncrementItemFailException = 237,
-	IncrementItemFailIncrease = 238,
-	IncrementItemFailNoExist = 239,
-	IncrementNpcKillCountFailException = 240,
-	IncrementNpcKillCountFailIncrease = 241,
-	IncrementNpcKillCountFailNoExist = 242,
-	LoadStageDataFailException = 243,
-	LoadStageDataFailGet = 244,
-	LoadStageLevelFailException=245,
-	LoadStageLevelFailGet=246,
-
-	LoadNpcKillCountFailException = 247,
-	LoadNpcKillCountFailGet= 248,
-	LoadItemAcquisitionCountFailException = 249,
-	LoadItemAcquisitionCountFailGet=250,
-	WrongStageLevel = 251,
-	WrongNpcCode = 252,
-	StageDataDeleteFail=253,
-	ExceedKillCount=254,
-	ExceedItemCount=255,
-
-
-
-	LoadMailListFailException = 260,
-	LoadMailListEmptyMail = 261,
-	LoadMailListWrongPage = 262,
-
-	StoreUserMailPageFailException = 270,
-	StoreUserMailPageFailSet = 271,
-
-	DeleteStageDataFailException=272,
-	DeleteStageDataFailDelete=272,
-
-	VerifyMailOwnerIdFailException = 280,
-	VerifyMailOwnerIdFailWrongId = 281,
-	ReadMailFailSelect = 285,
-	ReadMailFailExceptions = 286,
-	ReadMailFailWrongUser = 287,
-	ReadMailFailUpdate = 288,
-
-	MarkMailAsReceiveException = 290,
-	MarkMailAsReceiveFailUpdate = 291,
-	MarkMailAsReceiveFailSelect = 292,
-	MarkMailAsReceiveFailAlreadyReceived = 293,
-	MarkMailAsReceiveFailWrongGameUserId = 294,
-
-	InsertItemFailException = 300,
-	InsertItemFailInsert = 301,
-	ReceiveItemFailMailHaveNoItem = 302,
-	GetMailItemsFailException = 303,
-	IncreaseGoldFailUpdate = 304,
-	IncreasePotionFailUpdateOrInsert = 305,
-	InsertOwnedItemFailInsert = 306,
-	RollbackIncreaseGoldFail = 307,
-	RollbackIncreasePotionFail = 308,
-	RollbackInsertOwnedItemFail = 309,
-
-	DeleteMailFailException = 310,
-	DeleteMailFailDelete = 311,
-	DeleteMailFail = 311,
-
-	LoadAttendanceCountFailException = 315,
-	LoadAttendanceCountFailSelect = 316,
-
-	UpdateLoginDateFailException = 320,
-	UpdateLoginDateFailUserNotFound = 321,
-	UpdateLoginDateFailUpdate = 322,
-	UpdateLoginDateFailAlreadyReceived = 323,
-
-	InsertMailFailException = 330,
-	InsertMailFailInsert = 331,
-	RollbackInsertMailFailException=332,
-	RollbackInsertMailFailDelete=333,
-	RollbackInsertMailFailWrongMailId=334,
-	
-	InsertMailItemFailException=335,
-	InsertMailItemFailInsert=336,
-
-	RollbackCreateMailFailException = 338,
-	RollbackCreateMailFailDelete = 339,
-
-	RollbackLoginDateFailException = 340,
-	RollbackLoginDateFailUpdate = 341,
-
-	StoreReceiptFailException = 350,
-	StoreReceiptFailDuplicatedReceipt = 351,
-	StoreReceiptFailInsert = 352,
-
-	CreateInAppMailFailException = 355,
-	CreateInAppMailFailInsertMail = 356,
-	CreateInAppMailFailInsertItem = 357,
-
-	RollbackStoreReceiptFailException = 360,
-	RollbackStoreReceiptFailWrongId = 361,
-	RollbackStoreReceiptFailDelete = 362,
-
-	LoadItemFailException = 365,
-	LoadItemFailSelect = 366,
-	LoadItemFailWrongGameUser = 367,
-	LoadItemFailisDestroyed = 367,
-
-	ValidateEnoughGoldFailException = 370,
-	ValidateEnoughGoldFailSelect = 371,
-	ValidateEnoughGoldFailNotEnoughGold = 372,
-
-	CanNotEnhancement = 375,
-	WrongItemCode = 376,
-	WrongUserState = 377,
-
-	UpdateGoldFailException = 380,
-	UpdateGoldFailIncrease = 381,
-
-	UpdateEnhancementCountFailException = 390,
-	UpdateEnhancementCountFailUpdate = 391,
-
-	InsertEnhancementHistoryFailException = 400,
-	InsertEnhancementHistoryFailInsert = 401,
-
-	RollbackUpdateEnhancementCountFailException = 410,
-	RollbackUpdateEnhancementCountFailUpdate = 411,
-
-	DestroyItemFailException = 420,
-	DestroyItemFailUpdate = 421,
-	RollbackDestroyItemFailException = 425,
-	RollbackDestroyItemFailUpdate = 426,
-
-	LoadUserStageFailException = 500,
-	LoadUserStageFailSelect = 501,
-	CheckStageAccessibilityFailExceedStageLevel = 502,
-	ReceiveRewardItemFailException = 505,
-	ReceiveRewardItemFailInsert = 506,
-	UpdateExpFailException = 510,
-	UpdateExpFailSelect = 511,
-	UpdateExpFailUpdate = 512,
-	RollbackUpdateFailException = 513,
-	RollbackUpdateFailUpdate = 514,
-
-	UpdateMaxClearedStageFailException = 515,
-	UpdateMaxClearedStageFailIncrement = 516,
-	RollbackUpdateMaxClearedStageFailException = 515,
-	RollbackUpdateMaxClearedStageFailDecrement = 516,
-
-	InsertChatMessageFailException = 600,
-	InsertChatMessageFailInsert=601,
-
-	LoadLatestChatMessageFailException = 602,
-	LoadLatestChatMessageFailGet= 603,
-	UpdateChatChannelChatChannelFailException=604,
-	UpdateChatChannelChatChannelFailUpdate=605,
-	
-
-	UpdateUserAuthAndStateFailException=610,
-	UpdateUserAuthAndStateFailSet=611,
-
+	//미들웨어 관련
 	InvalidRequestHttpBody = 1000,
 	WrongAppVersion = 1001,
 	WrongMasterDataVersion = 1002,
 	WrongAuthTokenRequest = 1003,
-
-	LoadAuthUserDataFailException = 1010,
-	LoadAuthUserDataFailEmpty = 1011,
 
 	LockUserRequestFailExceptions = 1020,
 	LockUserRequestFailISet = 1021,

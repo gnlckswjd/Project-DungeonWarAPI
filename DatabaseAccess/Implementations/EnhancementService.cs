@@ -20,9 +20,9 @@ public class EnhancementService : DatabaseAccessBase, IEnhancementService
 	}
 
 
-	public async Task<ErrorCode> ValidateEnoughGoldAsync(Int32 gameUserId, Int64 cost)
+	public async Task<ErrorCode> VerifyEnoughGoldAsync(Int32 gameUserId, Int64 cost)
 	{
-		_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, Cost = cost }, "ValidateEnoughGold Start");
+		_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, Cost = cost }, "VerifyEnoughGold Start");
 
 		try
 		{
@@ -33,23 +33,23 @@ public class EnhancementService : DatabaseAccessBase, IEnhancementService
 			if (gold == 0)
 			{
 				_logger.ZLogErrorWithPayload(new { GameUser = gameUserId, Cost = cost },
-					"ValidateEnoughGoldFailSelect");
-				return ErrorCode.ValidateEnoughGoldFailSelect;
+					"VerifyEnoughGoldFailSelect");
+				return ErrorCode.VerifyEnoughGoldFailSelect;
 			}
 
 			if (gold < cost)
 			{
 				_logger.ZLogErrorWithPayload(new { GameUser = gameUserId, Cost = cost },
-					"ValidateEnoughGoldFailNotEnoughGold");
-				return ErrorCode.ValidateEnoughGoldFailNotEnoughGold;
+					"VerifyEnoughGoldFailNotEnoughGold");
+				return ErrorCode.VerifyEnoughGoldFailNotEnoughGold;
 			}
 
 			return ErrorCode.None;
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { GameUserId = gameUserId }, "ValidateEnoughGoldFailException");
-			return ErrorCode.ValidateEnoughGoldFailException;
+			_logger.ZLogErrorWithPayload(e, new { GameUserId = gameUserId }, "VerifyEnoughGoldFailException");
+			return ErrorCode.VerifyEnoughGoldFailException;
 		}
 	}
 
@@ -243,7 +243,7 @@ public class EnhancementService : DatabaseAccessBase, IEnhancementService
 
 		if (item.IsDestroyed == true)
 		{
-			return ErrorCode.LoadItemFailisDestroyed;
+			return ErrorCode.LoadItemFailDestroyed;
 		}
 
 		return ErrorCode.None;

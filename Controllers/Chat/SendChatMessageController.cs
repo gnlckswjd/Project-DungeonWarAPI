@@ -28,7 +28,7 @@ public class SendChatMessageController : ControllerBase
 	[HttpPost]
 	public async Task<SendChatResponse> Post(SendChatRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new SendChatResponse();
 		
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(userAuthAndState.ChannelNumber);

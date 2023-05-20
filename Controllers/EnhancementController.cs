@@ -30,7 +30,7 @@ public class EnhancementController : ControllerBase
 	[HttpPost]
 	public async Task<EnhancementResponse> Post(EnhancementRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new EnhancementResponse();
 
 		var gameUserId = userAuthAndState.GameUserId;
@@ -56,7 +56,7 @@ public class EnhancementController : ControllerBase
 			return response;
 		}
 
-		errorCode = await _enhancementService.ValidateEnoughGoldAsync(gameUserId, cost);
+		errorCode = await _enhancementService.VerifyEnoughGoldAsync(gameUserId, cost);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

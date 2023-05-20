@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
+using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
@@ -37,8 +38,10 @@ public class MasterGameDatabase : IMasterDatabase
         //_queryFactory.Dispose();
     }
 
+    // 다음 Load 함수들의 기능 실패 시 로그는 호출되는 부분에서 처리
     public async Task<(ErrorCode, List<AttendanceReward>)> LoadAttendanceRewardsAsync()
     {
+        _logger.ZLogDebugWithPayload(new{Data = "AttendanceReward" },"LoadAttendanceRewards Start");
 
         try
         {
@@ -54,14 +57,16 @@ public class MasterGameDatabase : IMasterDatabase
         }
         catch (Exception e)
         {
-            return (ErrorCode.LoadAttendanceRewardsFailSelect, new List<AttendanceReward>());
+            return (ErrorCode.LoadAttendanceRewardsFailException, new List<AttendanceReward>());
         }
 
     }
 
     public async Task<(ErrorCode, List<Item>)> LoadItemsAsync()
     {
-        try
+	    _logger.ZLogDebugWithPayload(new { Data = "Item" }, "LoadItems Start");
+
+		try
         {
             var items = await _queryFactory.Query("item")
                 .GetAsync<Item>();
@@ -82,7 +87,9 @@ public class MasterGameDatabase : IMasterDatabase
 
     public async Task<(ErrorCode, List<ItemAttribute>)> LoadItemAttributesAsync()
     {
-        try
+	    _logger.ZLogDebugWithPayload(new { Data = "Attribute" }, "LoadItemAttributes Start");
+
+		try
         {
             var itemAttributes = await _queryFactory.Query("item_attribute")
                 .GetAsync<ItemAttribute>();
@@ -106,7 +113,9 @@ public class MasterGameDatabase : IMasterDatabase
 
     public async Task<(ErrorCode, List<PackageItem>)> LoadPackageItemsAsync()
     {
-        try
+	    _logger.ZLogDebugWithPayload(new { Data = "PackageItem" }, "LoadPackageItems Start");
+
+		try
         {
             var packageItems = await _queryFactory.Query("package_item")
                 .GetAsync<PackageItem>();
@@ -128,7 +137,9 @@ public class MasterGameDatabase : IMasterDatabase
 
     public async Task<(ErrorCode, List<StageItem>)> LoadStageItemsAsync()
     {
-        try
+	    _logger.ZLogDebugWithPayload(new { Data = "StageItem" }, "LoadStageItems Start");
+
+		try
         {
             var stageItems = await _queryFactory.Query("stage_item")
                 .GetAsync<StageItem>();
@@ -149,21 +160,23 @@ public class MasterGameDatabase : IMasterDatabase
 
     public async Task<(ErrorCode, List<StageNpc>)> LoadStageNpcsAsync()
     {
-        try
+	    _logger.ZLogDebugWithPayload(new { Data = "StageNpc" }, "LoadStageNpcs Start");
+
+		try
         {
             var stageNpcs = await _queryFactory.Query("stage_npc")
                 .GetAsync<StageNpc>();
 
             if (stageNpcs == null)
             {
-                return (ErrorCode.LoadStageItemsFailSelect, new List<StageNpc>());
+                return (ErrorCode.LoadStageNpcsFailSelect, new List<StageNpc>());
             }
 
             return (ErrorCode.None, stageNpcs.ToList());
         }
         catch (Exception e)
         {
-            return (ErrorCode.LoadStageItemsFailException, new List<StageNpc>());
+            return (ErrorCode.LoadStageNpcsFailException, new List<StageNpc>());
 
         }
     }

@@ -32,7 +32,7 @@ public class StageStartController : ControllerBase
     [HttpPost]
     public async Task<StageStartResponse> Post(StageStartRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageStartResponse();
         var gameUserId = userAuthAndState.GameUserId;
         var selectedStageLevel = request.SelectedStageLevel;
@@ -81,7 +81,7 @@ public class StageStartController : ControllerBase
             return errorCode;
         }
 
-        errorCode = StageInitializer.CheckAccessibility(maxClearedStage, selectedStageLevel);
+        errorCode = StageInitializer.VerifyAccessibility(maxClearedStage, selectedStageLevel);
         if (errorCode != ErrorCode.None)
         {
             return errorCode;
@@ -90,10 +90,10 @@ public class StageStartController : ControllerBase
         return errorCode;
     }
 
-    private async Task<ErrorCode> StoreInitialStageDataAsync(UserAuthAndState userAuthAndState,
+    private async Task<ErrorCode> StoreInitialStageDataAsync(AuthenticatedUserState authenticatedUserState,
         List<StageItem> itemList, List<StageNpc> npcList, int selectedStageLevel)
     {
-        var stageKey = MemoryDatabaseKeyGenerator.MakeStageKey(userAuthAndState.Email);
+        var stageKey = MemoryDatabaseKeyGenerator.MakeStageKey(authenticatedUserState.Email);
         var stageKeyValueList = StageInitializer.CreateInitialKeyValue(itemList, npcList, selectedStageLevel);
 
         //던전 정보 어디까지 저장할까, 현재 개수와 최대개수도 넣으면 좋다. NPC와 아이템 별개로 할지
@@ -103,8 +103,8 @@ public class StageStartController : ControllerBase
             return errorCode;
         }
 
-        var userKey = MemoryDatabaseKeyGenerator.MakeUIDKey(userAuthAndState.Email);
-        errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.InStage);
+        var userKey = MemoryDatabaseKeyGenerator.MakeUIDKey(authenticatedUserState.Email);
+        errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, authenticatedUserState, UserStateCode.InStage);
         if (errorCode != ErrorCode.None)
         {
             return errorCode;

@@ -4,7 +4,7 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 
 public class ReceiveMailItemRequest
 {
-    public long MailId { get; set; }
+    public Int64 MailId { get; set; }
 }
 public class ReceiveMailItemResponse
 {

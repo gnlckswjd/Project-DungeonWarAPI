@@ -2,6 +2,6 @@
 
 public class UserStage
 {
-    public int GameUserId { get; set; }
-    public short MaxClearedStage { get; set; }
+    public Int32 GameUserId { get; set; }
+    public Int16 MaxClearedStage { get; set; }
 }

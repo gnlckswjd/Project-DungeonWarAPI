@@ -4,16 +4,17 @@ namespace DungeonWarAPI.GameLogic;
 
 public static class StageDataParser
 {
-	public static (Int32 stageLevel, List<(Int32, Int32)> itemList, List<(Int32, Int32)> npcList) ParseStageData(
+	public static ( List<(Int32, Int32)> itemList, List<(Int32, Int32)> npcList, Int32 stageLevel) ParseStageData(
 		Dictionary<String, Int32> data)
 	{
-		Int32 stageLevel = 0;
-		List<(Int32, Int32)> itemList = new List<(Int32, Int32)>();
-		List<(Int32, Int32)> npcList = new List<(Int32, Int32)>();
-
 		var stageItemKeyPrefix = MemoryDatabaseKeyGenerator.GetStageItemKeyPrefix();
 		var stageNpcKeyPrefix = MemoryDatabaseKeyGenerator.GetStageNpcKeyPrefix();
 		var stageLevelKeyPrefix = MemoryDatabaseKeyGenerator.GetStageLevelKeyPrefix();
+
+
+		List<(Int32, Int32)> itemList = new List<(Int32, Int32)>();
+		List<(Int32, Int32)> npcList = new List<(Int32, Int32)>();
+		Int32 stageLevel = 0;
 
 		foreach (var pair in data)
 		{
@@ -35,32 +36,33 @@ public static class StageDataParser
 			}
 		}
 
-		return (stageLevel, itemList, npcList);
+		return (itemList, npcList, stageLevel);
 	}
 
 
-	private static void ParseAndAddItem(String key, Int32 value, List<(Int32, Int32)> itemList, String stageItemKeyPrefix)
+	private static void ParseAndAddItem(String key, Int32 itemCount, List<(Int32, Int32)> itemList, String stageItemKeyPrefix)
 	{
-		if (value == 0)
+		if (itemCount == 0)
 		{
 			return;
 		}
-		Int32 code = Int32.Parse(key.Substring(stageItemKeyPrefix.Length));
 
-		switch (code)
+		Int32 itemCode = Int32.Parse(key.Substring(stageItemKeyPrefix.Length));
+
+		switch (itemCode)
 		{
 			case (Int32)ItemCode.Gold:
 			case (Int32)ItemCode.Potion:
 			{
-				itemList.Add((code, value));
+				itemList.Add((itemCode, itemCount));
 				break;
 			}
 
 			default:
 			{
-				for (Int32 i = 0; i < value; i++)
+				for (Int32 i = 0; i < itemCount; i++)
 				{
-					itemList.Add((code, 1));
+					itemList.Add((itemCode, 1));
 				}
 
 				break;

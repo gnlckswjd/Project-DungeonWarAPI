@@ -56,7 +56,7 @@ public class CreateAccountController : ControllerBase
 		var (errorCode, gameUserId) = await _userService.CreateUserAsync(playerId);
 		if (errorCode != ErrorCode.None)
 		{
-			await _accountDatabase.RollbackAccountAsync(playerId);
+			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 
@@ -64,7 +64,7 @@ public class CreateAccountController : ControllerBase
 		if (errorCode != ErrorCode.None)
 		{
 			await _userService.RollbackCreateUserAsync(gameUserId);
-			await _accountDatabase.RollbackAccountAsync(playerId);
+			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 
@@ -73,7 +73,7 @@ public class CreateAccountController : ControllerBase
 		{
 			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
 			await _userService.RollbackCreateUserAsync(gameUserId);
-			await _accountDatabase.RollbackAccountAsync(playerId);
+			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 		var items = _ownedItemFactory.CreateDefaultItems(gameUserId);
@@ -84,7 +84,7 @@ public class CreateAccountController : ControllerBase
 			await _userService.RollbackCreateUserStageAsync(gameUserId);
 			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
 			await _userService.RollbackCreateUserAsync(gameUserId);
-			await _accountDatabase.RollbackAccountAsync(playerId);
+			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 

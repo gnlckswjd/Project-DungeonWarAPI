@@ -35,7 +35,7 @@ public class StageEndController : ControllerBase
     [HttpPost]
     public async Task<StageEndResponse> Post(StageEndRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageEndResponse();
         var gameUserId = userAuthAndState.GameUserId;
         var state = userAuthAndState.State;
@@ -48,7 +48,7 @@ public class StageEndController : ControllerBase
             return response;
         }
 
-        var (stageLevel, itemCodeAndCount, npcCodeAndCount) = StageDataParser.ParseStageData(dictionary);
+        var (itemCodeAndCount, npcCodeAndCount, stageLevel) = StageDataParser.ParseStageData(dictionary);
 
         var stageNpcList = _masterDataManager.GetStageNpcList(stageLevel);
         var (isCleared, earnedExp) = StageRequestVerifier.VerifyClearAndCalcExp(stageNpcList, npcCodeAndCount);

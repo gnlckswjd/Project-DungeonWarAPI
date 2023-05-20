@@ -12,8 +12,8 @@ public static class StageRequestVerifier
 		{
 			return (false, 0);
 		}
-		Int32 totalEarnedExp = 0;
 
+		Int32 totalEarnedExp = 0;
 		foreach (var stageNpc in stageNpcs)
 		{
 			var killedNpc = killedNpcCodeAndCount.FirstOrDefault(npcCodeAndCount => npcCodeAndCount.Item1 == stageNpc.NpcCode);

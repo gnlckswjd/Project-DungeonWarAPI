@@ -4,7 +4,7 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 
 public class StageEndRequest
 {
-    public string Email { get; set; }
+    public String Email { get; set; }
 }
 
 public class StageEndResponse

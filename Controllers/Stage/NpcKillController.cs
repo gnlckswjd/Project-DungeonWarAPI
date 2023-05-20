@@ -26,7 +26,7 @@ public class NpcKillController : Controller
 	[HttpPost]
 	public async Task<NpcKillResponse> Post(NpcKillRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new NpcKillResponse();
 		var gameUserId = userAuthAndState.GameUserId;
 

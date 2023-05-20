@@ -9,5 +9,5 @@ public class AttendanceListRequest
 public class AttendanceListResponse
 {
     public ErrorCode Error { get; set; }
-    public int AttendanceCount { get; set; }
+    public Int32 AttendanceCount { get; set; }
 }

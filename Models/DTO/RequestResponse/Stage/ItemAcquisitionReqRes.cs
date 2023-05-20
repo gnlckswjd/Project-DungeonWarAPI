@@ -4,11 +4,11 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 
 public class ItemAcquisitionRequest
 {
-    public int ItemCode { get; set; }
+    public Int32 ItemCode { get; set; }
 
-    public int ItemCount { get; set; }
+    public Int32 ItemCount { get; set; }
 
-    public string Email { get; set; }
+    public String Email { get; set; }
 }
 
 public class ItemAcquisitionResponse

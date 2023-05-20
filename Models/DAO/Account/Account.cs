@@ -2,9 +2,9 @@
 
 public class Account
 {
-    public int AccountId { get; set; }
+    public Int32 AccountId { get; set; }
 
-    public string Email { get; set; }
-    public string HashedPassword { get; set; }
-    public string SaltValue { get; set; }
+    public String Email { get; set; }
+    public String HashedPassword { get; set; }
+    public String SaltValue { get; set; }
 }

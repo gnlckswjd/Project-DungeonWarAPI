@@ -53,7 +53,7 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
-		response.items = items;
+		response.Items = items;
 
 		var authToken = Security.GetNewToken();
 

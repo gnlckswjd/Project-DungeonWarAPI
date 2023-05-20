@@ -9,5 +9,5 @@ public class StageListRequest
 public class StageListResponse
 {
     public ErrorCode Error { get; set; }
-    public int MaxClearedStage { get; set; }
+    public Int32 MaxClearedStage { get; set; }
 }

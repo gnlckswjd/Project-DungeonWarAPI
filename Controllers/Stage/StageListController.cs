@@ -26,7 +26,7 @@ public class StageListController : ControllerBase
     [HttpPost]
     public async Task<StageListResponse> Post(StageListRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageListResponse();
         var gameUserId = userAuthAndState.GameUserId;
 

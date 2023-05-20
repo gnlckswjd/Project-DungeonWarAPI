@@ -26,7 +26,7 @@ public class AttendanceListController : ControllerBase
 	[HttpPost]
 	public async Task<AttendanceListResponse> Post(AttendanceListRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var authUserData = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new AttendanceListResponse();
 
 		var gameUserId = authUserData.GameUserId;

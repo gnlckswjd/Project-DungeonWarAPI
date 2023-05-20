@@ -23,7 +23,7 @@ public class ChannelChangeController : ControllerBase
 	[HttpPost]
 	public async Task<ChannelChangeResponse> Post(ChannelChangeRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new ChannelChangeResponse();
 
 		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(userAuthAndState.Email);

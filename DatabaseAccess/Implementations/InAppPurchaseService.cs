@@ -20,10 +20,10 @@ public class InAppPurchaseService : DatabaseAccessBase, IInAppPurchaseService
 	}
 
 
-	public async Task<(ErrorCode, Int32)> StoreReceiptAsync(Int32 gameUserId, String receiptSerialCode, Int32 packageId)
+	public async Task<(ErrorCode, Int32)> InsertReceiptAsync(Int32 gameUserId, String receiptSerialCode, Int32 packageId)
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ReceiptSerialCode = receiptSerialCode },
-			"StoreReceipt Start");
+			"InsertReceipt Start");
 
 		try
 		{
@@ -35,12 +35,12 @@ public class InAppPurchaseService : DatabaseAccessBase, IInAppPurchaseService
 			{
 				_logger.ZLogErrorWithPayload(new
 					{
-						ErrorCode = ErrorCode.StoreReceiptFailDuplicatedReceipt,
+						ErrorCode = ErrorCode.InsertReceiptFailDuplicatedReceipt,
 						GameUserId = gameUserId,
 						ReceiptSerialCode = receiptSerialCode
 					}
-					, "StoreReceiptFailDuplicatedReceipt");
-				return (ErrorCode.StoreReceiptFailDuplicatedReceipt, 0);
+					, "InsertReceiptFailDuplicatedReceipt");
+				return (ErrorCode.InsertReceiptFailDuplicatedReceipt, 0);
 			}
 
 			var receiptId = await _queryFactory.Query("receipt")
@@ -56,12 +56,12 @@ public class InAppPurchaseService : DatabaseAccessBase, IInAppPurchaseService
 			{
 				_logger.ZLogErrorWithPayload(new
 					{
-						ErrorCode = ErrorCode.StoreReceiptFailInsert,
+						ErrorCode = ErrorCode.InsertReceiptFailInsert,
 						GameUserId = gameUserId,
 						ReceiptSerialCode = receiptSerialCode
 					}
-					, "StoreReceiptFailInsert");
-				return (ErrorCode.StoreReceiptFailInsert, 0);
+					, "InsertReceiptFailInsert");
+				return (ErrorCode.InsertReceiptFailInsert, 0);
 			}
 
 			return (ErrorCode.None, receiptId);
@@ -70,12 +70,12 @@ public class InAppPurchaseService : DatabaseAccessBase, IInAppPurchaseService
 		{
 			_logger.ZLogErrorWithPayload(e, new
 				{
-					ErrorCode = ErrorCode.StoreReceiptFailException,
+					ErrorCode = ErrorCode.InsertReceiptFailException,
 					GameUserId = gameUserId,
 					ReceiptSerialCode = receiptSerialCode
 				}
-				, "StoreReceiptFailException");
-			return (ErrorCode.StoreReceiptFailException, 0);
+				, "InsertReceiptFailException");
+			return (ErrorCode.InsertReceiptFailException, 0);
 		}
 	}
 

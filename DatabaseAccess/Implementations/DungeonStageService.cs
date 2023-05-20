@@ -107,10 +107,10 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 				_logger.ZLogErrorWithPayload(
 					new
 					{
-						Errorcode = ErrorCode.RollbackUpdateFailUpdate, GameUserId = gameUserId, Level = level,
+						Errorcode = ErrorCode.RollbackUpdateExpFailUpdate, GameUserId = gameUserId, Level = level,
 						Exp = exp
-					}, "RollbackUpdateFailUpdate");
-				return ErrorCode.RollbackUpdateFailUpdate;
+					}, "RollbackUpdateExpFailUpdate");
+				return ErrorCode.RollbackUpdateExpFailUpdate;
 			}
 
 			return ErrorCode.None;
@@ -120,12 +120,12 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 			_logger.ZLogErrorWithPayload(e,
 				new
 				{
-					Errorcode = ErrorCode.RollbackUpdateFailException,
+					Errorcode = ErrorCode.RollbackUpdateExpFailException,
 					GameUserId = gameUserId,
 					Level = level,
 					Exp = exp
-				}, "RollbackUpdateFailException");
-			return ErrorCode.RollbackUpdateFailException;
+				}, "RollbackUpdateExpFailException");
+			return ErrorCode.RollbackUpdateExpFailException;
 		}
 	}
 

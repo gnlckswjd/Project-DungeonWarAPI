@@ -16,7 +16,7 @@ public class LoginResponse
 
     public int UserLevel { get; set; }
 
-    public List<OwnedItem> items { get; set; }
+    public List<OwnedItem> Items { get; set; }
 
     public string AuthToken { get; set; }
 

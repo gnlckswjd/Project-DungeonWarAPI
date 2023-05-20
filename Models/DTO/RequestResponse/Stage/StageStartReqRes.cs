@@ -6,8 +6,8 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 
 public class StageStartRequest
 {
-    public string Email { get; set; }
-    public int SelectedStageLevel { get; set; }
+    public String Email { get; set; }
+    public Int32 SelectedStageLevel { get; set; }
 }
 public class StageStartResponse
 {

@@ -26,13 +26,13 @@ public class InAppController : ControllerBase
 	[HttpPost]
 	public async Task<InAppResponse> Post(InAppRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(UserAuthAndState)] as UserAuthAndState;
+		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new InAppResponse();
 
 		var gameUserId = userAuthAndState.GameUserId;
 
 
-		var (errorCode, receiptId) = await _inAppPurchaseService.StoreReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
+		var (errorCode, receiptId) = await _inAppPurchaseService.InsertReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
 
 		if (errorCode != ErrorCode.None)
 		{

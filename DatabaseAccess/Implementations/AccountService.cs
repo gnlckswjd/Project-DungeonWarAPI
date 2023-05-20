@@ -75,9 +75,9 @@ public class AccountService : IAccountService
 	}
 
 
-	public async Task<ErrorCode> RollbackAccountAsync(Int32 accountId)
+	public async Task<ErrorCode> RollbackCreateAccountAsync(Int32 accountId)
 	{
-		_logger.ZLogDebugWithPayload(new { AccountId = accountId }, $"RollbackAccount Start");
+		_logger.ZLogDebugWithPayload(new { AccountId = accountId }, $"RollbackCreateAccount Start");
 		try
 		{
 			var count = await _queryFactory.Query("account")
@@ -85,18 +85,18 @@ public class AccountService : IAccountService
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackAccountFailDelete },
-					"RollbackAccount Fail");
-				return ErrorCode.RollbackAccountFailDelete;
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackCreateAccountFailDelete },
+					"RollbackCreateAccountFailDelete");
+				return ErrorCode.RollbackCreateAccountFailDelete;
 			}
 
 			return ErrorCode.None;
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RollbackAccountFailDelete },
-				"RollbackAccount Exception");
-			return ErrorCode.RollbackAccountFailException;
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RollbackCreateAccountFailException },
+				"RollbackCreateAccountFailException");
+			return ErrorCode.RollbackCreateAccountFailException;
 		}
 	}
 

@@ -4,9 +4,9 @@ namespace DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 
 public class NpcKillRequest
 {
-    public int NpcCode { get; set; }
+    public Int32 NpcCode { get; set; }
 
-    public string Email { get; set; }
+    public String Email { get; set; }
 }
 public class NpcKillResponse
 {
