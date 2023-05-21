@@ -4,30 +4,38 @@ namespace DungeonWarAPI.GameLogic;
 
 public static class ItemEnhancer
 {
-    public static ErrorCode CheckEnhancementPossibility(Int32 maxEnhancementCount, Int32 enhancementCount, Int32 attributeCode)
+	private static Int32 cost = 500;
+
+	private static Double interestRate = 1.1;
+	public static (ErrorCode, Int32 cost)VerifyEnhancementPossibilityAndGetCost(Int32 maxEnhancementCount, Int32 enhancementCount, Int32 attributeCode, Int64 gold)
     {
         if (maxEnhancementCount == -1)
         {
-            return ErrorCode.WrongItemCode;
+            return (ErrorCode.WrongItemCode, 0);
         }
 
         if (maxEnhancementCount == 0)
         {
-            return ErrorCode.CanNotEnhancement;
+            return (ErrorCode.CanNotEnhancement, 0);
         }
 
         if (maxEnhancementCount <= enhancementCount)
         {
-            return ErrorCode.CanNotEnhancement;
+            return (ErrorCode.CanNotEnhancement, 0);
         }
 
         if (attributeCode != 1 && attributeCode != 2)
         {
-            return ErrorCode.CanNotEnhancement;
+            return (ErrorCode.CanNotEnhancement, 0);
 
         }
 
-        return ErrorCode.None;
+        if (gold < cost)
+        {
+	        return (ErrorCode.NotEnoughGold, 0);
+        }
+
+        return (ErrorCode.None, cost);
     }
 
     public static bool TryEnhancement()
@@ -37,14 +45,12 @@ public static class ItemEnhancer
         return randomNumber < 0.3;
     }
 
-    public static Int32 GetAttackPower(Int32 baseAttack)
+    public static Int32 GetEnhancedAttackPower(Int32 baseAttack)
     {
-        Double interestRate = 1.1;
-        return (int)Math.Round(baseAttack * interestRate);
+	    return (Int32)Math.Round(baseAttack * interestRate);
     }
-    public static Int32 GetDefensePower(Int32 baseDefense)
+    public static Int32 GetEnhancedDefensePower(Int32 baseDefense)
     {
-        Double interestRate = 1.1;
-        return (int)Math.Round(baseDefense * interestRate);
+	    return (Int32)Math.Round(baseDefense * interestRate);
     }
 }

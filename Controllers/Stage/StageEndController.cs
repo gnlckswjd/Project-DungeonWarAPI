@@ -15,20 +15,22 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class StageEndController : ControllerBase
 {
-    private readonly IDungeonStageService _dungeonStageService;
-    private readonly IItemService _itemService;
-    private readonly MasterDataManager _masterDataManager;
+    private readonly IStageDataCRUD _stageDataCRUD;
+    private readonly IItemDATACRUD _itemDataCRUD;
+    private readonly IUserDataCRUD _userDataCRUD;
+    private readonly MasterDataProvider _masterDataProvider;
     private readonly IMemoryDatabase _memoryDatabase;
     private readonly ILogger<StageEndController> _logger;
 
     public StageEndController(ILogger<StageEndController> logger, IMemoryDatabase memoryDatabase,
-        MasterDataManager masterDataManager,
-        IDungeonStageService dungeonStageService, IItemService itemService)
+        MasterDataProvider masterDataProvider,
+        IStageDataCRUD stageDataCRUD, IItemDATACRUD itemDataCRUD, IUserDataCRUD userDataCrud)
     {
         _memoryDatabase = memoryDatabase;
-        _dungeonStageService = dungeonStageService;
-        _itemService = itemService;
-        _masterDataManager = masterDataManager;
+        _stageDataCRUD = stageDataCRUD;
+        _itemDataCRUD = itemDataCRUD;
+        _userDataCRUD = userDataCrud;
+        _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
 
@@ -50,7 +52,7 @@ public class StageEndController : ControllerBase
 
         var (itemCodeAndCount, npcCodeAndCount, stageLevel) = StageDataParser.ParseStageData(dictionary);
 
-        var stageNpcList = _masterDataManager.GetStageNpcList(stageLevel);
+        var stageNpcList = _masterDataProvider.GetStageNpcList(stageLevel);
         var (isCleared, earnedExp) = StageRequestVerifier.VerifyClearAndCalcExp(stageNpcList, npcCodeAndCount);
 
         if (isCleared == false)
@@ -103,26 +105,26 @@ public class StageEndController : ControllerBase
 
     private async Task<ErrorCode> ProcessStageCompletionAsync(int gameUserId, int stageLevel, int earnedExp, List<(int, int)> itemCodeAndCount)
     {
-        var (errorCode, isIncrement) = await _dungeonStageService.IncreaseMaxClearedStageAsync(gameUserId, stageLevel);
+        var (errorCode, isIncrement) = await _stageDataCRUD.IncreaseMaxClearedStageAsync(gameUserId, stageLevel);
         if (errorCode != ErrorCode.None)
         {
             return errorCode;
         }
 
-        (errorCode, int existingLevel, int existingExp) = await _dungeonStageService.UpdateExpAsync(gameUserId, earnedExp);
+        (errorCode, int existingLevel, int existingExp) = await _userDataCRUD.UpdateExpAsync(gameUserId, earnedExp);
         if (errorCode != ErrorCode.None)
         {
-            await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
+            await _stageDataCRUD.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
 
             return errorCode;
         }
 
         //우편함에 주는 것 고려 정책
-        errorCode = await _itemService.InsertItemsAsync(gameUserId, itemCodeAndCount);
+        errorCode = await _itemDataCRUD.InsertItemsAsync(gameUserId, itemCodeAndCount);
         if (errorCode != ErrorCode.None)
         {
-            await _dungeonStageService.RollbackUpdateExpAsync(gameUserId, existingLevel, existingExp);
-            await _dungeonStageService.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
+            await _stageDataCRUD.RollbackUpdateExpAsync(gameUserId, existingLevel, existingExp);
+            await _stageDataCRUD.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
 
             return errorCode;
         }

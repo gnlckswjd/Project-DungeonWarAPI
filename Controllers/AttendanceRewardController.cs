@@ -12,17 +12,17 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class AttendanceRewardController : ControllerBase
 {
-	private readonly IAttendanceRewardService _attendanceRewardService;
-	private readonly IMailService _mailService;
-	private readonly MasterDataManager _masterDataManager;
+	private readonly IAttendanceDataCRUD _attendanceDataCRUD;
+	private readonly IMailDataCRUD _mailDataCRUD;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly ILogger<AttendanceRewardController> _logger;
 
-	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataManager masterDataManager,
-		IAttendanceRewardService attendanceRewardService, IMailService mailService)
+	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataProvider masterDataProvider,
+		IAttendanceDataCRUD attendanceDataCRUD, IMailDataCRUD mailDataCRUD)
 	{
-		_attendanceRewardService = attendanceRewardService;
-		_mailService = mailService;
-		_masterDataManager = masterDataManager;
+		_attendanceDataCRUD = attendanceDataCRUD;
+		_mailDataCRUD = mailDataCRUD;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -34,30 +34,29 @@ public class AttendanceRewardController : ControllerBase
 
 		var gameUserId = userAuthAndState.GameUserId;
 
-		var (errorCode, lastLoginDate, attendanceCount) = await _attendanceRewardService.UpdateLoginDateAsync(gameUserId);
-
+		var (errorCode, lastLoginDate, attendanceCount) = await _attendanceDataCRUD.UpdateLoginDateAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		var reward = _masterDataManager.GetAttendanceReward(attendanceCount);
+		var reward = _masterDataProvider.GetAttendanceReward(attendanceCount);
 
 		var mail = MailGenerator.CreateAttendanceRewardMail(gameUserId, reward);
 
-		(errorCode, var mailId )= await _mailService.InsertMailAsync(gameUserId, mail);
+		(errorCode, var mailId )= await _mailDataCRUD.InsertMailAsync(gameUserId, mail);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		errorCode = await _mailService.InsertMailItemAsync(mailId, reward.ItemCode, reward.ItemCount);
+		errorCode = await _mailDataCRUD.InsertMailItemAsync(mailId, reward.ItemCode, reward.ItemCount);
 		if (errorCode != ErrorCode.None)
 		{
-			await _mailService.RollbackInsertMailAsync(mailId);
-			await _attendanceRewardService.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
+			await _mailDataCRUD.RollbackInsertMailAsync(mailId);
+			await _attendanceDataCRUD.RollbackLoginDateAsync(gameUserId, lastLoginDate, attendanceCount);
 			response.Error=errorCode;
 			return response;
 		}

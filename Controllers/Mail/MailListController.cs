@@ -11,12 +11,12 @@ namespace DungeonWarAPI.Controllers.Mail;
 [ApiController]
 public class MailListController : ControllerBase
 {
-    private readonly IMailService _mailService;
+    private readonly IMailDataCRUD _mailDataCRUD;
     private readonly ILogger<MailListController> _logger;
 
-    public MailListController(ILogger<MailListController> logger, IMailService mailService)
+    public MailListController(ILogger<MailListController> logger, IMailDataCRUD mailDataCRUD)
     {
-        _mailService = mailService;
+        _mailDataCRUD = mailDataCRUD;
         _logger = logger;
     }
 
@@ -27,7 +27,7 @@ public class MailListController : ControllerBase
         var response = new MailListResponse();
         var gameUserId = userAuthAndState.GameUserId;
 
-        var (errorCode, mails) = await _mailService.LoadMailListAsync(gameUserId, request.PageNumber);
+        var (errorCode, mails) = await _mailDataCRUD.LoadMailListAsync(gameUserId, request.PageNumber);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
@@ -38,7 +38,7 @@ public class MailListController : ControllerBase
 
         foreach (var mail in mails)
         {
-            (errorCode, var items) = await _mailService.LoadMailItemsAsync(gameUserId, mail.MailId);
+            (errorCode, var items) = await _mailDataCRUD.LoadMailItemsAsync(gameUserId, mail.MailId);
 
             if (errorCode != ErrorCode.None)
             {

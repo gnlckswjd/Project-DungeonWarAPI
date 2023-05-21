@@ -12,20 +12,20 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class CreateAccountController : ControllerBase
 {
-	private readonly IAccountService _accountDatabase;
+	private readonly IAccountDataCRUD _accountDatabase;
 	private readonly ILogger<CreateAccountController> _logger;
 	private readonly OwnedItemFactory _ownedItemFactory;
-	private readonly IUserService _userService;
-	private readonly  IItemService _itemService;
+	private readonly IUserDataCRUD _userDataCRUD;
+	private readonly  IItemDATACRUD _itemDataCRUD;
 
-	public CreateAccountController(IAccountService accountDatabase, IUserService userService, OwnedItemFactory ownedItemFactory,
-		ILogger<CreateAccountController> logger, IItemService itemService)
+	public CreateAccountController(IAccountDataCRUD accountDatabase, IUserDataCRUD userDataCRUD, OwnedItemFactory ownedItemFactory,
+		ILogger<CreateAccountController> logger, IItemDATACRUD itemDataCRUD)
 	{
 		_accountDatabase = accountDatabase;
-		_userService = userService;
+		_userDataCRUD = userDataCRUD;
 		_ownedItemFactory = ownedItemFactory;
 		_logger = logger;
-		_itemService = itemService;
+		_itemDataCRUD = itemDataCRUD;
 	}
 
 	[HttpPost]
@@ -53,37 +53,38 @@ public class CreateAccountController : ControllerBase
 
 	private async Task<ErrorCode> CreateDefaultsUserData(Int32 playerId)
 	{
-		var (errorCode, gameUserId) = await _userService.CreateUserAsync(playerId);
+		var (errorCode, gameUserId) = await _userDataCRUD.CreateUserAsync(playerId);
 		if (errorCode != ErrorCode.None)
 		{
 			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 
-		errorCode = await _userService.CreateUserAttendanceAsync(gameUserId);
+		errorCode = await _userDataCRUD.CreateUserAttendanceAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
-			await _userService.RollbackCreateUserAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
 
-		errorCode = await _userService.CreateUserStageAsync(gameUserId);
+		errorCode = await _userDataCRUD.CreateUserStageAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
-			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
-			await _userService.RollbackCreateUserAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserAttendanceAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}
+
 		var items = _ownedItemFactory.CreateDefaultItems(gameUserId);
 
-		errorCode = await _itemService.InsertNonStackableItemsAsync(gameUserId, items);
+		errorCode = await _itemDataCRUD.InsertNonStackableItemsAsync(gameUserId, items);
 		if (errorCode != ErrorCode.None)
 		{
-			await _userService.RollbackCreateUserStageAsync(gameUserId);
-			await _userService.RollbackCreateUserAttendanceAsync(gameUserId);
-			await _userService.RollbackCreateUserAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserStageAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserAttendanceAsync(gameUserId);
+			await _userDataCRUD.RollbackCreateUserAsync(gameUserId);
 			await _accountDatabase.RollbackCreateAccountAsync(playerId);
 			return errorCode;
 		}

@@ -10,12 +10,12 @@ namespace DungeonWarAPI.Controllers.Mail;
 [ApiController]
 public class ReadMailController : ControllerBase
 {
-    private readonly IMailService _mailService;
+    private readonly IMailDataCRUD _mailDataCRUD;
     private readonly ILogger<ReadMailController> _logger;
 
-    public ReadMailController(ILogger<ReadMailController> logger, IMailService mailService)
+    public ReadMailController(ILogger<ReadMailController> logger, IMailDataCRUD mailDataCRUD)
     {
-        _mailService = mailService;
+        _mailDataCRUD = mailDataCRUD;
         _logger = logger;
     }
 
@@ -27,7 +27,7 @@ public class ReadMailController : ControllerBase
 
         var ownerId = userAuthAndState.GameUserId;
 
-        var (errorCode, content) = await _mailService.ReadMailAsync(ownerId, request.MailId);
+        var (errorCode, content) = await _mailDataCRUD.ReadMailAsync(ownerId, request.MailId);
 
         if (errorCode != ErrorCode.None)
         {

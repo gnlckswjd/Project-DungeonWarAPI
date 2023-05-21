@@ -11,15 +11,15 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class AttendanceListController : ControllerBase
 {
-	private readonly IAttendanceRewardService _attendanceRewardService;
-	private readonly MasterDataManager _masterDataManager;
+	private readonly IAttendanceDataCRUD _attendanceDataCRUD;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly ILogger<AttendanceListController> _logger;
 
-	public AttendanceListController(ILogger<AttendanceListController> logger, MasterDataManager masterDataManager,
-		IAttendanceRewardService attendanceRewardService)
+	public AttendanceListController(ILogger<AttendanceListController> logger, MasterDataProvider masterDataProvider,
+		IAttendanceDataCRUD attendanceDataCRUD)
 	{
-		_attendanceRewardService = attendanceRewardService;
-		_masterDataManager = masterDataManager;
+		_attendanceDataCRUD = attendanceDataCRUD;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -30,8 +30,8 @@ public class AttendanceListController : ControllerBase
 		var response = new AttendanceListResponse();
 
 		var gameUserId = authUserData.GameUserId;
-		// 리스트 확인할 때 Date 확인
-		var (errorCode, attendanceCount) = await _attendanceRewardService.LoadAttendanceCountAsync(gameUserId);
+
+		var (errorCode, attendanceCount) = await _attendanceDataCRUD.LoadAttendanceCountAsync(gameUserId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

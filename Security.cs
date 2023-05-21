@@ -16,7 +16,7 @@ public static class Security
 		}
 	}
 
-	public static string GetNewHashedPassword(string password, string salt)
+	public static string CalcHashedPassword(string password, string salt)
 	{
 		var passwordBytes = Encoding.UTF8.GetBytes(password + salt);
 		using (var sha256Hash = SHA256.Create())
@@ -27,7 +27,7 @@ public static class Security
 		}
 	}
 
-	public static string GetNewToken()
+	public static string GetNewAuthToken()
 	{
 		using (var randomNumberGenerator = RandomNumberGenerator.Create())
 		{

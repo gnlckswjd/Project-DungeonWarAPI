@@ -7,12 +7,12 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class ItemService : DatabaseAccessBase, IItemService
+public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 {
 	private readonly OwnedItemFactory _ownedItemFactory;
 
 
-	public ItemService(ILogger<ItemService> logger, QueryFactory queryFactory, OwnedItemFactory ownedItemFactory) 
+	public ItemDataCRUD(ILogger<ItemDataCRUD> logger, QueryFactory queryFactory, OwnedItemFactory ownedItemFactory) 
 		:base(logger,queryFactory)
 	{
 		_ownedItemFactory = ownedItemFactory;
@@ -23,23 +23,24 @@ public class ItemService : DatabaseAccessBase, IItemService
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "LoadItem Start");
 		try
 		{
-			var item = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+			var item = await _queryFactory.Query("owned_item")
+				.Where("ItemId", "=", itemId)
 				.FirstOrDefaultAsync<OwnedItem>();
 
 			if (item == null)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadItemFailSelect, GameUserId = gameUserId, ItemId = itemId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadItemFailSelect, GameUserId = gameUserId, ItemId = itemId }, 
 					"LoadItemFailSelect");
+
 				return (ErrorCode.LoadItemFailSelect, new OwnedItem());
 			}
 
 
 			if (item.GameUserId != gameUserId)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadItemFailWrongGameUser, GameUserId = gameUserId, ItemId = itemId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadItemFailWrongGameUser, GameUserId = gameUserId, ItemId = itemId },
 					"LoadItemFailWrongGameUser");
+
 				return (ErrorCode.LoadItemFailWrongGameUser, new OwnedItem());
 			}
 
@@ -48,42 +49,39 @@ public class ItemService : DatabaseAccessBase, IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadItemFailException, GameUserId = gameUserId, ItemId = itemId },
 				"LoadItemFailException");
+
 			return (ErrorCode.LoadItemFailException, new OwnedItem());
 		}
 	}
 
-	public async Task<ErrorCode> DestroyItemAsync(Int32 gameUserId, Int64 itemId)
+	public async Task<ErrorCode> UpdateItemStatusToDestroyAsync(Int32 gameUserId, Int64 itemId)
 	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "DestroyItem Start");
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, ItemId = itemId }, "UpdateItemStatusToDestroy Start");
 
 		try
 		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+			var count = await _queryFactory.Query("owned_item")
+				.Where("ItemId", "=", itemId)
 				.UpdateAsync(new { IsDestroyed = true });
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.DestroyItemFailUpdate, GameUserId = gameUserId, ItemId = itemId },
-					"DestroyItemFailUpdate");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateItemStatusToDestroyAFailUpdate, GameUserId = gameUserId, ItemId = itemId },
+					"UpdateItemStatusToDestroyAFailUpdate");
 
-				return ErrorCode.DestroyItemFailUpdate;
+				return ErrorCode.UpdateItemStatusToDestroyAFailUpdate;
 			}
 
 			return ErrorCode.None;
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.DestroyItemFailException, GameUserId = gameUserId, ItemId = itemId },
-				"DestroyItemFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateItemStatusToDestroyAFailException, GameUserId = gameUserId, ItemId = itemId },
+				"UpdateItemStatusToDestroyAFailException");
 
-			return ErrorCode.DestroyItemFailException;
+			return ErrorCode.UpdateItemStatusToDestroyAFailException;
 		}
 	}
 
@@ -119,13 +117,9 @@ public class ItemService : DatabaseAccessBase, IItemService
 		catch (Exception e)
 		{
 			await RollbackReceiveItemAsync(rollbackActions);
-			_logger.ZLogErrorWithPayload(e,
-				new
-				{
-					ErrorCode = ErrorCode.InsertItemFailException,
-					GameUserId = gameUserId
-				},
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId },
 				"InsertItemFailException");
+
 			return ErrorCode.InsertItemFailException;
 		}
 	}
@@ -144,12 +138,7 @@ public class ItemService : DatabaseAccessBase, IItemService
 				{
 					await RollbackReceiveItemAsync(rollbackActions);
 
-					_logger.ZLogErrorWithPayload(
-						new
-						{
-							ErrorCode = ErrorCode.InsertItemFailInsert,
-							GameUserId = gameUserId
-						},
+					_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertItemFailInsert, GameUserId = gameUserId },
 						"InsertItemFailInsert");
 
 					return ErrorCode.InsertItemFailInsert;
@@ -224,13 +213,13 @@ public class ItemService : DatabaseAccessBase, IItemService
 
 		try
 		{
-			var count = await _queryFactory.Query("owned_item").Where("ItemId", "=", itemId)
+			var count = await _queryFactory.Query("owned_item")
+				.Where("ItemId", "=", itemId)
 				.UpdateAsync(new { IsDestroyed = false });
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.RollbackDestroyItemFailUpdate, ItemId = itemId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackDestroyItemFailUpdate, ItemId = itemId }, 
 					"RollbackDestroyItemFailUpdate");
 
 				return ErrorCode.RollbackDestroyItemFailUpdate;
@@ -240,9 +229,7 @@ public class ItemService : DatabaseAccessBase, IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RollbackDestroyItemFailException, ItemId = itemId }, 
 				"RollbackDestroyItemFailException");
 
 			return ErrorCode.RollbackDestroyItemFailException;
@@ -276,9 +263,9 @@ public class ItemService : DatabaseAccessBase, IItemService
 
 			if (count < 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.InsertNonStackableItemsFailInsert, GameUserId = gameUserId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertNonStackableItemsFailInsert, GameUserId = gameUserId },
 					"InsertNonStackableItemsFailInsert");
+				
 				return ErrorCode.InsertNonStackableItemsFailInsert;
 			}
 
@@ -286,9 +273,9 @@ public class ItemService : DatabaseAccessBase, IItemService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.InsertNonStackableItemsException, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertNonStackableItemsException, GameUserId = gameUserId }, 
 				"InsertNonStackableItemsException");
+			
 			return ErrorCode.InsertNonStackableItemsException;
 		}
 	}
@@ -308,9 +295,9 @@ public class ItemService : DatabaseAccessBase, IItemService
 
 		if (errorCode != ErrorCode.None)
 		{
-			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.IncreasePotionFailUpdateOrInsert, GameUserId = gameUserId },
-				"IncreasePotionFailUpdateOrInsert");
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncreasePotionFailUpdateOrInsert, GameUserId = gameUserId }, 
+				"IncreasePotionFailUpdateOrInsert"); 
+
 			return ErrorCode.IncreasePotionFailUpdateOrInsert;
 		}
 
@@ -324,13 +311,8 @@ public class ItemService : DatabaseAccessBase, IItemService
 
 			if (rollbackCount != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackIncreasePotionFail,
-						GameUserId = gameUserId,
-						ItemCount = itemCount
-					}, "RollbackIncreasePotionFail");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackIncreasePotionFail, GameUserId = gameUserId, ItemCount = itemCount },
+					"RollbackIncreasePotionFail");
 			}
 		});
 
@@ -346,26 +328,22 @@ public class ItemService : DatabaseAccessBase, IItemService
 
 		if (itemId == 0)
 		{
-			_logger.ZLogErrorWithPayload(
-				new { ErrorCode = ErrorCode.InsertOwnedItemFailInsert, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertOwnedItemFailInsert, GameUserId = gameUserId }, 
 				"InsertOwnedItemFailInsert");
+
 			return ErrorCode.InsertOwnedItemFailInsert;
 		}
 
 		rollbackActions.Add(async () =>
 		{
-			var rollbackCount = await _queryFactory.Query("user_data").Where("ItemId", "=", itemId)
+			var rollbackCount = await _queryFactory.Query("user_data")
+				.Where("ItemId", "=", itemId)
 				.DeleteAsync();
 
 			if (rollbackCount != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.RollbackInsertOwnedItemFail,
-						GameUserId = gameUserId,
-						ItemId = itemId
-					}, "RollbackInsertOwnedItemFail");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackInsertOwnedItemFail, GameUserId = gameUserId, ItemId = itemId }, 
+					"RollbackInsertOwnedItemFail");
 			}
 		});
 

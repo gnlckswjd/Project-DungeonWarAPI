@@ -1,8 +1,10 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
+using DungeonWarAPI.DatabaseAccess.Implementations;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Redis;
+using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
@@ -13,30 +15,31 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class EnhancementController : ControllerBase
 {
-	private readonly IEnhancementService _enhancementService;
-	private readonly IItemService _itemService;
-	private readonly MasterDataManager _masterDataManager;
+	private readonly IEnhancementDataCRUD _enhancementDataCRUD;
+	private readonly IItemDATACRUD _itemDataCRUD;
+	private readonly IUserDataCRUD _userDataCRUD;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly ILogger<EnhancementController> _logger;
 
-	public EnhancementController(ILogger<EnhancementController> logger, MasterDataManager masterDataManager,
-		IEnhancementService enhancementService, IItemService itemService)
+	public EnhancementController(ILogger<EnhancementController> logger, MasterDataProvider masterDataProvider,
+		IEnhancementDataCRUD enhancementDataCRUD, IItemDATACRUD itemDataCRUD, IUserDataCRUD userDataCrud)
 	{
-		_enhancementService = enhancementService;
-		_itemService = itemService;
-		_masterDataManager = masterDataManager;
+		_enhancementDataCRUD = enhancementDataCRUD;
+		_itemDataCRUD = itemDataCRUD;
+		_userDataCRUD = userDataCrud;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
 	[HttpPost]
 	public async Task<EnhancementResponse> Post(EnhancementRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new EnhancementResponse();
-
-		var gameUserId = userAuthAndState.GameUserId;
+		var gameUserId = authenticatedUserState.GameUserId;
 		var itemId = request.ItemId;
 
-		var (errorCode, item) = await _itemService.LoadItemAsync(gameUserId, itemId);
+		var (errorCode, item, gold) = await LoadItemAndGoldAsync(gameUserId, itemId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -44,75 +47,38 @@ public class EnhancementController : ControllerBase
 		}
 
 		var itemCode = item.ItemCode;
+		var maxCount = _masterDataProvider.GetEnhanceMaxCountWithCost(itemCode);
+		var attributeCode = _masterDataProvider.GetAttributeCode(itemCode);
 		var enhancementCount = item.EnhancementCount;
 
-		var (maxCount, cost) = _masterDataManager.GetEnhanceMaxCountWithCost(itemCode);
-		var attributeCode = _masterDataManager.GetAttributeCode(itemCode);
-
-		errorCode = ItemEnhancer.CheckEnhancementPossibility(maxCount, enhancementCount, attributeCode);
+		(errorCode, var cost) = ItemEnhancer.VerifyEnhancementPossibilityAndGetCost(maxCount, enhancementCount, attributeCode, gold);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		errorCode = await _enhancementService.VerifyEnoughGoldAsync(gameUserId, cost);
+		(errorCode, var isSuccess) = await ProcessEnhancement(gameUserId, cost, itemId, enhancementCount, attributeCode, item.Attack, item.Defense);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-
-		Boolean isSuccess = ItemEnhancer.TryEnhancement();
-
-		errorCode = await _enhancementService.UpdateGoldAsync(gameUserId, cost);
-		if (errorCode != ErrorCode.None)
-		{
-			response.Error = errorCode;
-			return response;
-		}
-
-		if (isSuccess)
-		{
-			Int32 itemAttack = ItemEnhancer.GetAttackPower(item.Attack);
-			Int32 itemDefense = ItemEnhancer.GetDefensePower(item.Defense);
-
-			errorCode = await _enhancementService.UpdateEnhancementResultAsync(gameUserId, itemId, enhancementCount,
-				attributeCode, itemAttack, itemDefense);
-			if (errorCode != ErrorCode.None)
-			{
-				await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
-				response.Error = errorCode;
-				return response;
-			}
-		}
-		else
-		{
-			errorCode = await _itemService.DestroyItemAsync(gameUserId, itemId);
-			if (errorCode != ErrorCode.None)
-			{
-				await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
-				response.Error = errorCode;
-				return response;
-			}
-		}
-
-
-		errorCode = await _enhancementService.InsertEnhancementHistoryAsync(gameUserId, request.ItemId,
-			enhancementCount, isSuccess);
+		errorCode = await _enhancementDataCRUD.InsertEnhancementHistoryAsync(gameUserId, itemId, enhancementCount, isSuccess);
 		if (errorCode != ErrorCode.None)
 		{
 			if (isSuccess)
 			{
-				await _enhancementService.RollbackUpdateEnhancementCountAsync(itemId,attributeCode,item.Attack,item.Defense, enhancementCount);
+				await _enhancementDataCRUD.UpdateEnhancementResultAsync(gameUserId, itemId, enhancementCount,
+					attributeCode, item.Attack, item.Defense);
 			}
 			else
 			{
-				await _itemService.RollbackDestroyItemAsync(itemId);
+				await _itemDataCRUD.RollbackDestroyItemAsync(itemId);
 			}
 
-			await _enhancementService.RollbackUpdateMoneyAsync(gameUserId, cost);
+			await _userDataCRUD.RollbackUpdateMoneyAsync(gameUserId, cost);
 			response.Error = errorCode;
 			return response;
 		}
@@ -120,5 +86,55 @@ public class EnhancementController : ControllerBase
 		response.Error = ErrorCode.None;
 		response.EnhancementResult = isSuccess;
 		return response;
+	}
+
+	private async Task<(ErrorCode, OwnedItem, Int64 gold)> LoadItemAndGoldAsync(Int32 gameUserId, Int64 itemId)
+	{
+		var (errorCode, item) = await _itemDataCRUD.LoadItemAsync(gameUserId, itemId);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, default, 0);
+		}
+
+		(errorCode, var gold) = await _userDataCRUD.LoadGoldAsync(gameUserId);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, default, 0);
+		}
+
+		return (ErrorCode.None, item, gold);
+	}
+
+	private async Task<(ErrorCode, Boolean)> ProcessEnhancement(Int32 gameUserId, Int32 cost, Int64 itemId,
+		Int32 enhancementCount, Int32 attributeCode, Int32 attack, Int32 defense)
+	{
+		var errorCode = await _userDataCRUD.UpdateGoldAsync(gameUserId, cost);
+		if (errorCode != ErrorCode.None)
+		{
+			return (errorCode, false);
+		}
+
+		Boolean isSuccess = ItemEnhancer.TryEnhancement();
+
+		if (isSuccess)
+		{
+			Int32 itemAttack = ItemEnhancer.GetEnhancedAttackPower(attack);
+			Int32 itemDefense = ItemEnhancer.GetEnhancedDefensePower(defense);
+
+			errorCode = await _enhancementDataCRUD.UpdateEnhancementResultAsync(gameUserId, itemId, enhancementCount, attributeCode, itemAttack, itemDefense);
+		}
+		else
+		{
+			errorCode = await _itemDataCRUD.UpdateItemStatusToDestroyAsync(gameUserId, itemId);
+		}
+
+		if (errorCode != ErrorCode.None)
+		{
+			await _userDataCRUD.RollbackUpdateMoneyAsync(gameUserId, cost);
+
+			return (errorCode, false);
+		}
+
+		return (ErrorCode.None, isSuccess);
 	}
 }

@@ -6,16 +6,16 @@ namespace DungeonWarAPI.GameLogic;
 
 public class OwnedItemFactory
 {
-	private readonly MasterDataManager _masterDataManager;
+	private readonly MasterDataProvider _masterDataProvider;
 
-	public OwnedItemFactory(MasterDataManager masterDataManager)
+	public OwnedItemFactory(MasterDataProvider masterDataProvider)
 	{
-		_masterDataManager = masterDataManager;
+		_masterDataProvider = masterDataProvider;
 	}
 
 	public OwnedItem CreateOwnedItem(Int32 gameUserId, Int32 itemCode, Int32 enhancementCount = 0, Int32 itemCount = 1)
 	{
-		var item = _masterDataManager.GetItem(itemCode);
+		var item = _masterDataProvider.GetItem(itemCode);
 
 		if (item == null)
 		{

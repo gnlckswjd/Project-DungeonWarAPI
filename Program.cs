@@ -33,18 +33,18 @@ app.Run(configuration["ServerAddress"]);
 
 void DependencyInjection()
 {
-	builder.Services.AddTransient<IAccountService, AccountService>();
-	builder.Services.AddTransient<IUserService,UserService>();
-	builder.Services.AddTransient<IMailService,MailService>();
-	builder.Services.AddTransient<IItemService, ItemService>();
-	builder.Services.AddTransient<IInAppPurchaseService, InAppPurchaseService>();
-	builder.Services.AddTransient<IAttendanceRewardService,AttendanceRewardService>();
-	builder.Services.AddTransient<IEnhancementService,EnhancementService>();
-	builder.Services.AddTransient<IDungeonStageService, DungeonStageService>();
+	builder.Services.AddTransient<IAccountDataCRUD, AccountDataCRUD>();
+	builder.Services.AddTransient<IUserDataCRUD,UserDataCRUD>();
+	builder.Services.AddTransient<IMailDataCRUD,MailDataCRUD>();
+	builder.Services.AddTransient<IItemDATACRUD, ItemDataCRUD>();
+	builder.Services.AddTransient<IInAppPurchaseDataCRUD, InAppPurchaseDataCRUD>();
+	builder.Services.AddTransient<IAttendanceDataCRUD,AttendanceDataCRUD>();
+	builder.Services.AddTransient<IEnhancementDataCRUD,EnhancementDataCRUD>();
+	builder.Services.AddTransient<IStageDataCRUD, StageDataCRUD>();
 	
-	builder.Services.AddTransient<IMasterDatabase, MasterGameDatabase>();
+	builder.Services.AddTransient<IMasterDataLoader, MasterDataLoader>();
 	builder.Services.AddSingleton<IMemoryDatabase, RedisDatabase>();
-	builder.Services.AddSingleton<MasterDataManager>();
+	builder.Services.AddSingleton<MasterDataProvider>();
 	builder.Services.AddSingleton<OwnedItemFactory>();
 	builder.Services.AddSingleton<ChatRoomAllocator>();
 	builder.Services.AddScoped<QueryFactory>(provider =>

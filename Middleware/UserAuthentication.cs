@@ -12,14 +12,14 @@ namespace DungeonWarAPI.Middleware;
 public class UserAuthentication
 {
 	private readonly IMemoryDatabase _memoryDatabase;
-	private readonly MasterDataManager _masterDataManager;
+	private readonly MasterDataProvider _masterDataProvider;
 
 	private readonly RequestDelegate _next;
 
-	public UserAuthentication(IMemoryDatabase memoryDatabase, MasterDataManager masterDataManager, RequestDelegate next)
+	public UserAuthentication(IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider, RequestDelegate next)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataManager = masterDataManager;
+		_masterDataProvider = masterDataProvider;
 		_next = next;
 	}
 
@@ -170,7 +170,7 @@ public class UserAuthentication
 
 	async Task<bool> IsWrongAppVersion(String appVersion, HttpContext context)
 	{
-		if (String.CompareOrdinal(appVersion, _masterDataManager.Versions.AppVersion) != 0)
+		if (String.CompareOrdinal(appVersion, _masterDataProvider.Versions.AppVersion) != 0)
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
@@ -187,7 +187,7 @@ public class UserAuthentication
 
 	async Task<bool> IsWrongMasterDataVersion(String masterDataVersion, HttpContext context)
 	{
-		if (String.CompareOrdinal(masterDataVersion, _masterDataManager.Versions.AppVersion) != 0)
+		if (String.CompareOrdinal(masterDataVersion, _masterDataProvider.Versions.AppVersion) != 0)
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{

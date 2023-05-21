@@ -11,15 +11,16 @@ namespace DungeonWarAPI.Controllers;
 [ApiController]
 public class InAppController : ControllerBase
 {
-	private readonly IInAppPurchaseService _inAppPurchaseService;
-	private readonly MasterDataManager _masterDataManager;
+	private readonly IInAppPurchaseDataCRUD _inAppPurchaseDataCRUD;
+	private readonly IMailDataCRUD _mailDataCRUD;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly ILogger<InAppController> _logger;
 
-	public InAppController(ILogger<InAppController> logger, MasterDataManager masterDataManager,
-		IInAppPurchaseService inAppPurchaseService)
+	public InAppController(ILogger<InAppController> logger, MasterDataProvider masterDataProvider, IInAppPurchaseDataCRUD inAppPurchaseDataCRUD, IMailDataCRUD mailDataCrud)
 	{
-		_inAppPurchaseService = inAppPurchaseService;
-		_masterDataManager = masterDataManager;
+		_inAppPurchaseDataCRUD = inAppPurchaseDataCRUD;
+		_mailDataCRUD = mailDataCrud;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -32,22 +33,19 @@ public class InAppController : ControllerBase
 		var gameUserId = userAuthAndState.GameUserId;
 
 
-		var (errorCode, receiptId) = await _inAppPurchaseService.InsertReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
-
+		var (errorCode, receiptId) = await _inAppPurchaseDataCRUD.InsertReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		var packageItems = _masterDataManager.GetPackageItems(request.PackageId);
+		var packageItems = _masterDataProvider.GetPackageItems(request.PackageId);
 
-
-		errorCode = await _inAppPurchaseService.CreateInAppMailAsync(gameUserId,packageItems);
-
+		errorCode = await _mailDataCRUD.CreateInAppMailAsync(gameUserId,packageItems);
 		if (errorCode != ErrorCode.None)
 		{
-			await _inAppPurchaseService.RollbackStoreReceiptAsync(receiptId);
+			await _inAppPurchaseDataCRUD.RollbackStoreReceiptAsync(receiptId);
 			response.Error = errorCode;
 			return response;
 		}

@@ -12,15 +12,15 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class MasterGameDatabase : IMasterDatabase
+public class MasterDataLoader : IMasterDataLoader
 {
     private readonly IOptions<DatabaseConfiguration> _configurationOptions;
-    private readonly ILogger<MasterGameDatabase> _logger;
+    private readonly ILogger<MasterDataLoader> _logger;
 
     private readonly IDbConnection _databaseConnection;
     private readonly QueryFactory _queryFactory;
 
-    public MasterGameDatabase(ILogger<MasterGameDatabase> logger, IOptions<DatabaseConfiguration> configurationOptions)
+    public MasterDataLoader(ILogger<MasterDataLoader> logger, IOptions<DatabaseConfiguration> configurationOptions)
     {
         _configurationOptions = configurationOptions;
         _logger = logger;

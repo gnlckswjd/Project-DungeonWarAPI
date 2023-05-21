@@ -14,18 +14,18 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class StageStartController : ControllerBase
 {
-    private readonly IDungeonStageService _dungeonStageService;
-    private readonly MasterDataManager _masterDataManager;
+    private readonly IStageDataCRUD _stageDataCRUD;
+    private readonly MasterDataProvider _masterDataProvider;
     private readonly IMemoryDatabase _memoryDatabase;
     private readonly ILogger<StageStartController> _logger;
 
     public StageStartController(ILogger<StageStartController> logger, IMemoryDatabase memoryDatabase,
-        MasterDataManager masterDataManager,
-        IDungeonStageService dungeonStageService)
+        MasterDataProvider masterDataProvider,
+        IStageDataCRUD stageDataCRUD)
     {
         _memoryDatabase = memoryDatabase;
-        _dungeonStageService = dungeonStageService;
-        _masterDataManager = masterDataManager;
+        _stageDataCRUD = stageDataCRUD;
+        _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
 
@@ -34,6 +34,7 @@ public class StageStartController : ControllerBase
     {
         var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageStartResponse();
+
         var gameUserId = userAuthAndState.GameUserId;
         var selectedStageLevel = request.SelectedStageLevel;
 
@@ -44,8 +45,8 @@ public class StageStartController : ControllerBase
             return response;
         }
 
-        var itemList = _masterDataManager.GetStageItemList(selectedStageLevel);
-        var npcList = _masterDataManager.GetStageNpcList(selectedStageLevel);
+        var itemList = _masterDataProvider.GetStageItemList(selectedStageLevel);
+        var npcList = _masterDataProvider.GetStageNpcList(selectedStageLevel);
         if (!itemList.Any() || !npcList.Any())
         {
             response.Error = ErrorCode.WrongStageLevel;
@@ -75,7 +76,7 @@ public class StageStartController : ControllerBase
             return ErrorCode.WrongUserState;
         }
 
-        var (errorCode, maxClearedStage) = await _dungeonStageService.LoadStageListAsync(gameUserId);
+        var (errorCode, maxClearedStage) = await _stageDataCRUD.LoadStageListAsync(gameUserId);
         if (errorCode != ErrorCode.None)
         {
             return errorCode;
@@ -96,7 +97,6 @@ public class StageStartController : ControllerBase
         var stageKey = MemoryDatabaseKeyGenerator.MakeStageKey(authenticatedUserState.Email);
         var stageKeyValueList = StageInitializer.CreateInitialKeyValue(itemList, npcList, selectedStageLevel);
 
-        //던전 정보 어디까지 저장할까, 현재 개수와 최대개수도 넣으면 좋다. NPC와 아이템 별개로 할지
         var errorCode = await _memoryDatabase.InsertStageDataAsync(stageKey, stageKeyValueList);
         if (errorCode != ErrorCode.None)
         {

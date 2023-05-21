@@ -13,14 +13,14 @@ namespace DungeonWarAPI.Controllers.Chat;
 [ApiController]
 public class LoadLatestChatMessageController : ControllerBase
 {
-	private readonly MasterDataManager _masterDataManager;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<LoadLatestChatMessageController> _logger;
 
-	public LoadLatestChatMessageController(ILogger<LoadLatestChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataManager masterDataManager)
+	public LoadLatestChatMessageController(ILogger<LoadLatestChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataManager = masterDataManager;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 

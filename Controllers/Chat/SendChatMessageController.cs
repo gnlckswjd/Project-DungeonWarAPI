@@ -14,14 +14,14 @@ namespace DungeonWarAPI.Controllers.Chat;
 [ApiController]
 public class SendChatMessageController : ControllerBase
 {
-	private readonly MasterDataManager _masterDataManager;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<SendChatMessageController> _logger;
 
-	public SendChatMessageController(ILogger<SendChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataManager masterDataManager)
+	public SendChatMessageController(ILogger<SendChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataManager = masterDataManager;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 

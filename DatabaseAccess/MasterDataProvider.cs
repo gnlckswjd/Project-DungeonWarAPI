@@ -6,11 +6,11 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess;
 
-public class MasterDataManager
+public class MasterDataProvider
 {
-    //private readonly IMasterDatabase _masterDatabase;
+    //private readonly IMasterDataLoader _masterDatabase;
 
-    private readonly ILogger<MasterDataManager> _logger;
+    private readonly ILogger<MasterDataProvider> _logger;
 
     public List<AttendanceReward> AttendanceRewardList { get; private set; }
     public List<Item> ItemList { get; private set; }
@@ -20,10 +20,10 @@ public class MasterDataManager
     public List<StageNpc> StageNpcList { get; private set; }
     public Versions Versions { get; private set; }
 
-    public MasterDataManager(IMasterDatabase masterDatabase, ILogger<MasterDataManager> logger)
+    public MasterDataProvider(IMasterDataLoader masterDataLoader, ILogger<MasterDataProvider> logger)
     {
         _logger = logger;
-        LoadMasterData(masterDatabase).Wait();
+        LoadMasterData(masterDataLoader).Wait();
 
     }
 
@@ -37,15 +37,15 @@ public class MasterDataManager
         return PackageItemList.FindAll(packageItem => packageItem.PackageId == packageId);
     }
 
-    public (Int16, Int32) GetEnhanceMaxCountWithCost(Int32 itemCode)
+    public Int16 GetEnhanceMaxCountWithCost(Int32 itemCode)
     {
         var item = ItemList.Find(item => item.ItemCode == itemCode);
         if (item == null)
         {
-            return (-1, 0);
+            return -1;
         }
 
-        return (item.EnhanceMaxCount, 1000);
+        return item.EnhanceMaxCount;
     }
 
     public Item GetItem(Int32 ItemCode)
@@ -55,9 +55,9 @@ public class MasterDataManager
 
     public Int32 GetAttributeCode(Int32 itemCode)
     {
-        return ItemList[itemCode-1].AttributeCode;
+	    return ItemList[itemCode - 1].AttributeCode;
+    }
 
-	}
 
     public StageNpc? GetStageNpcByStageAndCode(Int32 stageLevel, Int32 npcCode)
     {
@@ -79,33 +79,33 @@ public class MasterDataManager
 	    return StageNpcList.Where(npc => npc.StageLevel == stageLevel).ToList();
 	}
     
-	private async Task<ErrorCode> LoadMasterData(IMasterDatabase masterDatabase)
+	private async Task<ErrorCode> LoadMasterData(IMasterDataLoader masterDataLoader)
     {
-        (var errorCode, AttendanceRewardList) = await masterDatabase.LoadAttendanceRewardsAsync();
-        ValidateErrorCode(errorCode);
+        (var errorCode, AttendanceRewardList) = await masterDataLoader.LoadAttendanceRewardsAsync();
+        VerifyErrorCode(errorCode);
 
-        (errorCode, ItemList) = await masterDatabase.LoadItemsAsync();
-        ValidateErrorCode(errorCode);
+        (errorCode, ItemList) = await masterDataLoader.LoadItemsAsync();
+        VerifyErrorCode(errorCode);
 
-        (errorCode, ItemAttributeList) = await masterDatabase.LoadItemAttributesAsync();
-        ValidateErrorCode(errorCode);
+        (errorCode, ItemAttributeList) = await masterDataLoader.LoadItemAttributesAsync();
+        VerifyErrorCode(errorCode);
 
-        (errorCode, PackageItemList) = await masterDatabase.LoadPackageItemsAsync();
-        ValidateErrorCode(errorCode);
+        (errorCode, PackageItemList) = await masterDataLoader.LoadPackageItemsAsync();
+        VerifyErrorCode(errorCode);
 
 
-        (errorCode, StageItemList) = await masterDatabase.LoadStageItemsAsync();
-        ValidateErrorCode(errorCode);
+        (errorCode, StageItemList) = await masterDataLoader.LoadStageItemsAsync();
+        VerifyErrorCode(errorCode);
 
-        (errorCode, StageNpcList) = await masterDatabase.LoadStageNpcsAsync();
-        ValidateErrorCode(errorCode);
+        (errorCode, StageNpcList) = await masterDataLoader.LoadStageNpcsAsync();
+        VerifyErrorCode(errorCode);
 
 
         Versions = new Versions { AppVersion = "1.0.0", MasterDataVersion = "1.0.0" };
         return ErrorCode.None;
     }
 
-    private void ValidateErrorCode(ErrorCode errorCode)
+    private void VerifyErrorCode(ErrorCode errorCode)
     {
         if (errorCode != ErrorCode.None)
         {

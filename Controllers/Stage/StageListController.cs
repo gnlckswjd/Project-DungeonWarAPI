@@ -11,15 +11,15 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class StageListController : ControllerBase
 {
-    private readonly IDungeonStageService _dungeonStageService;
-    private readonly MasterDataManager _masterDataManager;
+    private readonly IStageDataCRUD _stageDataCRUD;
+    private readonly MasterDataProvider _masterDataProvider;
     private readonly ILogger<StageListController> _logger;
 
-    public StageListController(ILogger<StageListController> logger, MasterDataManager masterDataManager,
-        IDungeonStageService dungeonStageService)
+    public StageListController(ILogger<StageListController> logger, MasterDataProvider masterDataProvider,
+        IStageDataCRUD stageDataCRUD)
     {
-        _dungeonStageService = dungeonStageService;
-        _masterDataManager = masterDataManager;
+        _stageDataCRUD = stageDataCRUD;
+        _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
 
@@ -30,7 +30,7 @@ public class StageListController : ControllerBase
         var response = new StageListResponse();
         var gameUserId = userAuthAndState.GameUserId;
 
-        var (errorCode, maxClearedStage) = await _dungeonStageService.LoadStageListAsync(gameUserId);
+        var (errorCode, maxClearedStage) = await _stageDataCRUD.LoadStageListAsync(gameUserId);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;

@@ -10,14 +10,14 @@ namespace DungeonWarAPI.Controllers.Mail;
 [ApiController]
 public class ReceiveMailItemController : ControllerBase
 {
-    private readonly IMailService _mailService;
-    private readonly IItemService _itemService;
+    private readonly IMailDataCRUD _mailDataCRUD;
+    private readonly IItemDATACRUD _itemDataCRUD;
     private readonly ILogger<ReceiveMailItemController> _logger;
 
-    public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IMailService mailService, IItemService itemService)
+    public ReceiveMailItemController(ILogger<ReceiveMailItemController> logger, IMailDataCRUD mailDataCRUD, IItemDATACRUD itemDataCRUD)
     {
-        _mailService = mailService;
-        _itemService = itemService;
+        _mailDataCRUD = mailDataCRUD;
+        _itemDataCRUD = itemDataCRUD;
         _logger = logger;
     }
 
@@ -28,25 +28,25 @@ public class ReceiveMailItemController : ControllerBase
         var response = new ReceiveMailItemResponse();
         var gameUserId = userAuthAndState.GameUserId;
 
-        var errorCode = await _mailService.MarkMailAsReceiveAsync(gameUserId, request.MailId);
+        var errorCode = await _mailDataCRUD.UpdateMailStatusToReceivedAsync(gameUserId, request.MailId);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
             return response;
         }
 
-        (errorCode, var items) = await _mailService.LoadMailItemsAsync(gameUserId, request.MailId);
+        (errorCode, var items) = await _mailDataCRUD.LoadMailItemsAsync(gameUserId, request.MailId);
         if (errorCode != ErrorCode.None)
         {
-            await _mailService.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
+            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
             response.Error = errorCode;
             return response;
         }
 
-        errorCode = await _itemService.InsertItemsAsync(gameUserId, items);
+        errorCode = await _itemDataCRUD.InsertItemsAsync(gameUserId, items);
         if (errorCode != ErrorCode.None)
         {
-            await _mailService.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
+            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
             response.Error = errorCode;
             return response;
         }

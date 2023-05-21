@@ -119,7 +119,7 @@ public enum ErrorCode : int
 	RegisterUserFailSet = 283,
 	RegisterUserFailException = 284,
 
-	//업데이트
+	//Update
 	UpdateUserStateFailException = 300,
 	UpdateUserStateFailSet = 301,
 
@@ -147,31 +147,34 @@ public enum ErrorCode : int
 	UpdateEnhancementCountFailException = 320,
 	UpdateEnhancementCountFailUpdate = 321,
 
-	IncrementItemFailException = 330,
-	IncrementItemFailIncrease = 331,
-	IncrementItemFailNoExist = 332,
+	UpdateMailStatusToReceivedException = 330,
+	UpdateMailStatusToReceivedUpdate = 331,
 
-	IncrementNpcKillCountFailException = 340,
-	IncrementNpcKillCountFailIncrease = 341,
-	IncrementNpcKillCountFailNoExist = 342,
+	UpdateItemStatusToDestroyAFailException = 340,
+	UpdateItemStatusToDestroyAFailUpdate = 341,
 
-	IncreaseGoldFailUpdate = 350,
-	IncreasePotionFailUpdateOrInsert = 351,
+	IncrementItemFailException = 350,
+	IncrementItemFailIncrease = 351,
+	IncrementItemFailNoExist = 352,
 
-	MarkMailAsReceiveException = 360,
-	MarkMailAsReceiveFailUpdate = 361,
-	MarkMailAsReceiveFailAlreadyReceived = 362,
-	MarkMailAsReceiveFailWrongGameUserId = 363,
+	IncrementNpcKillCountFailException = 360,
+	IncrementNpcKillCountFailIncrease = 361,
+	IncrementNpcKillCountFailNoExist = 362,
+
+	IncreaseGoldFailUpdate = 370,
+	IncreasePotionFailUpdateOrInsert = 371,
+
+	UpdateMailStatusToReceivedFailAlreadyReceived = 362,
+	UpdateMailStatusToReceivedWrongGameUserId = 363,
 
 	ReadMailFailSelect = 370,
 	ReadMailFailExceptions = 371,
 	ReadMailFailWrongUser = 372,
 	ReadMailFailUpdate = 373,
 
-	DestroyItemFailException = 380,
-	DestroyItemFailUpdate = 381,
 
-	//삭제
+
+	//Delete
 	DeleteStageDataFail = 400,
 	DeleteStageDataFailException = 401,
 	DeleteStageDataFailDelete = 402,
@@ -179,7 +182,7 @@ public enum ErrorCode : int
 	DeleteMailFailException = 410,
 	DeleteMailFailDelete = 411,
 
-	//롤백
+	//Rollback
 	RollbackCreateAccountFailException = 500,
 	RollbackCreateAccountFailDelete = 501,
 
@@ -239,9 +242,9 @@ public enum ErrorCode : int
 	ExceedItemCount = 606,
 
 	VerifyStageAccessibilityFailExceedStageLevel = 610,
-	VerifyEnoughGoldFailException = 611,
-	VerifyEnoughGoldFailSelect = 612,
-	VerifyEnoughGoldFailNotEnoughGold = 613,
+	LoadGoldFailException = 611,
+	LoadGoldFailSelect = 612,
+	NotEnoughGold = 613,
 
 
 	//미들웨어 관련

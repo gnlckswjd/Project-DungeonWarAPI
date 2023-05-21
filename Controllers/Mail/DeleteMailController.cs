@@ -9,12 +9,12 @@ namespace DungeonWarAPI.Controllers.Mail;
 [ApiController]
 public class DeleteMailController : Controller
 {
-    private readonly IMailService _mailService;
+    private readonly IMailDataCRUD _mailDataCRUD;
     private readonly ILogger<DeleteMailController> _logger;
 
-    public DeleteMailController(ILogger<DeleteMailController> logger, IMailService mailService)
+    public DeleteMailController(ILogger<DeleteMailController> logger, IMailDataCRUD mailDataCRUD)
     {
-        _mailService = mailService;
+        _mailDataCRUD = mailDataCRUD;
         _logger = logger;
     }
 
@@ -26,7 +26,7 @@ public class DeleteMailController : Controller
 
         var ownerId = userAuthAndState.GameUserId;
 
-        var errorCode = await _mailService.DeleteMailAsync(ownerId, request.MailId);
+        var errorCode = await _mailDataCRUD.DeleteMailAsync(ownerId, request.MailId);
 
         response.Error = errorCode;
         return response;

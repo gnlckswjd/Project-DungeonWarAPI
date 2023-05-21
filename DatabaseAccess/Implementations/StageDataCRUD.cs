@@ -12,11 +12,10 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
+public class StageDataCRUD : DatabaseAccessBase, IStageDataCRUD
 {
 
-	public DungeonStageService(ILogger<DungeonStageService> logger, QueryFactory queryFactory) 
-		: base(logger, queryFactory)
+	public StageDataCRUD(ILogger<StageDataCRUD> logger, QueryFactory queryFactory) : base(logger, queryFactory)
 	{
 
 	}
@@ -27,13 +26,13 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 
 		try
 		{
-			var userStage = await _queryFactory.Query("user_stage").Where("GameUserId", "=", gameUserId)
+			var userStage = await _queryFactory.Query("user_stage")
+				.Where("GameUserId", "=", gameUserId)
 				.FirstOrDefaultAsync<UserStage>();
 
 			if (userStage == null)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
 					"LoadUserStageFailSelect");
 				return (ErrorCode.LoadUserStageFailSelect, 0);
 			}
@@ -44,53 +43,12 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		{
 			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
 				"LoadUserStageFailException");
+
 			return (ErrorCode.LoadUserStageFailException, 0);
 		}
 	}
 
 
-	public async Task<(ErrorCode, Int32 existingLevel, Int32 existingExp)> UpdateExpAsync(Int32 gameUserId, Int32 exp)
-	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, Exp = exp }, "UpdateExp Start");
-
-		try
-		{
-			var userData = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
-				.FirstOrDefaultAsync<UserData>();
-
-			if (userData == null)
-			{
-				_logger.ZLogErrorWithPayload(new { ErroCode = ErrorCode.UpdateExpFailSelect, GameUserId = gameUserId },
-					"UpdateExpFailSelect");
-
-				return (ErrorCode.UpdateExpFailSelect, 0, 0);
-			}
-
-			Int32 levelUpCount = (userData.Exp + exp) / 1000;
-			Int32 remainingExp = (userData.Exp + exp) % 1000;
-
-			var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
-				.UpdateAsync(new { UserLevel = userData.UserLevel + levelUpCount, Exp = remainingExp });
-
-			if (count != 1)
-			{
-				_logger.ZLogErrorWithPayload(new { ErroCode = ErrorCode.UpdateExpFailUpdate, GameUserId = gameUserId },
-					"UpdateExpFailUpdate");
-
-				return (ErrorCode.UpdateExpFailUpdate, 0, 0);
-			}
-
-			return (ErrorCode.None, userData.UserLevel, userData.Exp);
-		}
-		catch (Exception e)
-		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErroCode = ErrorCode.UpdateExpFailException, GameUserId = gameUserId },
-				"UpdateExpFailException");
-
-			return (ErrorCode.UpdateExpFailException, 0, 0);
-		}
-	}
 
 	public async Task<ErrorCode> RollbackUpdateExpAsync(Int32 gameUserId, Int32 level, Int32 exp)
 	{
@@ -99,17 +57,15 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 
 		try
 		{
-			var count = await _queryFactory.Query("user_data").Where("GameUserId", "=", gameUserId)
+			var count = await _queryFactory.Query("user_data")
+				.Where("GameUserId", "=", gameUserId)
 				.UpdateAsync(new { UserLevel = level, Exp = exp });
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						Errorcode = ErrorCode.RollbackUpdateExpFailUpdate, GameUserId = gameUserId, Level = level,
-						Exp = exp
-					}, "RollbackUpdateExpFailUpdate");
+				_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.RollbackUpdateExpFailUpdate, GameUserId = gameUserId, Level = level, Exp = exp }, 
+					"RollbackUpdateExpFailUpdate");
+
 				return ErrorCode.RollbackUpdateExpFailUpdate;
 			}
 
@@ -117,14 +73,9 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new
-				{
-					Errorcode = ErrorCode.RollbackUpdateExpFailException,
-					GameUserId = gameUserId,
-					Level = level,
-					Exp = exp
-				}, "RollbackUpdateExpFailException");
+			_logger.ZLogErrorWithPayload(e, new { Errorcode = ErrorCode.RollbackUpdateExpFailException, GameUserId = gameUserId, Level = level, Exp = exp }, 
+				"RollbackUpdateExpFailException");
+
 			return ErrorCode.RollbackUpdateExpFailException;
 		}
 	}
@@ -146,9 +97,9 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.UpdateMaxClearedStageFailIncrement, GameUserId = gameUserId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateMaxClearedStageFailIncrement, GameUserId = gameUserId },
 					"UpdateMaxClearedStageFailIncrement");
+
 				return (ErrorCode.UpdateMaxClearedStageFailIncrement, false);
 			}
 
@@ -156,9 +107,9 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.UpdateMaxClearedStageFailException, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateMaxClearedStageFailException, GameUserId = gameUserId },
 				"UpdateMaxClearedStageFailException");
+
 			return (ErrorCode.UpdateMaxClearedStageFailException, false);
 		}
 	}
@@ -178,9 +129,9 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.RollbackUpdateMaxClearedStageFailDecrement, GameUserId = gameUserId },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackUpdateMaxClearedStageFailDecrement, GameUserId = gameUserId },
 					"RollbackUpdateMaxClearedStageFailDecrement");
+
 				return ErrorCode.RollbackUpdateMaxClearedStageFailDecrement;
 			}
 
@@ -188,9 +139,9 @@ public class DungeonStageService : DatabaseAccessBase, IDungeonStageService
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.RollbackUpdateMaxClearedStageFailException, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RollbackUpdateMaxClearedStageFailException, GameUserId = gameUserId },
 				"RollbackUpdateMaxClearedStageFailException");
+
 			return ErrorCode.RollbackUpdateMaxClearedStageFailException;
 		}
 	}

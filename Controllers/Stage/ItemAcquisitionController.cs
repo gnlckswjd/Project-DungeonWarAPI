@@ -14,18 +14,18 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class ItemAcquisitionController : ControllerBase
 {
-    private readonly IDungeonStageService _dungeonStageService;
-    private readonly MasterDataManager _masterDataManager;
+    private readonly IStageDataCRUD _stageDataCRUD;
+    private readonly MasterDataProvider _masterDataProvider;
     private readonly IMemoryDatabase _memoryDatabase;
     private readonly ILogger<ItemAcquisitionController> _logger;
 
     public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase,
-        MasterDataManager masterDataManager,
-        IDungeonStageService dungeonStageService)
+        MasterDataProvider masterDataProvider,
+        IStageDataCRUD stageDataCRUD)
     {
         _memoryDatabase = memoryDatabase;
-        _dungeonStageService = dungeonStageService;
-        _masterDataManager = masterDataManager;
+        _stageDataCRUD = stageDataCRUD;
+        _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
 
@@ -82,7 +82,7 @@ public class ItemAcquisitionController : ControllerBase
             return (errorCode, 0, 0);
         }
 
-        var stageItem = _masterDataManager.GetStageItemByStageAndCode(stageLevel, itemCode);
+        var stageItem = _masterDataProvider.GetStageItemByStageAndCode(stageLevel, itemCode);
         if (stageItem == null)
         {
             return (ErrorCode.WrongItemCode, 0, 0);

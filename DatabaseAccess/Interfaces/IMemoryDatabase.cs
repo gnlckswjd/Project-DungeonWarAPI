@@ -10,7 +10,10 @@ public interface IMemoryDatabase
     Task<ErrorCode> LockUserRequestAsync(String key, String authToken);
     Task<ErrorCode> UnLockUserRequestAsync(String key);
 
-    Task<(ErrorCode, List<String>)> LoadNotificationsAsync();
+    Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
+    Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSent chatMessageSent);
+
+	Task<(ErrorCode, List<String>)> LoadNotificationsAsync();
     Task<(ErrorCode, AuthenticatedUserState)> LoadAuthUserDataAsync(String email);
     Task<(ErrorCode, Int32 stageLevel)> LoadStageLevelAsync(String key);
     Task<(ErrorCode, Int32 itemAcquisitionCount)> LoadItemAcquisitionCountAsync(String key,Int32 itemCode);
@@ -19,8 +22,6 @@ public interface IMemoryDatabase
     Task<(ErrorCode, ChatMessageReceived )> LoadLatestChatMessageAsync(String key, String MessageId);
     Task<(ErrorCode, List<ChatMessageReceived>)> LoadLatestChatHistoryAsync(String key, String MessageId);
 
-	Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
-	Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSent chatMessageSent);
 
 	Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount);
 	Task<ErrorCode> IncrementNpcKillCountAsync(String key, Int32 npcCode);

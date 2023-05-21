@@ -4,7 +4,7 @@ using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 
-public interface IMasterDatabase
+public interface IMasterDataLoader
 {
     public Task<(ErrorCode, List<AttendanceReward>)> LoadAttendanceRewardsAsync();
     public Task<(ErrorCode, List<Item>)> LoadItemsAsync();

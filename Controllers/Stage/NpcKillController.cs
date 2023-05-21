@@ -12,14 +12,14 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class NpcKillController : Controller
 {
-	private readonly MasterDataManager _masterDataManager;
+	private readonly MasterDataProvider _masterDataProvider;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<NpcKillController> _logger;
 
-	public NpcKillController(ILogger<NpcKillController> logger, IMemoryDatabase memoryDatabase, MasterDataManager masterDataManager)
+	public NpcKillController(ILogger<NpcKillController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataManager = masterDataManager;
+		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -73,7 +73,7 @@ public class NpcKillController : Controller
 			return (errorCode, 0, 0);
 		}
 
-		var stageNpc = _masterDataManager.GetStageNpcByStageAndCode(stageLevel, npcCode);
+		var stageNpc = _masterDataProvider.GetStageNpcByStageAndCode(stageLevel, npcCode);
 		if (stageNpc == null)
 		{
 			return (ErrorCode.WrongNpcCode, 0, 0);

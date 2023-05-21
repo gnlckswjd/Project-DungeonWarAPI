@@ -50,8 +50,8 @@ public class RedisDatabase : IMemoryDatabase
 			var errorCode = await UpdateAuthenticatedUserStateAsync(key, authInfo);
 			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RegisterUserFailSet, Email = email },
-					"RegisterUserFailSet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RegisterUserFailSet, Email = email }, "RegisterUserFailSet");
+
 				return ErrorCode.RegisterUserFailSet;
 			}
 
@@ -59,9 +59,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.RegisterUserFailException, Email = email },
-				"RegisterUserFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RegisterUserFailException, Email = email }, "RegisterUserFailException");
+
 			return ErrorCode.RegisterUserFailException;
 		}
 	}
@@ -78,18 +77,17 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!notifications.Any())
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadNotificationsZeroNotification },
-					"LoadNotificationsZeroNotification");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadNotificationsZeroNotification }, "LoadNotificationsZeroNotification");
+
 				return (ErrorCode.None, new List<String> { "공지 없음" });
 			}
-
 
 			return (ErrorCode.None, notifications.ToList());
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadNotificationsFailException },
-				"LoadNotificationsException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadNotificationsFailException }, "LoadNotificationsException");
+
 			return (ErrorCode.LoadNotificationsFailException, new List<string>());
 		}
 	}
@@ -104,8 +102,8 @@ public class RedisDatabase : IMemoryDatabase
 			var userData = await redis.GetAsync();
 			if (!userData.HasValue)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadAuthUserDataFailEmpty, Key = key },
-					"LoadAuthUserDataFailEmpty");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadAuthUserDataFailEmpty, Key = key }, "LoadAuthUserDataFailEmpty");
+
 				return (ErrorCode.LoadAuthUserDataFailEmpty, new AuthenticatedUserState());
 			}
 
@@ -113,8 +111,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadAuthUserDataFailException, Key = key },
-				"LoadAuthUserDataFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadAuthUserDataFailException, Key = key }, "LoadAuthUserDataFailException");
+
 			return (ErrorCode.LoadAuthUserDataFailException, new AuthenticatedUserState());
 		}
 	}
@@ -129,8 +127,8 @@ public class RedisDatabase : IMemoryDatabase
 			if (await redis.SetAsync(authToken, TimeSpan.FromSeconds(3),
 				    StackExchange.Redis.When.NotExists) == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrroCode = ErrorCode.LockUserRequestFailISet },
-					"LockUserRequestFailISet");
+				_logger.ZLogErrorWithPayload(new { ErrroCode = ErrorCode.LockUserRequestFailISet }, "LockUserRequestFailISet");
+
 				return ErrorCode.LockUserRequestFailISet;
 			}
 
@@ -138,8 +136,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrroCode = ErrorCode.LockUserRequestFailExceptions },
-				"LockUserRequestFailExceptions");
+			_logger.ZLogErrorWithPayload(e, new { ErrroCode = ErrorCode.LockUserRequestFailExceptions }, "LockUserRequestFailExceptions");
+
 			return ErrorCode.LockUserRequestFailExceptions;
 		}
 	}
@@ -158,8 +156,8 @@ public class RedisDatabase : IMemoryDatabase
 			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, null);
 			if (await redis.DeleteAsync() == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UnLockUserRequestFailDelete, Key = key },
-					"UnLockUserRequestFailDelete");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UnLockUserRequestFailDelete, Key = key }, "UnLockUserRequestFailDelete");
+
 				return ErrorCode.UnLockUserRequestFailDelete;
 			}
 
@@ -167,8 +165,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UnLockUserRequestFailException, Key = key },
-				"UnLockUserRequestFailExceptions");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UnLockUserRequestFailException, Key = key }, "UnLockUserRequestFailExceptions");
+
 			return ErrorCode.UnLockUserRequestFailException;
 		}
 	}
@@ -176,6 +174,7 @@ public class RedisDatabase : IMemoryDatabase
 	public async Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "StoreStageData Start");
+
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -185,8 +184,8 @@ public class RedisDatabase : IMemoryDatabase
 				var errorCode = await DeleteStageDataAsync(redis, key);
 				if (errorCode != ErrorCode.None)
 				{
-					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InsertStageDataFailDelete, Key = key },
-						"InsertStageDataFailDelete");
+					_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.InsertStageDataFailDelete, Key = key }, "InsertStageDataFailDelete");
+
 					return ErrorCode.InsertStageDataFailDelete;
 				}
 			}
@@ -197,8 +196,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertStageDataException, Key = key },
-				"InsertStageDataException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertStageDataException, Key = key }, "InsertStageDataException");
+
 			return ErrorCode.InsertStageDataException;
 		}
 	}
@@ -206,6 +205,7 @@ public class RedisDatabase : IMemoryDatabase
 	public async Task<(ErrorCode, Int32 stageLevel)> LoadStageLevelAsync(String key)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "LoadStageLevel Start");
+
 		var field = MemoryDatabaseKeyGenerator.MakeStageLevelKey();
 
 		try
@@ -215,9 +215,9 @@ public class RedisDatabase : IMemoryDatabase
 			var stageLevel = await redis.GetAsync(field);
 			if (!stageLevel.HasValue)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadStageLevelFailGet, Key = key, Field = field },
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadStageLevelFailGet, Key = key, Field = field },
 					"LoadStageLevelFailGet");
+
 				return (ErrorCode.LoadStageLevelFailGet, 0);
 			}
 
@@ -225,9 +225,9 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.LoadStageLevelFailException, Key = key, Field = field },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadStageLevelFailException, Key = key, Field = field }, 
 				"LoadStageLevelFailException");
+
 			return (ErrorCode.LoadStageLevelFailException, 0);
 		}
 	}
@@ -245,9 +245,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!value.HasValue)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailGet, Key = key, Field = field },
-					"LoadItemAcquisitionCountFailGet");
+				_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailGet, Key = key, Field = field }, "LoadItemAcquisitionCountFailGet");
+
 				return (ErrorCode.LoadItemAcquisitionCountFailGet, 0);
 			}
 
@@ -255,17 +254,15 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailException, Key = key, Field = field },
-				"LoadItemAcquisitionCountFailException");
+			_logger.ZLogErrorWithPayload(e, new { Errorcode = ErrorCode.LoadItemAcquisitionCountFailException, Key = key, Field = field }, "LoadItemAcquisitionCountFailException");
+
 			return (ErrorCode.LoadItemAcquisitionCountFailException, 0);
 		}
 	}
 
 	public async Task<ErrorCode> IncrementItemCountAsync(String key, Int32 itemCode, Int32 ItemCount)
 	{
-		_logger.ZLogDebugWithPayload(new { Key = key, ItemCode = itemCode, ItemCount = ItemCount },
-			"IncrementItemCount Start");
+		_logger.ZLogDebugWithPayload(new { Key = key, ItemCode = itemCode, ItemCount = ItemCount }, "IncrementItemCount Start");
 
 		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 		try
@@ -274,9 +271,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (await redis.ExistsAsync(field) == false)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.IncrementItemFailNoExist, Key = key, Field = field },
-					"IncrementItemFailNoExist");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncrementItemFailNoExist, Key = key, Field = field }, "IncrementItemFailNoExist");
+
 				return ErrorCode.IncrementItemFailNoExist;
 			}
 
@@ -284,9 +280,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (value == 0)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.IncrementItemFailIncrease, Key = key, Field = field },
-					"IncrementItemFailIncrease");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncrementItemFailIncrease, Key = key, Field = field }, "IncrementItemFailIncrease");
+
 				return ErrorCode.IncrementItemFailIncrease;
 			}
 
@@ -294,9 +289,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.IncrementItemFailException, Key = key, Field = field },
-				"IncrementItemFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.IncrementItemFailException, Key = key, Field = field }, "IncrementItemFailException");
+
 			return ErrorCode.IncrementItemFailException;
 		}
 	}
@@ -304,6 +298,7 @@ public class RedisDatabase : IMemoryDatabase
 	public async Task<(ErrorCode, Int32 npcKillCount)> LoadNpcKillCountAsync(String key, Int32 npcCode)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key, NpcCode = npcCode }, "LoadNpcKillCount Start");
+
 		var field = MemoryDatabaseKeyGenerator.MakeStageNpcKey(npcCode);
 
 		try
@@ -314,9 +309,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!value.HasValue)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { Errorcode = ErrorCode.LoadNpcKillCountFailGet, Key = key, Field = field },
-					"LoadNpcKillCountFailGet");
+				_logger.ZLogErrorWithPayload(new { Errorcode = ErrorCode.LoadNpcKillCountFailGet, Key = key, Field = field }, "LoadNpcKillCountFailGet");
+
 				return (ErrorCode.LoadNpcKillCountFailGet, 0);
 			}
 
@@ -324,9 +318,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { Errorcode = ErrorCode.LoadNpcKillCountFailException, Key = key, Field = field },
-				"LoadNpcKillCountFailException");
+			_logger.ZLogErrorWithPayload(e, new { Errorcode = ErrorCode.LoadNpcKillCountFailException, Key = key, Field = field }, "LoadNpcKillCountFailException");
+
 			return (ErrorCode.LoadNpcKillCountFailException, 0);
 		}
 	}
@@ -343,9 +336,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (value == 0)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.IncrementNpcKillCountFailIncrease, Key = key, Field = field },
-					"IncrementNpcKillCountFailIncrease");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.IncrementNpcKillCountFailIncrease, Key = key, Field = field }, "IncrementNpcKillCountFailIncrease");
+
 				return ErrorCode.IncrementNpcKillCountFailIncrease;
 			}
 
@@ -354,9 +346,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				new { e, ErrorCode = ErrorCode.IncrementNpcKillCountFailException, Key = key, Field = field },
-				"IncrementNpcKillCountFailException");
+			_logger.ZLogErrorWithPayload(new { e, ErrorCode = ErrorCode.IncrementNpcKillCountFailException, Key = key, Field = field }, "IncrementNpcKillCountFailException");
+
 			return ErrorCode.IncrementNpcKillCountFailException;
 		}
 	}
@@ -371,9 +362,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!dictionary.Any())
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.LoadStageDataFailGet, Key = key },
-					"LoadStageDataFailGet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadStageDataFailGet, Key = key }, "LoadStageDataFailGet");
+
 				return (ErrorCode.LoadStageDataFailGet, new Dictionary<String, Int32>());
 			}
 
@@ -381,15 +371,15 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.LoadStageDataFailException, Key = key },
-				"LoadStageDataFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadStageDataFailException, Key = key }, "LoadStageDataFailException");
+
 			return (ErrorCode.LoadStageDataFailException, new Dictionary<String, Int32>());
 		}
 	}
 
 	public async Task<ErrorCode> DeleteStageDataAsync(String key)
 	{
+		_logger.ZLogDebugWithPayload(new { Key = key }, "DeleteStageData Start");
 		try
 		{
 			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
@@ -397,8 +387,8 @@ public class RedisDatabase : IMemoryDatabase
 			var errorCode = await DeleteStageDataAsync(redis, key);
 			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailDelete, Key = key },
-					"DeleteStageDataFailDelete");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailDelete, Key = key }, "DeleteStageDataFailDelete");
+
 				return ErrorCode.DeleteStageDataFailDelete;
 			}
 
@@ -406,14 +396,13 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailException, Key = key },
-				"DeleteStageDataFailException");
+			_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.DeleteStageDataFailException, Key = key }, "DeleteStageDataFailException");
+
 			return ErrorCode.DeleteStageDataFailException;
 		}
 	}
 
-	public async Task<ErrorCode> UpdateUserStateAsync(String key, AuthenticatedUserState authenticatedUserState,
-		UserStateCode stateCode)
+	public async Task<ErrorCode> UpdateUserStateAsync(String key, AuthenticatedUserState authenticatedUserState, UserStateCode stateCode)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "UpdateUserState Start");
 		try
@@ -423,16 +412,15 @@ public class RedisDatabase : IMemoryDatabase
 			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(authenticatedUserState) == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key },
-					"UpdateUserStateFailSet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key }, "UpdateUserStateFailSet");
+
 				return ErrorCode.UpdateUserStateFailSet;
 			}
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.UpdateUserStateFailException, Key = key },
-				"UpdateUserStateFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateUserStateFailException, Key = key }, "UpdateUserStateFailException");
+
 			return ErrorCode.UpdateUserStateFailException;
 		}
 
@@ -452,12 +440,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (result.HasValue == false)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.InsertChatMessageFailInsert, Key = key, Email = chatMessageSent.Email
-					},
-					"InsertChatMessageFailInsert");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertChatMessageFailInsert, Key = key, Email = chatMessageSent.Email }, "InsertChatMessageFailInsert");
+
 				return ErrorCode.InsertChatMessageFailInsert;
 			}
 
@@ -467,12 +451,8 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new
-				{
-					ErrorCode = ErrorCode.InsertChatMessageFailException, Key = key, Email = chatMessageSent.Email
-				},
-				"InsertChatMessageFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertChatMessageFailException, Key = key, Email = chatMessageSent.Email }, "InsertChatMessageFailException");
+
 			return ErrorCode.InsertChatMessageFailException;
 		}
 	}
@@ -485,21 +465,21 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			StreamEntry[]? chatStreamEntries;
 			var db = _redisConnection.GetConnection().GetDatabase();
+
 			if (MessageId == "")
 			{
 				chatStreamEntries = await db.StreamRangeAsync(key, "-", "+", count: 1, messageOrder: Order.Descending);
 			}
 			else
 			{
-				chatStreamEntries =
-					await db.StreamRangeAsync(key, MessageId, "+", count: 1, messageOrder: Order.Ascending);
+				chatStreamEntries = await db.StreamRangeAsync(key, MessageId, "+", count: 1, messageOrder: Order.Ascending);
 			}
 
 
 			if (!chatStreamEntries.Any())
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadLatestChatMessageFailGet, Key = key },
-					"LoadLatestChatMessageFailGet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadLatestChatMessageFailGet, Key = key }, "LoadLatestChatMessageFailGet");
+
 				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
 			}
 
@@ -509,21 +489,18 @@ public class RedisDatabase : IMemoryDatabase
 				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
 			}
 
-			ChatMessageSent chatMessage =
-				JsonSerializer.Deserialize<ChatMessageSent>(latestChatEntry.Values.First().Value);
+			ChatMessageSent chatMessage = JsonSerializer.Deserialize<ChatMessageSent>(latestChatEntry.Values.First().Value);
 			if (chatMessage == null)
 			{
 				return (ErrorCode.LoadLatestChatMessageFailGet, new ChatMessageReceived());
 			}
 
-			return (ErrorCode.None,
-				new ChatMessageReceived
-					{ MessageId = latestChatEntry.Id, Email = chatMessage.Email, Message = chatMessage.Message });
+			return (ErrorCode.None, new ChatMessageReceived { MessageId = latestChatEntry.Id, Email = chatMessage.Email, Message = chatMessage.Message });
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadLatestChatMessageFailException, Key = key },
-				"LoadLatestChatMessageFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadLatestChatMessageFailException, Key = key }, "LoadLatestChatMessageFailException");
+
 			return (ErrorCode.LoadLatestChatMessageFailException, new ChatMessageReceived());
 		}
 	}
@@ -536,6 +513,7 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			StreamEntry[]? chatStreamEntries;
 			var db = _redisConnection.GetConnection().GetDatabase();
+
 			if (MessageId == "")
 			{
 				chatStreamEntries = await db.StreamRangeAsync(key, "-", "+", count: 50, messageOrder: Order.Descending);
@@ -547,8 +525,8 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (!chatStreamEntries.Any())
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadLatestChatMessageFailGet, Key = key },
-					"LoadLatestChatMessageFailGet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadLatestChatMessageFailGet, Key = key }, "LoadLatestChatMessageFailGet");
+
 				return (ErrorCode.LoadLatestChatMessageFailGet, new List<ChatMessageReceived>());
 			}
 
@@ -567,28 +545,20 @@ public class RedisDatabase : IMemoryDatabase
 					continue;
 				}
 
-				chatHistory.Add(
-					new ChatMessageReceived
-					{
-						MessageId = chatEntry.Id,
-						Email = chatMessage.Email,
-						Message = chatMessage.Message
-					}
-				);
+				chatHistory.Add(new ChatMessageReceived { MessageId = chatEntry.Id, Email = chatMessage.Email, Message = chatMessage.Message });
 			}
 
 			return (ErrorCode.None, chatHistory);
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadLatestChatMessageFailException, Key = key },
-				"LoadLatestChatMessageFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadLatestChatMessageFailException, Key = key }, "LoadLatestChatMessageFailException");
+
 			return (ErrorCode.LoadLatestChatMessageFailException, new List<ChatMessageReceived>());
 		}
 	}
 
-	public async Task<ErrorCode> UpdateChatChannelAsync(String key, AuthenticatedUserState authenticatedUserState,
-		Int32 channelNumber)
+	public async Task<ErrorCode> UpdateChatChannelAsync(String key, AuthenticatedUserState authenticatedUserState, Int32 channelNumber)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key, ChannelNumber = channelNumber }, "UpdateChatChannel Start");
 
@@ -600,13 +570,9 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(
-					new
-					{
-						ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailUpdate, Key = key,
-						ChannelNumber = channelNumber
-					},
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailUpdate, Key = key, ChannelNumber = channelNumber }, 
 					"UpdateChatChannelChatChannelFailUpdate");
+
 				return ErrorCode.UpdateChatChannelChatChannelFailUpdate;
 			}
 
@@ -614,19 +580,14 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new
-				{
-					ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailException, Key = key,
-					ChannelNumber = channelNumber
-				},
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailException, Key = key, ChannelNumber = channelNumber },
 				"UpdateChatChannelChatChannelFailException");
+
 			return ErrorCode.UpdateChatChannelChatChannelFailException;
 		}
 	}
 
-	private async Task<ErrorCode> UpdateAuthenticatedUserStateAsync(String key,
-		AuthenticatedUserState authenticatedUserState)
+	private async Task<ErrorCode> UpdateAuthenticatedUserStateAsync(String key, AuthenticatedUserState authenticatedUserState)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "UpdateAuthenticatedUserState Start");
 
@@ -635,20 +596,17 @@ public class RedisDatabase : IMemoryDatabase
 			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(authenticatedUserState) == false)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailSet, Key = key },
-					"UpdateAuthenticatedUserStateFailSet");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailSet, Key = key }, "UpdateAuthenticatedUserStateFailSet");
+
 				return ErrorCode.UpdateAuthenticatedUserStateFailSet;
 			}
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailException, Key = key },
-				"UpdateAuthenticatedUserStateFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailException, Key = key }, "UpdateAuthenticatedUserStateFailException");
+
 			return ErrorCode.UpdateAuthenticatedUserStateFailException;
 		}
-
 
 		return ErrorCode.None;
 	}

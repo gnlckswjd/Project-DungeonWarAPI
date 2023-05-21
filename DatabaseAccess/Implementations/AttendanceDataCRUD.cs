@@ -13,9 +13,9 @@ using ZLogger;
 
 namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
-public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardService
+public class AttendanceDataCRUD : DatabaseAccessBase, IAttendanceDataCRUD
 {
-	public AttendanceRewardService(ILogger<AttendanceRewardService> logger, QueryFactory queryFactory) 
+	public AttendanceDataCRUD(ILogger<AttendanceDataCRUD> logger, QueryFactory queryFactory) 
 		:base(logger,queryFactory)
 	{
 		
@@ -33,9 +33,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 
 			if (userAttendance == null)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { GameUserId = gameUserId, ErrorCode = ErrorCode.LoadAttendanceCountFailSelect },
+				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.LoadAttendanceCountFailSelect },
 					"LoadAttendanceCountFailSelect");
+
 				return (ErrorCode.LoadAttendanceCountFailSelect, default);
 			}
 
@@ -46,10 +46,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { ErrorCode = ErrorCode.LoadAttendanceCountFailException, GameUserId = gameUserId },
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.LoadAttendanceCountFailException, GameUserId = gameUserId },
 				"LoadAttendanceCountFailSelect");
+
 			return (ErrorCode.LoadAttendanceCountFailException, 0);
 		}
 	}
@@ -61,18 +60,18 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 		try
 		{
 			var userAttendance = await _queryFactory.Query("user_attendance")
-				.Where("GameUserId", "=", gameUserId).FirstOrDefaultAsync<UserAttendance>();
+				.Where("GameUserId", "=", gameUserId)
+				.FirstOrDefaultAsync<UserAttendance>();
 
 			if (userAttendance == null)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUserNotFound },
+				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUserNotFound },
 					"UpdateLoginDateFailUserNotFound");
+
 				return (ErrorCode.UpdateLoginDateFailUserNotFound, default, default);
 			}
 
 			var (errorCode, attendanceCount) = CalcAttendanceDate(gameUserId, userAttendance);
-
 			if (errorCode != ErrorCode.None)
 			{
 				return (errorCode, userAttendance.LastLoginDate, attendanceCount);
@@ -84,9 +83,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(
-					new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUpdate },
+				_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailUpdate },
 					"UpdateLoginDateFailUpdate");
+
 				return (ErrorCode.UpdateLoginDateFailUpdate, default, default);
 			}
 
@@ -94,10 +93,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e,
-				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailException },
+			_logger.ZLogErrorWithPayload(e, new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailException },
 				"UpdateLoginDateFailException");
+
 			return (ErrorCode.UpdateLoginDateFailException, default, default);
 		}
 	}
@@ -116,12 +114,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 
 			if (count != 1)
 			{
-				_logger.ZLogErrorWithPayload(new
-				{
-					ErrorCode = ErrorCode.RollbackLoginDateFailUpdate,
-					LastLoginDate = lastLoginDate,
-					AttendnceCount = attendanceCount
-				}, "RollbackLoginDateFailUpdate");
+				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.RollbackLoginDateFailUpdate, LastLoginDate = lastLoginDate, AttendnceCount = attendanceCount }, 
+					"RollbackLoginDateFailUpdate");
+
 				return ErrorCode.RollbackLoginDateFailUpdate;
 			}
 
@@ -129,13 +124,7 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(
-				e, new
-				{
-					ErrorCode = ErrorCode.RollbackLoginDateFailException,
-					LastLoginDate = lastLoginDate,
-					AttendnceCount = attendanceCount
-				},
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.RollbackLoginDateFailException, LastLoginDate = lastLoginDate, AttendnceCount = attendanceCount },
 				"RollbackLoginDateFailException");
 
 			return ErrorCode.RollbackLoginDateFailException;
@@ -151,9 +140,9 @@ public class AttendanceRewardService : DatabaseAccessBase, IAttendanceRewardServ
 
 		if (lastLoginDate == today)
 		{
-			_logger.ZLogErrorWithPayload(
-				new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
+			_logger.ZLogErrorWithPayload(new { GameUserId = gameUserId, ErrorCode = ErrorCode.UpdateLoginDateFailAlreadyReceived },
 				"UpdateLoginDateFailAlreadyReceived");
+
 			return (ErrorCode.UpdateLoginDateFailAlreadyReceived, attendanceCount);
 		}
 
