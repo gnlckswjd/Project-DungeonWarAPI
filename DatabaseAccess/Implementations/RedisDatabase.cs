@@ -532,8 +532,6 @@ public class RedisDatabase : IMemoryDatabase
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "LoadLatestChatHistory Start");
 
-		List<ChatMessageReceived> chatHistory = new List<ChatMessageReceived>();
-
 		try
 		{
 			StreamEntry[]? chatStreamEntries;
@@ -544,8 +542,7 @@ public class RedisDatabase : IMemoryDatabase
 			}
 			else
 			{
-				chatStreamEntries =
-					await db.StreamRangeAsync(key, MessageId, "+", count: 0, messageOrder: Order.Ascending);
+				chatStreamEntries = await db.StreamRangeAsync(key, MessageId, "+", count: 50, messageOrder: Order.Ascending);
 			}
 
 			if (!chatStreamEntries.Any())
@@ -555,6 +552,8 @@ public class RedisDatabase : IMemoryDatabase
 				return (ErrorCode.LoadLatestChatMessageFailGet, new List<ChatMessageReceived>());
 			}
 
+			List<ChatMessageReceived> chatHistory = new List<ChatMessageReceived>();
+
 			foreach (var chatEntry in chatStreamEntries)
 			{
 				if (chatEntry.IsNull)
@@ -562,8 +561,7 @@ public class RedisDatabase : IMemoryDatabase
 					continue;
 				}
 
-				ChatMessageSent chatMessage =
-					JsonSerializer.Deserialize<ChatMessageSent>(chatEntry.Values.First().Value);
+				ChatMessageSent chatMessage = JsonSerializer.Deserialize<ChatMessageSent>(chatEntry.Values.First().Value);
 				if (chatMessage == null)
 				{
 					continue;
@@ -589,10 +587,10 @@ public class RedisDatabase : IMemoryDatabase
 		}
 	}
 
-	public async Task<ErrorCode> UpdateChatChannelAsync(String key, AuthenticatedUserState authenticatedUserState, Int32 channelNumber)
+	public async Task<ErrorCode> UpdateChatChannelAsync(String key, AuthenticatedUserState authenticatedUserState,
+		Int32 channelNumber)
 	{
-
-		_logger.ZLogDebugWithPayload(new{Key=key, ChannelNumber=channelNumber}, "UpdateChatChannel Start");
+		_logger.ZLogDebugWithPayload(new { Key = key, ChannelNumber = channelNumber }, "UpdateChatChannel Start");
 
 		authenticatedUserState.ChannelNumber = channelNumber;
 
@@ -602,7 +600,12 @@ public class RedisDatabase : IMemoryDatabase
 
 			if (errorCode != ErrorCode.None)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailUpdate, Key = key, ChannelNumber = channelNumber },
+				_logger.ZLogErrorWithPayload(
+					new
+					{
+						ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailUpdate, Key = key,
+						ChannelNumber = channelNumber
+					},
 					"UpdateChatChannelChatChannelFailUpdate");
 				return ErrorCode.UpdateChatChannelChatChannelFailUpdate;
 			}
@@ -611,13 +614,19 @@ public class RedisDatabase : IMemoryDatabase
 		}
 		catch (Exception e)
 		{
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailException, Key = key, ChannelNumber = channelNumber },
+			_logger.ZLogErrorWithPayload(e,
+				new
+				{
+					ErrorCode = ErrorCode.UpdateChatChannelChatChannelFailException, Key = key,
+					ChannelNumber = channelNumber
+				},
 				"UpdateChatChannelChatChannelFailException");
 			return ErrorCode.UpdateChatChannelChatChannelFailException;
 		}
 	}
 
-	private async Task<ErrorCode> UpdateAuthenticatedUserStateAsync(String key, AuthenticatedUserState authenticatedUserState)
+	private async Task<ErrorCode> UpdateAuthenticatedUserStateAsync(String key,
+		AuthenticatedUserState authenticatedUserState)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key }, "UpdateAuthenticatedUserState Start");
 
@@ -626,7 +635,8 @@ public class RedisDatabase : IMemoryDatabase
 			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, TimeSpan.FromMinutes(60));
 			if (await redis.SetAsync(authenticatedUserState) == false)
 			{
-				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailSet, Key = key },
+				_logger.ZLogErrorWithPayload(
+					new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailSet, Key = key },
 					"UpdateAuthenticatedUserStateFailSet");
 				return ErrorCode.UpdateAuthenticatedUserStateFailSet;
 			}

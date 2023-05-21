@@ -17,6 +17,7 @@ public interface IMemoryDatabase
     Task<(ErrorCode, Int32 npcKillCount)> LoadNpcKillCountAsync(String key, Int32 npcCode);
     Task<(ErrorCode, Dictionary<String, Int32>)> LoadStageDataAsync(String key);
     Task<(ErrorCode, ChatMessageReceived )> LoadLatestChatMessageAsync(String key, String MessageId);
+    Task<(ErrorCode, List<ChatMessageReceived>)> LoadLatestChatHistoryAsync(String key, String MessageId);
 
 	Task<ErrorCode> InsertStageDataAsync(String key, List<KeyValuePair<String, Int32>> stageKeyValueList);
 	Task<ErrorCode> InsertChatMessageAsync(String key, ChatMessageSent chatMessageSent);

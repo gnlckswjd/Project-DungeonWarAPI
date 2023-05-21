@@ -5,11 +5,11 @@ namespace DungeonWarAPI.GameLogic;
 
 public static class StageInitializer
 {
-	public static ErrorCode CheckAccessibility(Int32 maxClearedStage, Int32 selectedStageLevel)
+	public static ErrorCode VerifyAccessibility(Int32 maxClearedStage, Int32 selectedStageLevel)
 	{
 		if (maxClearedStage + 1 < selectedStageLevel)
 		{
-			return ErrorCode.CheckStageAccessibilityFailExceedStageLevel;
+			return ErrorCode.VerifyStageAccessibilityFailExceedStageLevel;
 		}
 
 		return ErrorCode.None;

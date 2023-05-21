@@ -30,10 +30,6 @@ public class UserAuthentication
 		context.Request.EnableBuffering();
 
 		var userLockKey = "";
-		String email;
-		String authToken;
-		String appVersion;
-		String masterDataVersion;
 
 		using (var streamReader = new StreamReader(context.Request.Body, Encoding.UTF8, true, 4096, true))
 		{
@@ -45,6 +41,10 @@ public class UserAuthentication
 
 			var bodyDocument = JsonDocument.Parse(requestBody);
 
+			String email;
+			String authToken;
+			String appVersion;
+			String masterDataVersion;
 			try
 			{
 				//JsonDocument에서 데이터 추출
