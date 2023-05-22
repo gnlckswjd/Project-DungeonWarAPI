@@ -14,16 +14,13 @@ namespace DungeonWarAPI.Controllers.Stage;
 [ApiController]
 public class ItemAcquisitionController : ControllerBase
 {
-    private readonly IStageDataCRUD _stageDataCRUD;
-    private readonly MasterDataProvider _masterDataProvider;
+	private readonly MasterDataProvider _masterDataProvider;
     private readonly IMemoryDatabase _memoryDatabase;
     private readonly ILogger<ItemAcquisitionController> _logger;
 
-    public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider,
-        IStageDataCRUD stageDataCRUD)
+    public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
     {
         _memoryDatabase = memoryDatabase;
-        _stageDataCRUD = stageDataCRUD;
         _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
@@ -31,15 +28,20 @@ public class ItemAcquisitionController : ControllerBase
     [HttpPost]
     public async Task<ItemAcquisitionResponse> Post(ItemAcquisitionRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new ItemAcquisitionResponse();
-        var gameUserId = userAuthAndState.GameUserId;
 
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+        var gameUserId = authenticatedUserState.GameUserId;
         var itemCode = request.ItemCode;
-
         var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-        var (errorCode, currentItemCount, maxItemCount) = await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, userAuthAndState.State);
+        var (errorCode, currentItemCount, maxItemCount) = await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, authenticatedUserState.State);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;

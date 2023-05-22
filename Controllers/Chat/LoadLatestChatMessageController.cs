@@ -14,14 +14,12 @@ namespace DungeonWarAPI.Controllers.Chat;
 [ApiController]
 public class LoadLatestChatMessageController : ControllerBase
 {
-	private readonly MasterDataProvider _masterDataProvider;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<LoadLatestChatMessageController> _logger;
 
-	public LoadLatestChatMessageController(ILogger<LoadLatestChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
+	public LoadLatestChatMessageController(ILogger<LoadLatestChatMessageController> logger, IMemoryDatabase memoryDatabase)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -30,6 +28,12 @@ public class LoadLatestChatMessageController : ControllerBase
 	{
 		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new LoadLatestChatMessageResponse();
+
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
 
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
 

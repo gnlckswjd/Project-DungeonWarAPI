@@ -10,14 +10,14 @@ namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class InAppController : ControllerBase
+public class ReceivePurchasedInAppItemController : ControllerBase
 {
 	private readonly IInAppPurchaseDataCRUD _inAppPurchaseDataCRUD;
 	private readonly IMailDataCRUD _mailDataCRUD;
 	private readonly MasterDataProvider _masterDataProvider;
-	private readonly ILogger<InAppController> _logger;
+	private readonly ILogger<ReceivePurchasedInAppItemController> _logger;
 
-	public InAppController(ILogger<InAppController> logger, MasterDataProvider masterDataProvider, IInAppPurchaseDataCRUD inAppPurchaseDataCRUD, IMailDataCRUD mailDataCrud)
+	public ReceivePurchasedInAppItemController(ILogger<ReceivePurchasedInAppItemController> logger, MasterDataProvider masterDataProvider, IInAppPurchaseDataCRUD inAppPurchaseDataCRUD, IMailDataCRUD mailDataCrud)
 	{
 		_inAppPurchaseDataCRUD = inAppPurchaseDataCRUD;
 		_mailDataCRUD = mailDataCrud;
@@ -26,13 +26,18 @@ public class InAppController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<InAppResponse> Post(InAppRequest request)
+	public async Task<ReceivePurchasedInAppItemResponse> Post(ReceivePurchasedInAppItemRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
-		var response = new InAppResponse();
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var response = new ReceivePurchasedInAppItemResponse();
 
-		var gameUserId = userAuthAndState.GameUserId;
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
 
+		var gameUserId = authenticatedUserState.GameUserId;
 
 		var (errorCode, receiptId) = await _inAppPurchaseDataCRUD.InsertReceiptAsync(gameUserId, request.ReceiptSerialCode, request.PackageId);
 		if (errorCode != ErrorCode.None)

@@ -13,24 +13,27 @@ namespace DungeonWarAPI.Controllers;
 public class AttendanceListController : ControllerBase
 {
 	private readonly IAttendanceDataCRUD _attendanceDataCRUD;
-	private readonly MasterDataProvider _masterDataProvider;
 	private readonly ILogger<AttendanceListController> _logger;
 
-	public AttendanceListController(ILogger<AttendanceListController> logger, MasterDataProvider masterDataProvider,
-		IAttendanceDataCRUD attendanceDataCRUD)
+	public AttendanceListController(ILogger<AttendanceListController> logger, IAttendanceDataCRUD attendanceDataCRUD)
 	{
 		_attendanceDataCRUD = attendanceDataCRUD;
-		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
 	[HttpPost]
 	public async Task<AttendanceListResponse> Post(AttendanceListRequest request)
 	{
-		var authUserData = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new AttendanceListResponse();
 
-		var gameUserId = authUserData.GameUserId;
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
+		var gameUserId = authenticatedUserState.GameUserId;
 
 		var (errorCode, attendanceCount) = await _attendanceDataCRUD.LoadAttendanceCountAsync(gameUserId);
 		if (errorCode != ErrorCode.None)

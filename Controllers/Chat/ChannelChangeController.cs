@@ -24,19 +24,25 @@ public class ChannelChangeController : ControllerBase
 	[HttpPost]
 	public async Task<ChannelChangeResponse> Post(ChannelChangeRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new ChannelChangeResponse();
 
-		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(userAuthAndState.Email);
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
 
-		var errorCode = await _memoryDatabase.UpdateChatChannelAsync(key, userAuthAndState, request.ChannelNumber);
+		var key = MemoryDatabaseKeyGenerator.MakeUIDKey(authenticatedUserState.Email);
+
+		var errorCode = await _memoryDatabase.UpdateChatChannelAsync(key, authenticatedUserState, request.ChannelNumber);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
 
-		_logger.ZLogInformationWithPayload(new { GameUserId = userAuthAndState.GameUserId, ChangedChannel = request.ChannelNumber  },
+		_logger.ZLogInformationWithPayload(new { GameUserId = authenticatedUserState.GameUserId, ChangedChannel = request.ChannelNumber  },
 			"ChannelChange Success");
 
 		response.Error = ErrorCode.None;

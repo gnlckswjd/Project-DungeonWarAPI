@@ -26,13 +26,19 @@ public class NpcKillController : Controller
 	[HttpPost]
 	public async Task<NpcKillResponse> Post(NpcKillRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new NpcKillResponse();
-		var gameUserId = userAuthAndState.GameUserId;
 
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
+		var gameUserId = authenticatedUserState.GameUserId;
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode, gameUserId, userAuthAndState.State);
+		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode, gameUserId, authenticatedUserState.State);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;

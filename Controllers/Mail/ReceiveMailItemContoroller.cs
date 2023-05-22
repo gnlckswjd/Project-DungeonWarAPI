@@ -25,10 +25,18 @@ public class ReceiveMailItemController : ControllerBase
     [HttpPost]
     public async Task<ReceiveMailItemResponse> Post(ReceiveMailItemRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new ReceiveMailItemResponse();
-        var gameUserId = userAuthAndState.GameUserId;
+
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+		var gameUserId = authenticatedUserState.GameUserId;
         var mailId = request.MailId;
+
         var errorCode = await _mailDataCRUD.UpdateMailStatusToReceivedAsync(gameUserId, mailId);
         if (errorCode != ErrorCode.None)
         {

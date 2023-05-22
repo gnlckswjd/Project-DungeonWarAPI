@@ -24,9 +24,16 @@ public class StageListController : ControllerBase
     [HttpPost]
     public async Task<StageListResponse> Post(StageListRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageListResponse();
-        var gameUserId = userAuthAndState.GameUserId;
+
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+		var gameUserId = authenticatedUserState.GameUserId;
 
         var (errorCode, maxClearedStage) = await _stageDataCRUD.LoadStageListAsync(gameUserId);
         if (errorCode != ErrorCode.None)

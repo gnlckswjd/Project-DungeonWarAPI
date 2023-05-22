@@ -2,7 +2,7 @@
 
 namespace DungeonWarAPI.Models.DTO.RequestResponse;
 
-public class InAppRequest
+public class ReceivePurchasedInAppItemRequest
 {
     public string ReceiptSerialCode { get; set; }
 
@@ -10,7 +10,7 @@ public class InAppRequest
 
 }
 
-public class InAppResponse
+public class ReceivePurchasedInAppItemResponse
 {
     public ErrorCode Error { get; set; }
 }

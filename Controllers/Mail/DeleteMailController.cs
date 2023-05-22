@@ -1,4 +1,5 @@
 ﻿using DungeonWarAPI.DatabaseAccess.Interfaces;
+using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +23,16 @@ public class DeleteMailController : Controller
     [HttpPost]
     public async Task<DeleteMailResponse> Post(DeleteMailRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new DeleteMailResponse();
 
-        var gameUserId = userAuthAndState.GameUserId;
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+		var gameUserId = authenticatedUserState.GameUserId;
         var mailId = request.MailId;
 
         var errorCode = await _mailDataCRUD.DeleteMailAsync(gameUserId, request.MailId);

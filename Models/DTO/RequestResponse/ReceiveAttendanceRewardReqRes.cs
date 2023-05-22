@@ -2,11 +2,11 @@
 
 namespace DungeonWarAPI.Models.DTO.RequestResponse;
 
-public class AttendanceRewardRequest
+public class ReceiveAttendanceRewardRequest
 {
 
 }
-public class AttendanceRewardResponse
+public class ReceiveAttendanceRewardResponse
 {
     public ErrorCode Error { get; set; }
 

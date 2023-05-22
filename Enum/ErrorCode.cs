@@ -1,6 +1,6 @@
 ﻿namespace DungeonWarAPI.Enum;
 
-public enum ErrorCode : int
+public enum ErrorCode : Int32
 {
 	None = 0,
 
@@ -246,6 +246,7 @@ public enum ErrorCode : int
 	LoadGoldFailSelect = 612,
 	NotEnoughGold = 613,
 
+	WrongAuthenticatedUserState= 911,
 
 	//미들웨어 관련
 	InvalidRequestHttpBody = 1000,

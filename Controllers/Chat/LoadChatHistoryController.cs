@@ -29,6 +29,12 @@ public class LoadChatHistoryController : Controller
 		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new LoadChatHistoryResponse();
 
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
 
 		var (errorCode, chatHistory) = await _memoryDatabase.LoadLatestChatHistoryAsync(key, request.MessageId);

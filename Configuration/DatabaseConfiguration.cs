@@ -2,7 +2,8 @@
 
 public class DatabaseConfiguration
 {
-    public string AccountDatabase { get; set; }
-    public string GameDatabase { get; set; }
-    public string Redis { get; set; }
+    public String AccountDatabase { get; set; }
+    public String GameDatabase { get; set; }
+    public String Redis { get; set; }
+
 }

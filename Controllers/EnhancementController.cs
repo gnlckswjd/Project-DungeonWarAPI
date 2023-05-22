@@ -37,6 +37,13 @@ public class EnhancementController : ControllerBase
 	{
 		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new EnhancementResponse();
+
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
 		var gameUserId = authenticatedUserState.GameUserId;
 		var itemId = request.ItemId;
 

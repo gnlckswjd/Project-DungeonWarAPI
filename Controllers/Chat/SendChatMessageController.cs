@@ -16,14 +16,12 @@ namespace DungeonWarAPI.Controllers.Chat;
 [ApiController]
 public class SendChatMessageController : ControllerBase
 {
-	private readonly MasterDataProvider _masterDataProvider;
 	private readonly IMemoryDatabase _memoryDatabase;
 	private readonly ILogger<SendChatMessageController> _logger;
 
-	public SendChatMessageController(ILogger<SendChatMessageController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider)
+	public SendChatMessageController(ILogger<SendChatMessageController> logger, IMemoryDatabase memoryDatabase)
 	{
 		_memoryDatabase = memoryDatabase;
-		_masterDataProvider = masterDataProvider;
 		_logger = logger;
 	}
 
@@ -32,7 +30,13 @@ public class SendChatMessageController : ControllerBase
 	{
 		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new SendChatResponse();
-		
+
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
 
 		ChatMessageSent chatMessageSent = new ChatMessageSent { Email = authenticatedUserState.Email ,Message = request.Message };

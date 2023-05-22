@@ -28,12 +28,18 @@ public class ReceiveAttendanceRewardController : ControllerBase
 	}
 
 	[HttpPost]
-	public async Task<AttendanceRewardResponse> Post(AttendanceRewardRequest request)
+	public async Task<ReceiveAttendanceRewardResponse> Post(ReceiveAttendanceRewardRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
-		var response = new AttendanceRewardResponse();
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var response = new ReceiveAttendanceRewardResponse();
 
-		var gameUserId = userAuthAndState.GameUserId;
+		if (authenticatedUserState == null)
+		{
+			response.Error = ErrorCode.WrongAuthenticatedUserState;
+			return response;
+		}
+
+		var gameUserId = authenticatedUserState.GameUserId;
 
 		var (errorCode, lastLoginDate, attendanceCount) = await _attendanceDataCRUD.UpdateLoginDateAsync(gameUserId);
 		if (errorCode != ErrorCode.None)

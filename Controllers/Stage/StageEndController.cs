@@ -32,15 +32,23 @@ public class StageEndController : ControllerBase
         _userDataCRUD = userDataCrud;
         _masterDataProvider = masterDataProvider;
         _logger = logger;
+
     }
 
     [HttpPost]
     public async Task<StageEndResponse> Post(StageEndRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageEndResponse();
-        var gameUserId = userAuthAndState.GameUserId;
-        var state = userAuthAndState.State;
+
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+		var gameUserId = authenticatedUserState.GameUserId;
+        var state = authenticatedUserState.State;
         var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
 
@@ -64,7 +72,7 @@ public class StageEndController : ControllerBase
 
         var userKey = MemoryDatabaseKeyGenerator.MakeUIDKey(request.Email);
 
-        errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.Lobby);
+        errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, authenticatedUserState, UserStateCode.Lobby);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
@@ -74,7 +82,7 @@ public class StageEndController : ControllerBase
         errorCode = await ProcessStageCompletionAsync(gameUserId, stageLevel, earnedExp, itemCodeAndCount);
         if (errorCode != ErrorCode.None)
         {
-            await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.InStage);
+            await _memoryDatabase.UpdateUserStateAsync(userKey, authenticatedUserState, UserStateCode.InStage);
             response.Error = errorCode;
             return response;
         }

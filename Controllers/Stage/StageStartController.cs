@@ -32,13 +32,19 @@ public class StageStartController : ControllerBase
     [HttpPost]
     public async Task<StageStartResponse> Post(StageStartRequest request)
     {
-        var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+        var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new StageStartResponse();
 
-        var gameUserId = userAuthAndState.GameUserId;
+        if (authenticatedUserState == null)
+        {
+	        response.Error = ErrorCode.WrongAuthenticatedUserState;
+	        return response;
+        }
+
+		var gameUserId = authenticatedUserState.GameUserId;
         var selectedStageLevel = request.SelectedStageLevel;
 
-        var errorCode = await CheckStageAccessibilityAsync(gameUserId, selectedStageLevel, userAuthAndState.State);
+        var errorCode = await CheckStageAccessibilityAsync(gameUserId, selectedStageLevel, authenticatedUserState.State);
         if (errorCode != 0)
         {
             response.Error = errorCode;
@@ -53,7 +59,7 @@ public class StageStartController : ControllerBase
             return response;
         }
 
-        errorCode = await StoreInitialStageDataAsync(userAuthAndState, itemList, npcList, selectedStageLevel);
+        errorCode = await StoreInitialStageDataAsync(authenticatedUserState, itemList, npcList, selectedStageLevel);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
