@@ -4,6 +4,7 @@ using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
+using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 
 
@@ -41,53 +42,31 @@ public class UserAuthentication
 
 			var bodyDocument = JsonDocument.Parse(requestBody);
 
-			String email;
-			String authToken;
-			String appVersion;
-			String masterDataVersion;
-			try
+			var( errorCode,  appVersion, masterDataVersion)= ExtractAppAndMasterDataVersion(bodyDocument,context);
+			if (errorCode != ErrorCode.None)
 			{
-				//JsonDocument에서 데이터 추출
-				email = bodyDocument.RootElement.GetProperty("Email").GetString();
-				authToken = bodyDocument.RootElement.GetProperty("AuthToken").GetString();
-				appVersion = bodyDocument.RootElement.GetProperty("AppVersion").GetString();
-				masterDataVersion = bodyDocument.RootElement.GetProperty("MasterDataVersion").GetString();
+				return;
 			}
-			catch (Exception e)
+
+			if (await IsWrongAppVersion(appVersion, context) || await IsWrongMasterDataVersion(masterDataVersion, context))
 			{
-				email = "";
-				authToken = "";
-
-				var jsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
-				{
-					Error = ErrorCode.InvalidRequestHttpBody
-				});
-
-				var bytes = Encoding.UTF8.GetBytes(jsonResponse);
-				context.Response.Body.Write(bytes, 0, bytes.Length);
-
 				return;
 			}
 
 			if (IsLoginOrCreaetAccount(context))
 			{
-
-				if (await IsWrongMasterDataVersion(masterDataVersion, context))
-				{
-					return;
-				}
-
-				if (await IsWrongAppVersion(appVersion, context))
-				{
-					return;
-				}
 				context.Request.Body.Position = 0;
 				await _next(context);
 				return;
 			}
 
-			var (errorCode, authUserData) = await _memoryDatabase.LoadAuthUserDataAsync(email);
+			(errorCode,var email, var authToken) = ExtractEmailAndAuthToken(bodyDocument, context);
+			if (errorCode != ErrorCode.None)
+			{
+				return;
+			}
 
+			(errorCode, var authUserData) = await _memoryDatabase.LoadAuthUserDataAsync(email);
 			if (errorCode != ErrorCode.None)
 			{
 				return;
@@ -98,19 +77,6 @@ public class UserAuthentication
 				return;
 			}
 
-
-			if (await IsWrongMasterDataVersion(masterDataVersion, context))
-			{
-				return;
-			}
-
-			if (await IsWrongAppVersion(appVersion, context))
-			{
-				return;
-			}
-
-
-			
 			userLockKey = MemoryDatabaseKeyGenerator.MakeUserLockKey(authUserData.Email);
 
 			var setLockError = await _memoryDatabase.LockUserRequestAsync(userLockKey, authToken);
@@ -135,6 +101,49 @@ public class UserAuthentication
 		await _memoryDatabase.UnLockUserRequestAsync(userLockKey);
 	}
 
+	(ErrorCode, String appVersion, String masterDataVersion) ExtractAppAndMasterDataVersion(JsonDocument bodyDocument, HttpContext context)
+	{
+		try
+		{
+			String appVersion = bodyDocument.RootElement.GetProperty("AppVersion").GetString();
+			String masterDataVersion = bodyDocument.RootElement.GetProperty("MasterDataVersion").GetString();
+			return (ErrorCode.None, appVersion, masterDataVersion);
+		}
+		catch (Exception e)
+		{
+			var jsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
+			{
+				Error = ErrorCode.InvalidRequestHttpBody
+			});
+
+			var bytes = Encoding.UTF8.GetBytes(jsonResponse);
+			context.Response.Body.Write(bytes, 0, bytes.Length);
+
+			return(ErrorCode.WrongAppVersionOrMasterDataVersion,"","");
+		}
+	}
+
+	(ErrorCode, String email, String authToken) ExtractEmailAndAuthToken(JsonDocument bodyDocument, HttpContext context)
+	{
+		try
+		{
+			String email = bodyDocument.RootElement.GetProperty("Email").GetString();
+			String authToken = bodyDocument.RootElement.GetProperty("AuthToken").GetString();	
+			return (ErrorCode.None, email, authToken);
+		}
+		catch (Exception e)
+		{
+			var jsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
+			{
+				Error = ErrorCode.InvalidRequestHttpBody
+			});
+
+			var bytes = Encoding.UTF8.GetBytes(jsonResponse);
+			context.Response.Body.Write(bytes, 0, bytes.Length);
+
+			return (ErrorCode.WrongAuthTokenRequest, "", "");
+		}
+	}
 
 	bool IsLoginOrCreaetAccount(HttpContext context)
 	{
@@ -174,7 +183,7 @@ public class UserAuthentication
 		{
 			var errorJsonResponse = JsonSerializer.Serialize(new AuthenticationResponse
 			{
-				Error = ErrorCode.WrongAppVersion
+				Error = ErrorCode.WrongAppVersionOrMasterDataVersion
 			});
 			var bytes = Encoding.UTF8.GetBytes(errorJsonResponse);
 			await context.Response.Body.WriteAsync(bytes, 0, bytes.Length);

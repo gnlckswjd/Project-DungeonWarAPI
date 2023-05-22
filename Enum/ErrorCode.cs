@@ -250,7 +250,7 @@ public enum ErrorCode : Int32
 
 	//미들웨어 관련
 	InvalidRequestHttpBody = 1000,
-	WrongAppVersion = 1001,
+	WrongAppVersionOrMasterDataVersion = 1001,
 	WrongMasterDataVersion = 1002,
 	WrongAuthTokenRequest = 1003,
 
