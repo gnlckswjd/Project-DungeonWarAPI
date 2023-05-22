@@ -28,7 +28,7 @@
 
 ## 기능
 - 모든 요청은 POST 요청입니다.
-- 모든 요청은 `AppVersion' 과 `MasterDataVersion`을 포함해야 합니다.
+- 모든 요청은 `AppVersion` 과 `MasterDataVersion`을 포함해야 합니다.
 - `CreatAccount`와 `Login`을 제외한 요청은 추가로 `Email`과 `AuthToken`을 포함해야합니다.
 
 ### 계정 생성
@@ -329,3 +329,6 @@ public class ChannelChangeResponse
 	public ErrorCode Error { get; set; }
 }
 ```
+
+## 회고
+- [블로그](https://velog.io/@oak_cassia/series/%EC%BB%B4%ED%88%AC%EC%8A%A4-%EC%84%9C%EB%B2%84%EC%BA%A0%ED%8D%BC%EC%8A%A41%EA%B8%B0)
