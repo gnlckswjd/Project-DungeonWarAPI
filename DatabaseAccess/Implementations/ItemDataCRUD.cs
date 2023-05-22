@@ -88,7 +88,10 @@ public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 
 	public async Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<MailItem> items)
 	{
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "InsertItem Start");
+
 		List<Func<Task>> rollbackActions = new List<Func<Task>>();
+
 		try
 		{
 			foreach (var item in items)
@@ -121,8 +124,10 @@ public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 
 	public async Task<ErrorCode> InsertItemsAsync(Int32 gameUserId, List<(Int32, Int32)> itemCodeList)
 	{
-		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "ReceiveRewardItem Start");
+		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId }, "InsertItem Start");
+
 		List<Func<Task>> rollbackActions = new List<Func<Task>>();
+
 		try
 		{
 			foreach (var (itemCode, itemCount) in itemCodeList)
@@ -133,22 +138,19 @@ public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 				{
 					await RollbackReceiveItemAsync(rollbackActions);
 
-					_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertItemFailInsert, GameUserId = gameUserId },
-						"InsertItemFailInsert");
+					_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertItemFailInsert, GameUserId = gameUserId }, "InsertItemFailInsert");
 
 					return ErrorCode.InsertItemFailInsert;
 				}
 			}
-
-
+			
 			return ErrorCode.None;
 		}
 		catch (Exception e)
 		{
 
 			await RollbackReceiveItemAsync(rollbackActions);
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId },
-				"InsertItemFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId }, "InsertItemFailException");
 
 			return ErrorCode.InsertItemFailException;
 		}

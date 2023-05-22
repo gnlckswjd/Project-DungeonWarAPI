@@ -69,7 +69,7 @@ public class AccountDataCRUD : IAccountDataCRUD
 				return (ErrorCode.CreateAccountFailDuplicate, 0);
 			}
 
-			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.CreateAccountFailDuplicate }, 
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.CreateAccountFailException }, 
 				$"CreateAccount Exception");
 
 			return new(ErrorCode.CreateAccountFailException, 0);

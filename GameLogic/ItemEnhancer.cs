@@ -4,9 +4,10 @@ namespace DungeonWarAPI.GameLogic;
 
 public static class ItemEnhancer
 {
-	private static Int32 cost = 500;
+	private const Int32 cost = 500;
 
-	private static Double interestRate = 1.1;
+	private const Double interestRate = 1.1;
+
 	public static (ErrorCode, Int32 cost)VerifyEnhancementPossibilityAndGetCost(Int32 maxEnhancementCount, Int32 enhancementCount, Int32 attributeCode, Int64 gold)
     {
         if (maxEnhancementCount == -1)
