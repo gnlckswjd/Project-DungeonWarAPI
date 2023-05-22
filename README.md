@@ -4,6 +4,8 @@
 
 
 ## 프로젝트 개요
+컴투스 서버캠퍼스 1기에 참여하며 만든 **웹 서버 방식의 게임서버**입니다.
+
 ### 사용 기술
 - <img src="https://img.shields.io/badge/-ASP.NET%20Core%207.0-brightgreen"> 
 - <img src="https://img.shields.io/badge/-MySql%208.0.31.0-yellow">
