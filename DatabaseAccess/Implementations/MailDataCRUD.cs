@@ -168,7 +168,6 @@ public class MailDataCRUD : DatabaseAccessBase, IMailDataCRUD
 	{
 		_logger.ZLogDebugWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "DeleteMail Start");
 
-
 		try
 		{
 			var count = await _queryFactory.Query("mail")

@@ -60,14 +60,17 @@ public class StageStartController : ControllerBase
             return response;
         }
 
-        response.ItemList = itemList;
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, StageLevel = request.SelectedStageLevel },
+	        "StageStart Success");
+
+
+		response.ItemList = itemList;
         response.NpcList = npcList.ToList();
         response.Error = ErrorCode.None;
         return response;
     }
 
-    private async Task<ErrorCode> CheckStageAccessibilityAsync(int gameUserId, int selectedStageLevel,
-        UserStateCode state)
+    private async Task<ErrorCode> CheckStageAccessibilityAsync(Int32 gameUserId, Int32 selectedStageLevel, UserStateCode state)
     {
         if (state != UserStateCode.Lobby)
         {
@@ -92,7 +95,7 @@ public class StageStartController : ControllerBase
     }
 
     private async Task<ErrorCode> StoreInitialStageDataAsync(AuthenticatedUserState authenticatedUserState,
-        List<StageItem> itemList, List<StageNpc> npcList, int selectedStageLevel)
+        List<StageItem> itemList, List<StageNpc> npcList, Int32 selectedStageLevel)
     {
         var stageKey = MemoryDatabaseKeyGenerator.MakeStageKey(authenticatedUserState.Email);
         var stageKeyValueList = StageInitializer.CreateInitialKeyValue(itemList, npcList, selectedStageLevel);

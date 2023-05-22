@@ -59,7 +59,8 @@ public class LoginController : ControllerBase
 			return response;
 		}
 
-		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId = playerId }, "Login Success");
+		_logger.ZLogInformationWithPayload(new { Email = request.Email, AuthToken = authToken, AccountId = playerId }, 
+			"Login Success");
 
 		response.Error = errorCode;
 		response.UserLevel = userData.UserLevel;

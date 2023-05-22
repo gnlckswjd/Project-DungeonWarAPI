@@ -3,6 +3,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Mail;
 
@@ -27,18 +28,18 @@ public class ReceiveMailItemController : ControllerBase
         var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new ReceiveMailItemResponse();
         var gameUserId = userAuthAndState.GameUserId;
-
-        var errorCode = await _mailDataCRUD.UpdateMailStatusToReceivedAsync(gameUserId, request.MailId);
+        var mailId = request.MailId;
+        var errorCode = await _mailDataCRUD.UpdateMailStatusToReceivedAsync(gameUserId, mailId);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
             return response;
         }
 
-        (errorCode, var items) = await _mailDataCRUD.LoadMailItemsAsync(gameUserId, request.MailId);
+        (errorCode, var items) = await _mailDataCRUD.LoadMailItemsAsync(gameUserId, mailId);
         if (errorCode != ErrorCode.None)
         {
-            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
+            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, mailId);
             response.Error = errorCode;
             return response;
         }
@@ -46,13 +47,14 @@ public class ReceiveMailItemController : ControllerBase
         errorCode = await _itemDataCRUD.InsertItemsAsync(gameUserId, items);
         if (errorCode != ErrorCode.None)
         {
-            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, request.MailId);
+            await _mailDataCRUD.RollbackMarkMailItemAsReceiveAsync(gameUserId, mailId);
             response.Error = errorCode;
             return response;
         }
 
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, MailId=mailId }, "ReceiveMailItem Success");
 
-        response.Error = errorCode;
+		response.Error = errorCode;
         return response;
     }
 }

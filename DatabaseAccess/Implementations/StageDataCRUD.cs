@@ -34,6 +34,7 @@ public class StageDataCRUD : DatabaseAccessBase, IStageDataCRUD
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.LoadUserStageFailSelect, GameUserId = gameUserId },
 					"LoadUserStageFailSelect");
+
 				return (ErrorCode.LoadUserStageFailSelect, 0);
 			}
 
@@ -47,8 +48,6 @@ public class StageDataCRUD : DatabaseAccessBase, IStageDataCRUD
 			return (ErrorCode.LoadUserStageFailException, 0);
 		}
 	}
-
-
 
 	public async Task<ErrorCode> RollbackUpdateExpAsync(Int32 gameUserId, Int32 level, Int32 exp)
 	{
@@ -87,9 +86,11 @@ public class StageDataCRUD : DatabaseAccessBase, IStageDataCRUD
 
 		try
 		{
-			var count = await _queryFactory.Query("user_stage").Where("GameUserId", "=", gameUserId)
+			var count = await _queryFactory.Query("user_stage")
+				.Where("GameUserId", "=", gameUserId)
 				.Where("MaxClearedStage", "<", clearLevel)
 				.IncrementAsync("MaxClearedStage", 1);
+
 			if (count == 0)
 			{
 				return (ErrorCode.None, false);
@@ -124,7 +125,8 @@ public class StageDataCRUD : DatabaseAccessBase, IStageDataCRUD
 
 		try
 		{
-			var count = await _queryFactory.Query("user_stage").Where("GameUserId", "=", gameUserId)
+			var count = await _queryFactory.Query("user_stage")
+				.Where("GameUserId", "=", gameUserId)
 				.DecrementAsync("MaxClearedStage", 1);
 
 			if (count != 1)

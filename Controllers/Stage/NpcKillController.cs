@@ -32,8 +32,7 @@ public class NpcKillController : Controller
 
 		var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-		var (errorCode, npcKillCount, maxNpcCount) =
-			await LoadKillAndMaxNpcCountAsync(key, request.NpcCode, gameUserId, userAuthAndState.State);
+		var (errorCode, npcKillCount, maxNpcCount) = await LoadKillAndMaxNpcCountAsync(key, request.NpcCode, gameUserId, userAuthAndState.State);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
@@ -52,6 +51,9 @@ public class NpcKillController : Controller
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, NpcCode = request.NpcCode, KillCount = npcKillCount },
+			"NpcKill Success");
 
 		response.Error = ErrorCode.None;
 		return response;

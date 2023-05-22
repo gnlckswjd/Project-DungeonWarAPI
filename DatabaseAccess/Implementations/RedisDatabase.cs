@@ -17,9 +17,14 @@ namespace DungeonWarAPI.DatabaseAccess.Implementations;
 
 public class RedisDatabase : IMemoryDatabase
 {
-	private RedisConnection _redisConnection;
-	private ILogger<RedisDatabase> _logger;
-	private ChatRoomAllocator _chatRoomAllocator;
+	private readonly RedisConnection _redisConnection;
+	private readonly ILogger<RedisDatabase> _logger;
+	private readonly ChatRoomAllocator _chatRoomAllocator;
+
+	private readonly TimeSpan _lockExpirationTime = TimeSpan.FromSeconds(3);
+	private readonly TimeSpan _stageExpirationTime = TimeSpan.FromMinutes(15);
+	private readonly TimeSpan _loginExpirationTime = TimeSpan.FromMinutes(60);
+	private readonly TimeSpan _chatExpirationTime = TimeSpan.FromMinutes(120);
 
 	public RedisDatabase(IOptions<DatabaseConfiguration> configuration, ILogger<RedisDatabase> logger,
 		ChatRoomAllocator chatRoomAllocator)
@@ -122,10 +127,9 @@ public class RedisDatabase : IMemoryDatabase
 		_logger.ZLogDebugWithPayload(new { Key = key }, "SetUserRequestLock Start");
 		try
 		{
-			var redis = new RedisString<String>(_redisConnection, key, TimeSpan.FromSeconds(3));
+			var redis = new RedisString<String>(_redisConnection, key, _lockExpirationTime);
 
-			if (await redis.SetAsync(authToken, TimeSpan.FromSeconds(3),
-				    StackExchange.Redis.When.NotExists) == false)
+			if (await redis.SetAsync(authToken, _lockExpirationTime, StackExchange.Redis.When.NotExists) == false)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrroCode = ErrorCode.LockUserRequestFailISet }, "LockUserRequestFailISet");
 
@@ -177,7 +181,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			if (await redis.ExistsAsync() == true)
 			{
@@ -210,7 +214,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var stageLevel = await redis.GetAsync(field);
 			if (!stageLevel.HasValue)
@@ -235,11 +239,12 @@ public class RedisDatabase : IMemoryDatabase
 	public async Task<(ErrorCode, Int32 itemAcquisitionCount)> LoadItemAcquisitionCountAsync(String key, Int32 itemCode)
 	{
 		_logger.ZLogDebugWithPayload(new { Key = key, NpcCode = itemCode }, "LoadItemAcquisitionCount Start");
+
 		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var value = await redis.GetAsync(field);
 
@@ -267,7 +272,7 @@ public class RedisDatabase : IMemoryDatabase
 		var field = MemoryDatabaseKeyGenerator.MakeStageItemKey(itemCode);
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			if (await redis.ExistsAsync(field) == false)
 			{
@@ -303,7 +308,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var value = await redis.GetAsync(field);
 
@@ -330,7 +335,7 @@ public class RedisDatabase : IMemoryDatabase
 		var field = MemoryDatabaseKeyGenerator.MakeStageNpcKey(npcCode);
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var value = await redis.IncrementAsync(field, 1);
 
@@ -356,7 +361,7 @@ public class RedisDatabase : IMemoryDatabase
 	{
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var dictionary = await redis.GetAllAsync();
 
@@ -382,7 +387,7 @@ public class RedisDatabase : IMemoryDatabase
 		_logger.ZLogDebugWithPayload(new { Key = key }, "DeleteStageData Start");
 		try
 		{
-			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, TimeSpan.FromMinutes(15));
+			var redis = new RedisDictionary<String, Int32>(_redisConnection, key, _stageExpirationTime);
 
 			var errorCode = await DeleteStageDataAsync(redis, key);
 			if (errorCode != ErrorCode.None)
@@ -409,7 +414,7 @@ public class RedisDatabase : IMemoryDatabase
 		{
 			authenticatedUserState.State = stateCode;
 
-			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, TimeSpan.FromMinutes(60));
+			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, _loginExpirationTime);
 			if (await redis.SetAsync(authenticatedUserState) == false)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateUserStateFailSet, Key = key }, "UpdateUserStateFailSet");
@@ -445,7 +450,7 @@ public class RedisDatabase : IMemoryDatabase
 				return ErrorCode.InsertChatMessageFailInsert;
 			}
 
-			await db.KeyExpireAsync(key, TimeSpan.FromHours(2));
+			await db.KeyExpireAsync(key, _chatExpirationTime);
 
 			return ErrorCode.None;
 		}
@@ -474,7 +479,6 @@ public class RedisDatabase : IMemoryDatabase
 			{
 				chatStreamEntries = await db.StreamRangeAsync(key, MessageId, "+", count: 1, messageOrder: Order.Ascending);
 			}
-
 
 			if (!chatStreamEntries.Any())
 			{
@@ -593,7 +597,7 @@ public class RedisDatabase : IMemoryDatabase
 
 		try
 		{
-			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, TimeSpan.FromMinutes(60));
+			var redis = new RedisString<AuthenticatedUserState>(_redisConnection, key, _loginExpirationTime);
 			if (await redis.SetAsync(authenticatedUserState) == false)
 			{
 				_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.UpdateAuthenticatedUserStateFailSet, Key = key }, "UpdateAuthenticatedUserStateFailSet");

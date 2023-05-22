@@ -6,6 +6,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Chat;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Chat;
 
@@ -29,12 +30,16 @@ public class LoadChatHistoryController : Controller
 		var response = new LoadChatHistoryResponse();
 
 		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
+
 		var (errorCode, chatHistory) = await _memoryDatabase.LoadLatestChatHistoryAsync(key, request.MessageId);
 		if (errorCode != ErrorCode.None)
 		{
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = authenticatedUserState.GameUserId, Channel = authenticatedUserState.ChannelNumber,MessageId = request.MessageId },
+			"LoadChatHistory Success");
 
 		response.ChatHistory = chatHistory;
 		response.Error = ErrorCode.None;

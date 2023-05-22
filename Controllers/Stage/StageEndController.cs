@@ -43,27 +43,27 @@ public class StageEndController : ControllerBase
         var state = userAuthAndState.State;
         var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-        var (errorCode, dictionary) = await LoadStageDataIfUserInStageAsync(key, gameUserId, state);
+
+        var (errorCode, itemCodeAndCount, npcCodeAndCount, stageLevel) = await LoadStageDataAsync(key, gameUserId, state);
         if (errorCode != ErrorCode.None)
         {
-            response.Error = errorCode;
-            return response;
+	        response.Error = errorCode;
+	        return response;
         }
 
-        var (itemCodeAndCount, npcCodeAndCount, stageLevel) = StageDataParser.ParseStageData(dictionary);
+		var stageNpcList = _masterDataProvider.GetStageNpcList(stageLevel);
 
-        var stageNpcList = _masterDataProvider.GetStageNpcList(stageLevel);
         var (isCleared, earnedExp) = StageRequestVerifier.VerifyClearAndCalcExp(stageNpcList, npcCodeAndCount);
-
         if (isCleared == false)
         {
-            //await _memoryDatabase.DeleteStageDataAsync(key);
+            await _memoryDatabase.DeleteStageDataAsync(key);
             response.IsCleared = isCleared;
             response.Error = ErrorCode.None;
             return response;
         }
 
         var userKey = MemoryDatabaseKeyGenerator.MakeUIDKey(request.Email);
+
         errorCode = await _memoryDatabase.UpdateUserStateAsync(userKey, userAuthAndState, UserStateCode.Lobby);
         if (errorCode != ErrorCode.None)
         {
@@ -79,31 +79,36 @@ public class StageEndController : ControllerBase
             return response;
         }
 
-        await _memoryDatabase.DeleteStageDataAsync(key);
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, StageLevel = stageLevel },
+	        "StageEnd Success");
+
+		await _memoryDatabase.DeleteStageDataAsync(key);
         response.IsCleared = isCleared;
         response.Error = ErrorCode.None;
         return response;
     }
 
-    private async Task<(ErrorCode, Dictionary<string, int>)> LoadStageDataIfUserInStageAsync(string key, int gameUserId, UserStateCode state)
+    private async Task<(ErrorCode, List<(Int32, Int32)>, List<(Int32, Int32)>, Int32)> LoadStageDataAsync(String key, Int32 gameUserId, UserStateCode state)
     {
         if (state != UserStateCode.InStage)
         {
             _logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.WrongUserState, GameUserId = gameUserId },
                 "CheckStageAccessibility");
-            return (ErrorCode.WrongUserState, new Dictionary<string, int>());
+
+            return (ErrorCode.WrongUserState, default, default, 0);
         }
 
         var (errorCode, dictionary) = await _memoryDatabase.LoadStageDataAsync(key);
         if (errorCode != ErrorCode.None)
         {
-            return (errorCode, new Dictionary<string, int>());
+            return (errorCode, default, default, 0);
         }
+		var(itemCodeAndCount, npcCodeAndCount, stageLevel) =StageDataParser.ParseStageData(dictionary);
 
-        return (ErrorCode.None, dictionary);
+		return (ErrorCode.None, itemCodeAndCount, npcCodeAndCount, stageLevel);
     }
 
-    private async Task<ErrorCode> ProcessStageCompletionAsync(int gameUserId, int stageLevel, int earnedExp, List<(int, int)> itemCodeAndCount)
+    private async Task<ErrorCode> ProcessStageCompletionAsync(Int32 gameUserId, Int32 stageLevel, Int32 earnedExp, List<(Int32, Int32)> itemCodeAndCount)
     {
         var (errorCode, isIncrement) = await _stageDataCRUD.IncreaseMaxClearedStageAsync(gameUserId, stageLevel);
         if (errorCode != ErrorCode.None)
@@ -111,7 +116,7 @@ public class StageEndController : ControllerBase
             return errorCode;
         }
 
-        (errorCode, int existingLevel, int existingExp) = await _userDataCRUD.UpdateExpAsync(gameUserId, earnedExp);
+        (errorCode, Int32 existingLevel, Int32 existingExp) = await _userDataCRUD.UpdateExpAsync(gameUserId, earnedExp);
         if (errorCode != ErrorCode.None)
         {
             await _stageDataCRUD.RollbackIncreaseMaxClearedStageAsync(gameUserId, isIncrement);
@@ -119,7 +124,6 @@ public class StageEndController : ControllerBase
             return errorCode;
         }
 
-        //우편함에 주는 것 고려 정책
         errorCode = await _itemDataCRUD.InsertItemsAsync(gameUserId, itemCodeAndCount);
         if (errorCode != ErrorCode.None)
         {

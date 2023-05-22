@@ -4,6 +4,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Stage;
 
@@ -12,14 +13,11 @@ namespace DungeonWarAPI.Controllers.Stage;
 public class StageListController : ControllerBase
 {
     private readonly IStageDataCRUD _stageDataCRUD;
-    private readonly MasterDataProvider _masterDataProvider;
     private readonly ILogger<StageListController> _logger;
 
-    public StageListController(ILogger<StageListController> logger, MasterDataProvider masterDataProvider,
-        IStageDataCRUD stageDataCRUD)
+    public StageListController(ILogger<StageListController> logger, IStageDataCRUD stageDataCRUD)
     {
         _stageDataCRUD = stageDataCRUD;
-        _masterDataProvider = masterDataProvider;
         _logger = logger;
     }
 
@@ -37,7 +35,10 @@ public class StageListController : ControllerBase
             return response;
         }
 
-        response.MaxClearedStage = maxClearedStage;
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, MaxClearedStageLevel = maxClearedStage },
+	        "StageList Success");
+
+		response.MaxClearedStage = maxClearedStage;
         response.Error = ErrorCode.None;
         return response;
     }

@@ -17,7 +17,6 @@ public static class StageRequestVerifier
 		foreach (var stageNpc in stageNpcs)
 		{
 			var killedNpc = killedNpcCodeAndCount.FirstOrDefault(npcCodeAndCount => npcCodeAndCount.Item1 == stageNpc.NpcCode);
-
 			if (killedNpc.Item2 != stageNpc.NpcCount)
 			{
 				return (false, 0);

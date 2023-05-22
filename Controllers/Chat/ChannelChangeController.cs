@@ -4,6 +4,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Chat;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Chat;
 
@@ -34,6 +35,9 @@ public class ChannelChangeController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = userAuthAndState.GameUserId, ChangedChannel = request.ChannelNumber  },
+			"ChannelChange Success");
 
 		response.Error = ErrorCode.None;
 		return response;

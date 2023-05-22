@@ -7,6 +7,8 @@ using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Models.DTO.RequestResponse.Chat;
 using DungeonWarAPI.Models.DTO.RequestResponse.Stage;
 using DungeonWarAPI.Models.DAO.Redis;
+using DungeonWarAPI.Models.Database.Game;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Chat;
 
@@ -28,11 +30,12 @@ public class SendChatMessageController : ControllerBase
 	[HttpPost]
 	public async Task<SendChatResponse> Post(SendChatRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new SendChatResponse();
 		
-		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(userAuthAndState.ChannelNumber);
-		ChatMessageSent chatMessageSent = new ChatMessageSent { Email = userAuthAndState.Email ,Message = request.Message };
+		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
+
+		ChatMessageSent chatMessageSent = new ChatMessageSent { Email = authenticatedUserState.Email ,Message = request.Message };
 
 		var errorCode = await _memoryDatabase.InsertChatMessageAsync(key, chatMessageSent);
 		if (errorCode != ErrorCode.None)
@@ -40,6 +43,8 @@ public class SendChatMessageController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = authenticatedUserState.GameUserId, Channel = authenticatedUserState.ChannelNumber, }, "SendChatMessage Success");
 
 		response.Error = ErrorCode.None;
 		return response;

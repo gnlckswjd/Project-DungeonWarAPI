@@ -4,6 +4,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -49,6 +50,9 @@ public class InAppController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId=gameUserId, Receipt = request.ReceiptSerialCode, PackageId=request.PackageId},
+			"InApp Success");
 
 		response.Error = ErrorCode.None;
 		return response;

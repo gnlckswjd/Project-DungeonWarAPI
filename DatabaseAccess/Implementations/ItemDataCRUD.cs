@@ -100,12 +100,7 @@ public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 				{
 					await RollbackReceiveItemAsync(rollbackActions);
 
-					_logger.ZLogErrorWithPayload(
-						new
-						{
-							ErrorCode = ErrorCode.InsertItemFailInsert,
-							GameUserId = gameUserId
-						},
+					_logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.InsertItemFailInsert, GameUserId = gameUserId },
 						"InsertItemFailInsert");
 
 					return ErrorCode.InsertItemFailInsert;
@@ -150,10 +145,11 @@ public class ItemDataCRUD : DatabaseAccessBase, IItemDATACRUD
 		}
 		catch (Exception e)
 		{
+
 			await RollbackReceiveItemAsync(rollbackActions);
-			_logger.ZLogErrorWithPayload(e,
-				new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId }
-				, "InsertItemFailException");
+			_logger.ZLogErrorWithPayload(e, new { ErrorCode = ErrorCode.InsertItemFailException, GameUserId = gameUserId },
+				"InsertItemFailException");
+
 			return ErrorCode.InsertItemFailException;
 		}
 	}

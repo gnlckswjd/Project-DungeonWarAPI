@@ -19,8 +19,7 @@ public class ItemAcquisitionController : ControllerBase
     private readonly IMemoryDatabase _memoryDatabase;
     private readonly ILogger<ItemAcquisitionController> _logger;
 
-    public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase,
-        MasterDataProvider masterDataProvider,
+    public ItemAcquisitionController(ILogger<ItemAcquisitionController> logger, IMemoryDatabase memoryDatabase, MasterDataProvider masterDataProvider,
         IStageDataCRUD stageDataCRUD)
     {
         _memoryDatabase = memoryDatabase;
@@ -40,39 +39,42 @@ public class ItemAcquisitionController : ControllerBase
 
         var key = MemoryDatabaseKeyGenerator.MakeStageKey(request.Email);
 
-        var (errorCode, currentItemCount, maxItemCount) =
-            await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, userAuthAndState.State);
+        var (errorCode, currentItemCount, maxItemCount) = await LoadAcquisitionAndMaxItemCountAsync(key, itemCode, gameUserId, userAuthAndState.State);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
             return response;
         }
 
-        (errorCode, var itemCount) =
-            StageRequestVerifier.VerifyItemCount(itemCode, currentItemCount, request.ItemCount, maxItemCount);
+        (errorCode, var totalAcquisitionCount) = StageRequestVerifier.VerifyItemCount(itemCode, currentItemCount, request.ItemCount, maxItemCount);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
             return response;
         }
 
-        errorCode = await _memoryDatabase.IncrementItemCountAsync(key, itemCode, itemCount);
+        errorCode = await _memoryDatabase.IncrementItemCountAsync(key, itemCode, totalAcquisitionCount);
         if (errorCode != ErrorCode.None)
         {
             response.Error = errorCode;
             return response;
         }
 
-        response.Error = ErrorCode.None;
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, ItemCode = request.ItemCode, CurrentItemCount = totalAcquisitionCount },
+			"ItemAcquisition Success");
+
+		response.Error = ErrorCode.None;
         return response;
     }
 
-    private async Task<(ErrorCode, int currentItemCount, int maxItemSpawnCount)> LoadAcquisitionAndMaxItemCountAsync(string key, int itemCode, int gameUserId, UserStateCode state)
+    private async Task<(ErrorCode, Int32 currentItemCount, Int32 maxItemSpawnCount)> LoadAcquisitionAndMaxItemCountAsync(String key, Int32 itemCode, Int32 gameUserId, UserStateCode state)
     {
         if (state != UserStateCode.InStage)
         {
             _logger.ZLogErrorWithPayload(new { ErrorCode = ErrorCode.WrongUserState, GameUserId = gameUserId },
                 "CheckStageAccessibility");
+
             return (ErrorCode.WrongUserState, 0, 0);
         }
 

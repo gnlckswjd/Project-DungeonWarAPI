@@ -6,6 +6,7 @@ using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Chat;
 using DungeonWarAPI.Enum;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Chat;
 
@@ -27,10 +28,10 @@ public class LoadLatestChatMessageController : ControllerBase
 	[HttpPost]
 	public async Task<LoadLatestChatMessageResponse> Post(LoadLatestChatMessageRequest request)
 	{
-		var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
+		var authenticatedUserState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
 		var response = new LoadLatestChatMessageResponse();
 
-		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(userAuthAndState.ChannelNumber);
+		var key = MemoryDatabaseKeyGenerator.MakeChannelKey(authenticatedUserState.ChannelNumber);
 
 
 		var (errorCode, chatMessageReceived )= await _memoryDatabase.LoadLatestChatMessageAsync(key,request.MessageId);
@@ -39,6 +40,8 @@ public class LoadLatestChatMessageController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = authenticatedUserState.GameUserId, Channel = authenticatedUserState.ChannelNumber, MessageId = request.MessageId }, "LoadLatestChatMessage Success");
 
 		response.Error = ErrorCode.None;
 		response.ChatMessage=chatMessageReceived;

@@ -5,19 +5,20 @@ using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-public class AttendanceRewardController : ControllerBase
+public class ReceiveAttendanceRewardController : ControllerBase
 {
 	private readonly IAttendanceDataCRUD _attendanceDataCRUD;
 	private readonly IMailDataCRUD _mailDataCRUD;
 	private readonly MasterDataProvider _masterDataProvider;
-	private readonly ILogger<AttendanceRewardController> _logger;
+	private readonly ILogger<ReceiveAttendanceRewardController> _logger;
 
-	public AttendanceRewardController(ILogger<AttendanceRewardController> logger, MasterDataProvider masterDataProvider,
+	public ReceiveAttendanceRewardController(ILogger<ReceiveAttendanceRewardController> logger, MasterDataProvider masterDataProvider,
 		IAttendanceDataCRUD attendanceDataCRUD, IMailDataCRUD mailDataCRUD)
 	{
 		_attendanceDataCRUD = attendanceDataCRUD;
@@ -60,6 +61,9 @@ public class AttendanceRewardController : ControllerBase
 			response.Error=errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, AttendanceCount= attendanceCount},
+			"ReceiveAttendanceReward Success");
 
 		response.Error = ErrorCode.None;
 		return response;

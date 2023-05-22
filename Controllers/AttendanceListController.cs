@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -37,6 +38,9 @@ public class AttendanceListController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, AttendanceCount=attendanceCount },
+			"AttendanceList Success");
 
 		response.AttendanceCount= attendanceCount;
 		response.Error = ErrorCode.None;

@@ -3,6 +3,7 @@ using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Mail;
 
@@ -25,9 +26,10 @@ public class ReadMailController : ControllerBase
         var userAuthAndState = HttpContext.Items[nameof(AuthenticatedUserState)] as AuthenticatedUserState;
         var response = new ReadMailResponse();
 
-        var ownerId = userAuthAndState.GameUserId;
+        var gameUserId = userAuthAndState.GameUserId;
+        var mailId = request.MailId;
 
-        var (errorCode, content) = await _mailDataCRUD.ReadMailAsync(ownerId, request.MailId);
+        var (errorCode, content) = await _mailDataCRUD.ReadMailAsync(gameUserId, request.MailId);
 
         if (errorCode != ErrorCode.None)
         {
@@ -35,7 +37,9 @@ public class ReadMailController : ControllerBase
             return response;
         }
 
-        response.Error = errorCode;
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId, MailId = mailId }, "ReadMail Success");
+
+		response.Error = errorCode;
         response.Content = content;
         return response;
     }

@@ -4,6 +4,7 @@ using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.DTO.Payloads;
 using DungeonWarAPI.Models.DTO.RequestResponse.Mail;
 using Microsoft.AspNetCore.Mvc;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers.Mail;
 
@@ -49,7 +50,9 @@ public class MailListController : ControllerBase
             mailsWithItems.Add(new MailWithItems(mail, items));
         }
 
-        response.MailWithItemsList = mailsWithItems;
+        _logger.ZLogInformationWithPayload(new { GameUserId = gameUserId }, "ReceiveMailItem Success");
+
+		response.MailWithItemsList = mailsWithItems;
         return response;
     }
 }

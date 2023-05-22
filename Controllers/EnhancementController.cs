@@ -8,6 +8,7 @@ using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using ZLogger;
 
 namespace DungeonWarAPI.Controllers;
 
@@ -82,6 +83,9 @@ public class EnhancementController : ControllerBase
 			response.Error = errorCode;
 			return response;
 		}
+
+		_logger.ZLogInformationWithPayload(new { GameUserId=gameUserId, ItemId = request.ItemId, IsSuccess=isSuccess}, 
+			"Enhancement Success");
 
 		response.Error = ErrorCode.None;
 		response.EnhancementResult = isSuccess;
