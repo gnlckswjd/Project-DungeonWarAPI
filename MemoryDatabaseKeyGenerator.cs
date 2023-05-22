@@ -1,6 +1,4 @@
-﻿using DungeonWarAPI.Enum;
-
-namespace DungeonWarAPI;
+﻿namespace DungeonWarAPI;
 
 public class MemoryDatabaseKeyGenerator
 {

@@ -4,7 +4,6 @@ using DungeonWarAPI.DatabaseAccess;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.Models.DAO.Redis;
-using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 
 

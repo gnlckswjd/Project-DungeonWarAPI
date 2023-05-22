@@ -1,5 +1,4 @@
 ﻿using DungeonWarAPI.DatabaseAccess;
-using DungeonWarAPI.DatabaseAccess.Implementations;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.Enum;
 using DungeonWarAPI.GameLogic;
@@ -7,7 +6,6 @@ using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.Database.Game;
 using DungeonWarAPI.Models.DTO.RequestResponse;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using ZLogger;
 
 namespace DungeonWarAPI.Controllers;

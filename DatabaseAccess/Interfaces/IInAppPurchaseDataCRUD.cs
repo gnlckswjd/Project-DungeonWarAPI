@@ -1,5 +1,4 @@
 ﻿using DungeonWarAPI.Enum;
-using DungeonWarAPI.Models.Database.Game;
 
 namespace DungeonWarAPI.DatabaseAccess.Interfaces;
 

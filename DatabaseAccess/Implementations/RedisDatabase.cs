@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CloudStructures;
 using CloudStructures.Structures;
 using DungeonWarAPI.DatabaseAccess.Interfaces;
@@ -8,7 +7,6 @@ using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.ModelConfiguration;
 using DungeonWarAPI.Models.DAO.Redis;
 using DungeonWarAPI.Models.Database.Game;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using ZLogger;

@@ -5,12 +5,10 @@ using DungeonWarAPI.DatabaseAccess.Interfaces;
 using DungeonWarAPI.GameLogic;
 using DungeonWarAPI.Middleware;
 using DungeonWarAPI.ModelConfiguration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SqlKata.Compilers;
 using SqlKata.Execution;
-using StackExchange.Redis;
 using ZLogger;
 
 var builder = WebApplication.CreateBuilder(args);
